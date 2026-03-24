@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  incidencias-service:
+    build: ./incidencias-service
+    container_name: sprint3-incidencias
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka-server
+    networks:
+      - red-generador
+
+  usuarios-service:
+    build: ./usuarios-service
+    container_name: sprint3-usuarios
+    ports:
+      - "8081:8081"
+    depends_on:
+      - incidencias-service
+      - eureka-server
+    networks:
+      - red-generador
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: sprint3-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - usuarios-service
+      - incidencias-service
+      - eureka-server
+    networks:
+      - red-generador
+
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - red-generador
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  red-generador:
+      driver: bridge

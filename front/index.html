@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastFingers</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <button id="theme-toggle" class="theme-toggle">🌙</button>
+
+    <section id="login-screen" class="screen active">
+        <div class="login-container">
+            <h1>FastFingers ⌨️</h1>
+            <input type="text" id="username" placeholder="Usuario (admin / alumno)">
+            <input type="password" id="password" placeholder="Contraseña (1234 / agora)">
+            <button id="btn-login">Entrar</button>
+            <p id="error-msg" class="hidden error-text">Credenciales incorrectas</p>
+        </div>
+    </section>
+
+    <section id="dashboard-screen" class="screen hidden">
+        <header>
+            <div class="user-info">
+                <h2>Hola, <span id="user-display">Jugador</span></h2>
+                <div class="credits-badge">🪙 <span id="user-credits">0</span></div>
+            </div>
+            <button id="btn-logout" class="logout-btn">Salir</button>
+        </header>
+        
+        <div class="menu-grid">
+            <div id="card-play" class="card playable">
+                <h3>⚡ Contrarreloj</h3>
+                <p>Gana créditos jugando.</p>
+            </div>
+            
+            <div id="card-profile" class="card playable">
+                <h3>👤 Mi Perfil</h3>
+                <p>Inventario y Admin.</p>
+            </div>
+
+            <div id="card-shop" class="card playable shop-card">
+                <h3>🛒 Tienda</h3>
+                <p>Comprar cosméticos.</p>
+            </div>
+
+            <div class="card locked">
+                <h3>🔒 Battle Royale</h3>
+                <p>Próximamente</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="game-screen" class="screen hidden">
+        <div class="game-ui">
+            <div class="stats-bar">
+                <div>⏳ <span id="timer">60</span>s</div>
+                <div>🏆 <span id="score">0</span></div>
+            </div>
+            <div class="phrase-container"><p id="phrase-display">...</p></div>
+            <div class="input-area"><input type="text" id="game-input"></div>
+            <button id="btn-abort" class="back-btn">Cancelar</button>
+        </div>
+    </section>
+
+    <section id="results-screen" class="screen hidden">
+        <div class="score-reveal-box">
+            <div class="score-title">Puntuación</div>
+            <div id="final-score" class="big-score">0</div>
+            <div class="credits-earned">🪙 +<span id="earned-credits">0</span></div>
+        </div>
+        <div class="actions">
+            <button id="btn-retry" class="final-action-btn">🔄 Jugar</button>
+            <button id="btn-menu" class="final-action-btn">🏠 Menú</button>
+        </div>
+        <div id="history-list" class="history-container-scroll"></div>
+    </section>
+
+    <section id="profile-screen" class="screen hidden">
+        <div class="shop-container"> <header class="shop-header">
+                <h2>👤 Tu Perfil</h2>
+                <div class="credits-display">Saldo: 🪙 <span id="profile-credits">0</span></div>
+            </header>
+
+            <div id="admin-panel" class="admin-panel hidden">
+                <h3>⚙️ Administración</h3>
+                <div class="admin-controls">
+                    <input type="text" id="admin-user-target" placeholder="Usuario">
+                    <input type="number" id="admin-credits-amount" placeholder="Cantidad">
+                    <button id="btn-add-credits">Añadir</button>
+                </div>
+            </div>
+
+            <h3>🎒 Tu Inventario (Equipar)</h3>
+            <div id="inventory-list" class="items-grid">
+                </div>
+
+            <button id="btn-back-profile" class="back-btn">Volver al Menú</button>
+        </div>
+    </section>
+
+    <section id="shop-screen" class="screen hidden">
+        <div class="shop-container">
+            <header class="shop-header">
+                <h2>🛒 Tienda de Objetos</h2>
+                <div class="credits-display">Saldo: 🪙 <span id="shop-credits">0</span></div>
+            </header>
+
+            <div class="search-box">
+                <input type="text" id="shop-search" placeholder="🔍 Buscar cosmético...">
+            </div>
+
+            <div id="shop-list" class="items-grid">
+                </div>
+
+            <button id="btn-back-shop" class="back-btn">Volver al Menú</button>
+        </div>
+    </section>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
