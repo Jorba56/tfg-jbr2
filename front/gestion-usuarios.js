@@ -1,4 +1,4 @@
-const token = localStorage.getItem('token');
+const token = localStorage.getItem('jwt_token');
 if (!token) window.top.location.href = 'index.html';
 
 const API_URL = 'http://localhost:8080';
@@ -110,6 +110,63 @@ async function cargarUsuarios() {
         tabla.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-bold">Fallo de red al conectar.</td></tr>`;
     }
 }
+
+let usuarioSeleccionadoParaCreditos = null;
+
+window.abrirModalCreditos = function(idUsuario, nombreUsuario) {
+    usuarioSeleccionadoParaCreditos = idUsuario;
+    document.getElementById('modal-nombre-usuario').innerText = nombreUsuario;
+    document.getElementById('modal-input-cantidad').value = ''; // Limpiar input
+    document.getElementById('modal-creditos').classList.remove('hidden');
+    document.getElementById('modal-input-cantidad').focus();
+};
+
+window.cerrarModalCreditos = function() {
+    usuarioSeleccionadoParaCreditos = null;
+    document.getElementById('modal-creditos').classList.add('hidden');
+};
+
+document.getElementById('btn-confirmar-creditos').addEventListener('click', async () => {
+    if (!usuarioSeleccionadoParaCreditos) return;
+
+    const cantidadInput = document.getElementById('modal-input-cantidad').value;
+    const cantidad = parseInt(cantidadInput);
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+        alert("Por favor, introduce un número válido mayor que 0.");
+        return;
+    }
+
+    try {
+        // Opcional: Feedback visual de carga
+        const btn = document.getElementById('btn-confirmar-creditos');
+        btn.innerText = "Cargando...";
+        btn.disabled = true;
+
+        const response = await fetch(`http://localhost:8080/usuarios/${usuarioSeleccionadoParaCreditos}/creditos?cantidad=${cantidad}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(`¡Éxito! ${data.mensaje}`);
+            cerrarModalCreditos();
+            // cargarUsuarios(); // Descomenta esto si quieres que la tabla se refresque entera
+        } else {
+            const errorMsg = await response.text();
+            alert(`Error: ${errorMsg || 'No se pudieron añadir los créditos.'}`);
+        }
+    } catch (error) {
+        console.error("Fallo al añadir créditos:", error);
+        alert("Fallo de red al intentar contactar con el servidor.");
+    } finally {
+        // Restaurar botón
+        const btn = document.getElementById('btn-confirmar-creditos');
+        btn.innerText = "Ingresar";
+        btn.disabled = false;
+    }
+});
 
 window.exportarExcelUsuarios = async function() {
     try {
@@ -467,7 +524,7 @@ window.borrarRol = async function(id) {
     try {
         const response = await fetch(`${API_URL}/roles/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: {'Authorization': `Bearer ${token}`}
         });
 
         if (response.ok) {
@@ -478,34 +535,71 @@ window.borrarRol = async function(id) {
             try {
                 const errorJson = JSON.parse(errorText);
                 alert(`Atención: ${errorJson.message || errorJson.error}`);
-            } catch (e) { alert(`Error del servidor al desactivar el rol (${response.status}).`); }
+            } catch (e) {
+                alert(`Error del servidor al desactivar el rol (${response.status}).`);
+            }
         }
-    } catch (error) { alert("Fallo de red al intentar desactivar el rol."); }
+    } catch (error) {
+        alert("Fallo de red al intentar desactivar el rol.");
+    }
 
-    window.anadirCreditos = async function(idUsuario) {
-        // 1. Preguntamos al administrador la cantidad
-        const cantidadStr = prompt("¿Cuántos créditos quieres ingresar en la cuenta de este usuario? (Ej: 100)");
+    let usuarioSeleccionadoParaCreditos = null;
 
-        if (cantidadStr === null) return; // Si le da a cancelar
+// 1. Abrir el modal cuando se pulsa el botón de la moneda en la tabla
+    window.anadirCreditos = function (idUsuario) {
+        usuarioSeleccionadoParaCreditos = idUsuario;
 
-        const cantidad = parseInt(cantidadStr);
+        // Ponemos el ID en el texto del modal
+        document.getElementById('modal-nombre-usuario').innerText = "ID #" + idUsuario;
+        document.getElementById('modal-input-cantidad').value = ''; // Limpiar el campo
+
+        // Mostrar el modal quitando la clase 'hidden'
+        document.getElementById('modal-creditos').classList.remove('hidden');
+
+        // Poner el foco en el input para poder escribir directamente
+        setTimeout(() => document.getElementById('modal-input-cantidad').focus(), 100);
+    };
+
+// 2. Cerrar el modal (botón Cancelar o X)
+    window.cerrarModalCreditos = function () {
+        usuarioSeleccionadoParaCreditos = null;
+        document.getElementById('modal-creditos').classList.add('hidden');
+    };
+
+// 3. Enviar los créditos a Spring Boot al pulsar "Ingresar"
+    document.getElementById('btn-confirmar-creditos').addEventListener('click', async () => {
+        if (!usuarioSeleccionadoParaCreditos) return;
+
+        const cantidadInput = document.getElementById('modal-input-cantidad').value;
+        const cantidad = parseInt(cantidadInput);
+
+        // Validación básica
         if (isNaN(cantidad) || cantidad <= 0) {
             alert("Por favor, introduce un número válido mayor que 0.");
             return;
         }
 
         try {
-            // 2. Disparamos la petición PUT a tu nuevo endpoint de Java
-            const response = await fetch(`${API_URL}/usuarios/${idUsuario}/creditos?cantidad=${cantidad}`, {
+            // Feedback visual (Cambiamos el botón a "Cargando...")
+            const btn = document.getElementById('btn-confirmar-creditos');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Cargando...';
+            btn.disabled = true;
+
+            // Petición real al Backend (Asegúrate de que la ruta y el token son correctos)
+            const response = await fetch(`http://localhost:8080/usuarios/${usuarioSeleccionadoParaCreditos}/creditos?cantidad=${cantidad}`, {
                 method: 'PUT',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                 }
             });
 
             if (response.ok) {
                 const data = await response.json();
                 alert(`¡Éxito! ${data.mensaje}`);
+                cerrarModalCreditos();
+
+                // Opcional: Si tienes una función cargarUsuarios() que refresca la tabla, llámala aquí
+                // cargarUsuarios();
             } else {
                 const errorMsg = await response.text();
                 alert(`Error: ${errorMsg || 'No se pudieron añadir los créditos. ¿Tienes permisos de ADMIN?'}`);
@@ -513,9 +607,13 @@ window.borrarRol = async function(id) {
         } catch (error) {
             console.error("Fallo al añadir créditos:", error);
             alert("Fallo de red al intentar contactar con el servidor.");
+        } finally {
+            // Restaurar el botón a su estado original
+            const btn = document.getElementById('btn-confirmar-creditos');
+            btn.innerHTML = '<i class="fas fa-check mr-2"></i> Ingresar';
+            btn.disabled = false;
         }
-    }
-};
-
+    });
+}
 // Arrancamos en la pestaña por defecto
 cargarUsuarios();

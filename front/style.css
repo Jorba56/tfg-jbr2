@@ -445,6 +445,94 @@ body.light-mode .score-reveal-box {
         height: 35px;
     }
 }
+/* ========================================== */
+/* ESTILOS ESPECÍFICOS PARA EL PANEL DE ADMIN */
+/* ========================================== */
+
+/* Tabla de Administración */
+.admin-table-container {
+    overflow-x: auto;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--text-secondary);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.admin-table th, .admin-table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(170, 170, 170, 0.2);
+    text-align: left;
+}
+
+.admin-table th {
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--primary);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.admin-table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.light-mode .admin-table th {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .admin-table tr:hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+/* Botones de Acción en la Tabla */
+.action-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-left: 10px;
+    width: auto;
+    padding: 5px;
+    display: inline-block;
+}
+
+.action-btn:hover { transform: scale(1.2); }
+.btn-coin { color: #ffd700; }
+.btn-edit { color: var(--primary); }
+.btn-roles { color: #a29bfe; }
+.btn-delete { color: var(--error); }
+
+/* Modal Overlay (Fondo Oscuro) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    width: 90%;
+    max-width: 400px;
+    margin: 0;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid var(--primary);
+}
 
 /* AJUSTE PARA MÓVILES MUY PEQUEÑOS (iPhone SE, etc.) */
 @media (max-width: 380px) {

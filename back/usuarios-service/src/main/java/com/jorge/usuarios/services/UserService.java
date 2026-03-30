@@ -9,6 +9,7 @@ import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -93,4 +94,8 @@ public interface UserService {
     Map<String, Object> comprarItem(String emailUsuario, Long itemId) throws com.jorge.usuarios.exceptions.BadRequestException;
 
     Map<String, Object> sumarCreditosAdmin(Long idUsuario, int cantidad) throws BadRequestException;
+
+    List<UsersAllDTO> obtenerTodosLosUsuarios(String sortBy, String sortDir);
+
+    Page<UsersAllDTO> obtenerTodosLosUsuariosPaginados(int page, int size, String sortBy, String sortDir);
 }

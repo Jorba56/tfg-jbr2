@@ -11,12 +11,20 @@ import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
 import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.services.impl.UserServiceImpl;
+import com.jorge.usuarios.utils.UsuarioExcelExporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,6 +79,51 @@ public class UserController {
     @PutMapping("/{id}")
     public String updateUser(@PathVariable Long id, @RequestBody User usuario, Authentication authentication) throws BadRequestException {
         return userServiceImpl.actualizarUsuario(id, usuario, authentication);
+    }
+
+    /**
+     * Exporta el registro completo de usuarios del sistema a un archivo Excel (.xlsx).
+     *
+     * @param response Objeto {@link HttpServletResponse} para escribir el archivo de salida.
+     * @throws IOException Si ocurre un error durante la generación del documento.
+     */
+    @Operation(summary = "Exportar lista de todos los usuarios a Excel", description = "Descarga un archivo .xlsx con el registro completo de usuarios del sistema.")
+    @PreAuthorize("hasAuthority('ADMIN')") // Tiene sentido que esto solo lo haga el admin general
+    @GetMapping("/exportar/excel")
+    public void exportarUsuariosAExcel(HttpServletResponse response) throws IOException {
+
+        response.setContentType("application/octet-stream");
+        DateFormat formateador = new SimpleDateFormat("yyyy-MM-dd_HH:mm");
+        String fechaActual = formateador.format(new Date());
+
+        String cabeceraClave = "Content-Disposition";
+        String cabeceraValor = "attachment; filename=usuarios_sistema_" + fechaActual + ".xlsx";
+        response.setHeader(cabeceraClave, cabeceraValor);
+
+        List<UsersAllDTO> usuarios = userServiceImpl.obtenerTodosLosUsuarios("nombreUsuario", "asc");
+
+        UsuarioExcelExporter exportador = new UsuarioExcelExporter(usuarios);
+        exportador.exportar(response);
+    }
+        /**
+         * Recupera una lista paginada de todos los usuarios del sistema, con opciones de ordenación.
+         *
+         * @param page Número de la página (comienza en 0).
+         * @param size Cantidad de usuarios por página.
+         * @param sortBy Campo de la entidad para ordenar los resultados.
+         * @param sortDir Dirección de ordenación ("asc" o "desc").
+         * @return {@link ResponseEntity} con una página de {@link UsersAllDTO}.
+         */
+    @Operation(summary = "Listar usuarios paginados", description = "Devuelve los usuarios en páginas.")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/paginados")
+    public ResponseEntity<Page<UsersAllDTO>> getUsuariosPaginados(
+            @RequestParam(value = "page", defaultValue = "0", required = false) int page,
+            @RequestParam(value = "size", defaultValue = "10", required = false) int size,
+            @RequestParam(value = "sortBy", defaultValue = "nombreUsuario", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir) {
+
+        return ResponseEntity.ok(userServiceImpl.obtenerTodosLosUsuariosPaginados(page, size, sortBy, sortDir));
     }
 
     /**

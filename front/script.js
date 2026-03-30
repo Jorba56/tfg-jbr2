@@ -132,7 +132,7 @@ const app = {
 
         // LÓGICA DE ADMIN: Mostrar la tarjeta solo si el usuario es "admin"
         const adminCard = document.getElementById('card-admin');
-        if (app.currentUser.username.toLowerCase() === 'admin') {
+        if (app.currentUser.isAdmin === true) {
             adminCard.classList.remove('hidden');
         } else {
             adminCard.classList.add('hidden');
