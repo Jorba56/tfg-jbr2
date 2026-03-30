@@ -4,6 +4,7 @@ import com.jorge.usuarios.dto.RolPostUser;
 import com.jorge.usuarios.dto.UserAddDTO;
 import com.jorge.usuarios.dto.UserIdDTo;
 import com.jorge.usuarios.dto.UsersAllDTO;
+import com.jorge.usuarios.entity.Item;
 import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.exceptions.BadRequestException;
@@ -11,6 +12,7 @@ import com.jorge.usuarios.exceptions.DuplicateException;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interfaz que define las operaciones de negocio para la gestión de Usuarios.
@@ -85,4 +87,10 @@ public interface UserService {
      * @return Mensaje de confirmación.
      */
     String deleteRolUser(Long idUser, Long idRol);
+
+    List<Item> listarTienda();
+
+    Map<String, Object> comprarItem(String emailUsuario, Long itemId) throws com.jorge.usuarios.exceptions.BadRequestException;
+
+    Map<String, Object> sumarCreditosAdmin(Long idUsuario, int cantidad) throws BadRequestException;
 }

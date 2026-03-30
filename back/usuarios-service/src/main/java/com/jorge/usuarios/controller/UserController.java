@@ -1,5 +1,6 @@
 package com.jorge.usuarios.controller;
 
+import com.jorge.usuarios.entity.Item;
 import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.dto.RolPostUser;
@@ -8,9 +9,11 @@ import com.jorge.usuarios.dto.UsersAllDTO;
 
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
+import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.services.impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
@@ -26,9 +29,11 @@ import java.util.List;
 public class UserController {
 
     private final UserServiceImpl userServiceImpl;
+    private final ItemRepository itemRepository;
 
-    public UserController(UserServiceImpl userServiceImpl) {
+    public UserController(UserServiceImpl userServiceImpl, ItemRepository itemRepository) {
         this.userServiceImpl = userServiceImpl;
+        this.itemRepository = itemRepository;
     }
 
     /**
@@ -57,8 +62,8 @@ public class UserController {
      * Endpoint para actualizar los datos de un usuario en el sistema.
      * Protegido por autenticación JWT. La lógica de negocio determina los permisos exactos basándose en el token.
      *
-     * @param id Identificador del usuario a modificar, obtenido de la ruta (URL).
-     * @param usuario Objeto JSON recibido en el cuerpo de la petición con los nuevos datos.
+     * @param id             Identificador del usuario a modificar, obtenido de la ruta (URL).
+     * @param usuario        Objeto JSON recibido en el cuerpo de la petición con los nuevos datos.
      * @param authentication Información de sesión inyectada automáticamente por Spring Security.
      * @return Cadena de texto confirmando la edición exitosa.
      */
@@ -75,7 +80,7 @@ public class UserController {
     @Operation(summary = "Desactivar usuario", description = "Realiza un borrado lógico del usuario especificado cambiando su estado activo a false.")
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
-    public String deleteUser (@PathVariable Long id){
+    public String deleteUser(@PathVariable Long id) {
         return userServiceImpl.desactivarUsuario(id);
     }
 
@@ -86,7 +91,7 @@ public class UserController {
     @Operation(summary = "Ver roles de un usuario", description = "Obtiene la lista de los roles de seguridad que tiene asignados un usuario en concreto.")
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}/roles")
-    public List<Rol> rolesUser(@PathVariable Long id){
+    public List<Rol> rolesUser(@PathVariable Long id) {
         return userServiceImpl.rolesUser(id);
     }
 
@@ -98,7 +103,7 @@ public class UserController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/{id}/roles")
     public String userAddRol(@PathVariable Long id, @RequestBody RolPostUser idRol) throws DuplicateException {
-        return userServiceImpl.addRolUser(id,idRol);
+        return userServiceImpl.addRolUser(id, idRol);
     }
 
     /**
@@ -108,7 +113,42 @@ public class UserController {
     @Operation(summary = "Revocar rol a un usuario", description = "Elimina la asociación de un rol específico con un usuario.")
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{idUsuario}/roles/{idRol}") //Quitarle un rol a un usuario
-    public String deleteRolUser (@PathVariable Long idRol, @PathVariable Long idUsuario) {
-        return userServiceImpl.deleteRolUser(idUsuario, idRol );
+    public String deleteRolUser(@PathVariable Long idRol, @PathVariable Long idUsuario) {
+        return userServiceImpl.deleteRolUser(idUsuario, idRol);
+    }
+
+    @Operation(summary = "Comprar objeto", description = "El usuario autenticado compra un objeto y se le restan los créditos.")
+    @PostMapping("/buy/{itemId}")
+    public ResponseEntity<?> comprarObjeto(@PathVariable Long itemId, Authentication authentication) {
+        try {
+            // Spring Security ya sabe quién eres gracias al Token, sacamos el email directamente
+            String emailUsuario = authentication.getName();
+
+            // Delegamos la lógica al servicio
+            return ResponseEntity.ok(userServiceImpl.comprarItem(emailUsuario, itemId));
+
+        } catch (BadRequestException e) {
+            // Si no tiene saldo o ya tiene el objeto, devolvemos un 400 con el motivo
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error interno al procesar la compra");
+        }
+    }
+
+    @Operation(summary = "Listar tienda", description = "Devuelve todos los items disponibles para comprar.")
+    @GetMapping("/tienda")
+    public List<Item> getTienda() {
+        return userServiceImpl.listarTienda();
+    }
+
+    @Operation(summary = "Añadir créditos", description = "Un administrador añade créditos a un usuario.")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/{id}/creditos")
+    public ResponseEntity<?> addCreditos(@PathVariable Long id, @RequestParam int cantidad) {
+        try {
+            return ResponseEntity.ok(userServiceImpl.sumarCreditosAdmin(id, cantidad));
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

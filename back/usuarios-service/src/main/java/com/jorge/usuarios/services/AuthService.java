@@ -18,5 +18,5 @@ public interface AuthService {
      * @throws BadRequestException Si las credenciales son incorrectas.
      * @throws ConflictException Si la cuenta del usuario está desactivada.
      */
-    Map<String, String> login(LoginDTO loginDto) throws BadRequestException, ConflictException;
+    Map<String, Object> login(LoginDTO loginDto) throws BadRequestException, ConflictException;
 }

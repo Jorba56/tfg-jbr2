@@ -1,46 +1,46 @@
 version: '3.8'
 
 services:
-  incidencias-service:
+  incidencias-service-tfg:
     build: ./incidencias-service
-    container_name: sprint3-incidencias
+    container_name: proyecto-incidencias
     ports:
       - "8082:8082"
     depends_on:
-      - eureka-server
+      - eureka-server-tfg
     networks:
-      - red-generador
+      - red-tfg
 
-  usuarios-service:
+  usuarios-service-tfg:
     build: ./usuarios-service
-    container_name: sprint3-usuarios
+    container_name: proyecto-usuarios
     ports:
       - "8081:8081"
     depends_on:
-      - incidencias-service
-      - eureka-server
+      - incidencias-service-tfg
+      - eureka-server-tfg
     networks:
-      - red-generador
+      - red-tfg
 
-  api-gateway:
+  api-gateway-tfg:
     build: ./api-gateway
-    container_name: sprint3-gateway
+    container_name: proyecto-gateway
     ports:
       - "8080:8080"
     depends_on:
-      - usuarios-service
-      - incidencias-service
-      - eureka-server
+      - usuarios-service-tfg
+      - incidencias-service-tfg
+      - eureka-server-tfg
     networks:
-      - red-generador
+      - red-tfg
 
-  eureka-server:
+  eureka-server-tfg:
     build: ./eureka-server
-    container_name: eureka-server
+    container_name: eureka-server-tfg
     ports:
       - "8761:8761"
     networks:
-      - red-generador
+      - red-tfg
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8761/actuator/health" ]
       interval: 10s
@@ -48,5 +48,5 @@ services:
       retries: 5
 
 networks:
-  red-generador:
+  red-tfg:
       driver: bridge

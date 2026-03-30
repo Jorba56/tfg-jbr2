@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.jorge</groupId>
-        <artifactId>generador-examenes-back</artifactId>
+        <artifactId>back</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 

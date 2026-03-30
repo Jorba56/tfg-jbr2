@@ -59,7 +59,7 @@ class AuthControllerTest {
         loginDto.setEmailUsuario("paco@gmail.com");
         loginDto.setContrasenhaUsuario("12345");
 
-        Map<String, String> respuestaEsperada = new HashMap<>();
+        Map<String, Object> respuestaEsperada = new HashMap<>();
         respuestaEsperada.put("token", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIi...TokenFalso");
 
 

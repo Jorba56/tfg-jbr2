@@ -4,6 +4,7 @@ const app = {
     // --- ESTADO (Igual) ---
     currentUser: null,
     currentPhrase: null,
+    phraseBuffer: [],
     score: 0,
     timeLeft: 60,
     timerInterval: null,
@@ -23,10 +24,20 @@ const app = {
         });
         const target = document.getElementById(screenId);
         target.classList.remove('hidden');
-        if(screenId === 'results-screen') target.style.display = 'flex';
+        if (screenId === 'results-screen') target.style.display = 'flex';
         else {
             target.style.display = 'block';
             target.classList.add('active');
+        }
+    },
+    restoreSession: () => {
+        const perfilJson = localStorage.getItem('currentUser');
+        if (perfilJson) {
+            app.currentUser = JSON.parse(perfilJson);
+            // Si por alguna razón el inventario no existe, le ponemos un array vacío
+            if (!app.currentUser.inventario) app.currentUser.inventario = [];
+
+            app.updateUserUI();
         }
     },
 
@@ -35,43 +46,75 @@ const app = {
         const userVal = document.getElementById('username').value.trim();
         const passVal = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('error-msg');
-        
+
+        // 1. Pequeña validación antes de molestar al servidor
+        if (!userVal || !passVal) {
+            errorMsg.innerText = "Por favor, rellena ambos campos.";
+            errorMsg.classList.remove('hidden');
+            return;
+        }
+
         try {
-            // Petición real a Backend en Docker (API Gateway o Usuarios Service)
-            const response = await fetch('http://localhost:8080/auth/login', { 
+            // Opcional: Feedback visual mientras el servidor piensa
+            const btnLogin = document.getElementById('btn-login');
+            const originalText = btnLogin.innerText;
+            btnLogin.innerText = "Conectando...";
+            btnLogin.disabled = true;
+
+            const response = await fetch('http://localhost:8080/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    correo_usuario: userVal, 
-                    contrasenha_usuario: passVal 
+                body: JSON.stringify({
+                    correo_usuario: userVal,
+                    contrasenha_usuario: passVal
                 })
             });
 
-            if (!response.ok) {
-                throw new Error("Credenciales inválidas");
+            // Restauramos el botón
+            btnLogin.innerText = originalText;
+            btnLogin.disabled = false;
+
+            if (!response.ok) throw new Error("Credenciales inválidas");
+
+            // Leemos el JSON una única vez
+            const data = await response.json();
+
+            // Guardamos la llave de la API
+            localStorage.setItem('jwt_token', data.token);
+
+            // 2. EL TRUCO DEL INVENTARIO:
+            // Si Java manda números [1, 2], lo convertimos a objetos [{idItem: 1}, {idItem: 2}]
+            // para que no haya problemas de compatibilidad con la tienda.
+            let inventarioSeguro = [];
+            if (data.inventario && Array.isArray(data.inventario)) {
+                inventarioSeguro = data.inventario.map(item => {
+                    return (typeof item === 'object') ? item : { id_item: item };
+                });
             }
 
-            // Extraemos el Token JWT
-            const data = await response.json(); 
-            
-            // Guardamos el token en el navegador
-            localStorage.setItem('jwt_token', data.token); 
-
-            // Montamos el usuario activo
+            // 3. Montamos el usuario en la memoria RAM
             app.currentUser = {
-                username: userVal,
-                creditos: data.creditos || 0, 
-                inventario: [], 
-                isAdmin: false 
+                username: data.username,
+                creditos: data.creditos || 0,
+                inventario: inventarioSeguro,
+                // AHORA LEE EL ROL REAL DE LA BASE DE DATOS
+                isAdmin: data.isAdmin === true
             };
 
-            // Actualizamos la interfaz y pasamos al Dashboard
+            // 4. GUARDADO EN DISCO: Guardamos el perfil para sobrevivir al F5
+            localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
+
+            // 5. Actualizamos la interfaz y cambiamos de pantalla
             app.updateUserUI();
             app.showScreen('dashboard-screen');
             errorMsg.classList.add('hidden');
 
+            // 6. Pre-cargamos las frases de la IA en la sombra
+            app.fetchMorePhrases();
+
         } catch (error) {
-            console.error(error);
+            console.error("Fallo de inicio de sesión:", error);
+            errorMsg.innerText = "Credenciales inválidas o servidor desconectado.";
             errorMsg.classList.remove('hidden');
         }
     },
@@ -80,10 +123,20 @@ const app = {
 
     updateUserUI: () => {
         if(!app.currentUser) return;
+
+        // Actualizar textos
         document.getElementById('user-display').innerText = app.currentUser.username;
         document.getElementById('user-credits').innerText = app.currentUser.creditos;
-        document.getElementById('shop-credits').innerText = app.currentUser.creditos;
         document.getElementById('profile-credits').innerText = app.currentUser.creditos;
+        document.getElementById('shop-credits').innerText = app.currentUser.creditos;
+
+        // LÓGICA DE ADMIN: Mostrar la tarjeta solo si el usuario es "admin"
+        const adminCard = document.getElementById('card-admin');
+        if (app.currentUser.username.toLowerCase() === 'admin') {
+            adminCard.classList.remove('hidden');
+        } else {
+            adminCard.classList.add('hidden');
+        }
     },
 
     // --- LÓGICA DE JUEGO (Resumida para centrar en Tienda) ---
@@ -102,13 +155,75 @@ const app = {
             if(app.timeLeft <= 0) app.endGame();
         }, 1000);
     },
-    
-    loadNewPhrase: () => {
-        const randomIndex = Math.floor(Math.random() * frasesRepository.length);
-        app.currentPhrase = frasesRepository[randomIndex];
-        document.getElementById('phrase-display').innerText = app.currentPhrase.texto;
-        document.getElementById('game-input').value = "";
-        document.getElementById('game-input').style.borderColor = "var(--text-secondary)";
+
+    // --- NUEVA CARGA DE FRASE CON IA ---
+    loadNewPhrase: async () => {
+        const display = document.getElementById('phrase-display');
+        const input = document.getElementById('game-input');
+
+        // Si hay frases en la recámara, sacamos una e iniciamos YA
+        if (app.phraseBuffer && app.phraseBuffer.length > 0) {
+            const textoSacado = app.phraseBuffer.shift();
+            app.currentPhrase = { texto: textoSacado };
+            display.innerText = app.currentPhrase.texto;
+
+            display.style.opacity = "1";
+            input.disabled = false;
+            input.value = "";
+            input.focus();
+
+            // Si quedan pocas frases, pedimos más en segundo plano (sin await)
+            if (app.phraseBuffer.length <= 2) {
+                app.fetchMorePhrases();
+            }
+            return;
+        }
+
+        // Si no hay frases (solo pasará si el usuario es muy rápido nada más loguearse)
+        display.innerText = "🤖 Generando frases...";
+        await app.fetchMorePhrases();
+        app.loadNewPhrase();
+    },
+
+    fetchMorePhrases: async () => {
+        try {
+            const timestamp = new Date().getTime();
+            const response = await fetch(`http://localhost:8080/incidencias/game/frase?dificultad=media&t=${timestamp}`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+            });
+
+            if (!response.ok) throw new Error("Error en la petición");
+
+            let textoBruto = await response.text();
+
+            // 1. Limpieza total de caracteres extraños y saltos de línea
+            textoBruto = textoBruto.replace(/[\r\n]+/g, " ").trim();
+
+            // 2. Separar por el símbolo '|'
+            const partes = textoBruto.split('|');
+
+            // 3. Limpiar cada frase individualmente y filtrar
+            const nuevasFrases = partes
+                .map(f => f.trim())
+                // Eliminamos frases que empiecen por números o puntos (basura de IA)
+                .map(f => f.replace(/^[0-9.\-\s]+/, ""))
+                // Filtro de calidad: Solo frases con sentido (más de 25 caracteres)
+                // y que no sean el último trozo vacío si la IA puso un '|' al final
+                .filter(f => f.length > 25);
+
+            if (!app.phraseBuffer) app.phraseBuffer = [];
+
+            // Añadimos las frases limpias a la recámara
+            app.phraseBuffer.push(...nuevasFrases);
+
+            console.log("Frases añadidas con éxito:", nuevasFrases);
+
+        } catch (error) {
+            console.error("Fallo al procesar frases de la IA:", error);
+            // Backup por si acaso
+            app.phraseBuffer.push("La tecnología blockchain asegura la integridad de los datos digitales");
+        }
     },
     
     checkInput: () => {
@@ -186,154 +301,173 @@ const app = {
 
 
     // --- NUEVO: PERFIL (Inventario + Admin) ---
+    // --- PERFIL E INVENTARIO (Conectado a la BBDD) ---
     openProfile: () => {
         app.updateUserUI();
-        
-        // 1. Mostrar Panel Admin si corresponde
-        const adminPanel = document.getElementById('admin-panel');
-        if(app.currentUser.isAdmin) adminPanel.classList.remove('hidden');
-        else adminPanel.classList.add('hidden');
 
-        // 2. Renderizar Inventario (Solo lo comprado)
+        // Pintar los objetos reales de la BBDD
         const inventoryList = document.getElementById('inventory-list');
         inventoryList.innerHTML = "";
 
-        if(app.currentUser.inventario.length === 0) {
+        if(!app.currentUser.inventario || app.currentUser.inventario.length === 0) {
             inventoryList.innerHTML = '<p class="empty-msg">Tu inventario está vacío.</p>';
         } else {
-            app.currentUser.inventario.forEach(itemId => {
-                const item = catalogoCosmeticos.find(c => c.id === itemId);
-                if(item) {
-                    const isEquipped = app.currentUser.colorTema === item.id;
-                    inventoryList.innerHTML += `
-                        <div class="shop-item">
-                            <h4>${item.nombre}</h4>
-                            <span class="desc">${item.tipo}</span>
-                            <button class="${isEquipped ? 'btn-equipped' : 'btn-equip'}" onclick="app.equipItem('${item.id}')">
-                                ${isEquipped ? 'Equipado' : 'Equipar'}
-                            </button>
-                        </div>
-                    `;
-                }
+            app.currentUser.inventario.forEach(item => {
+                const idDelObjeto = item.id_item || item.idItem;
+                const isEquipped = app.currentUser.colorTema === idDelObjeto;
+
+                inventoryList.innerHTML += `
+                    <div class="shop-item">
+                        <h4>${item.nombre || 'Objeto Misterioso'}</h4>
+                        <button class="${isEquipped ? 'btn-equipped' : 'btn-equip'}" onclick="app.equipItem(${idDelObjeto})">
+                            ${isEquipped ? 'Equipado' : 'Equipar'}
+                        </button>
+                    </div>
+                `;
             });
         }
         app.showScreen('profile-screen');
     },
 
-    // --- NUEVO: TIENDA (Catálogo + Buscador) ---
-    openShop: () => {
-        app.updateUserUI();
-        document.getElementById('shop-search').value = ""; // Limpiar buscador
-        app.renderShopItems(catalogoCosmeticos); // Mostrar todo al inicio
-        app.showScreen('shop-screen');
+    equipItem: (id_item) => {
+        app.currentUser.colorTema = id_item;
+        localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
+        alert("¡Objeto equipado!");
+        app.openProfile(); // Recargar la vista
     },
 
-    // Función de renderizado que acepta un array (para poder filtrar)
-    renderShopItems: (itemsToRender) => {
-        const shopList = document.getElementById('shop-list');
-        shopList.innerHTML = "";
+    // --- TIENDA (Conectada a la BBDD) ---
+    openShop: () => {
+        app.updateUserUI();
+        app.showScreen('shop-screen');
+        // ¡Aquí está la magia! Llama a Java para traer los objetos reales
+        app.loadTienda();
+    },
 
-        // Filtramos items que YA tenemos comprados para no mostrarlos en la tienda
-        const itemsAvailable = itemsToRender.filter(item => !app.currentUser.inventario.includes(item.id));
+    loadTienda: async () => {
+        try {
+            const response = await fetch('http://localhost:8080/usuarios/tienda', {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+            });
+            const items = await response.json();
 
-        if(itemsAvailable.length === 0) {
-            shopList.innerHTML = '<p class="empty-msg">No se encontraron productos.</p>';
+            const shopList = document.getElementById('shop-list');
+            shopList.innerHTML = "";
+
+            if(items.length === 0) {
+                shopList.innerHTML = '<p class="empty-msg">No hay productos en la tienda.</p>';
+                return;
+            }
+
+            items.forEach(item => {
+                // CORRECCIÓN: Usamos id_item por culpa del SNAKE_CASE de Spring Boot
+                const idDelObjeto = item.id_item || item.id_item;
+
+                // Comprobamos si ya lo tiene comprado
+                const yaComprado = app.currentUser.inventario.some(i => (i.id_item) === idDelObjeto);
+
+                shopList.innerHTML += `
+                    <div class="shop-item">
+                        <h4>${item.nombre}</h4>
+                        <span class="desc">${item.descripcion || item.tipo}</span>
+                        <div class="price">🪙 ${item.precio}</div>
+                        <button class="${yaComprado ? 'btn-equipped' : 'btn-buy'}" 
+                            onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}')"
+                            ${yaComprado ? 'disabled' : ''}>
+                            ${yaComprado ? 'Comprado' : 'Comprar'}
+                        </button>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            console.error("Error cargando la tienda:", error);
+            document.getElementById('shop-list').innerHTML = '<p class="error-msg">Error de conexión con el servidor.</p>';
+        }
+    },
+
+    comprarObjeto: async (idItemParam, precio, nombreItem) => {
+        if (app.currentUser.creditos < precio) {
+            alert("Créditos insuficientes 😔");
             return;
         }
 
-        itemsAvailable.forEach(item => {
-            shopList.innerHTML += `
-                <div class="shop-item">
-                    <h4>${item.nombre}</h4>
-                    <span class="desc">${item.desc}</span>
-                    <div class="price">🪙 ${item.precio}</div>
-                    <button class="btn-buy" onclick="app.buyItem('${item.id}')">Comprar</button>
-                </div>
-            `;
-        });
-    },
+        try {
+            const response = await fetch(`http://localhost:8080/usuarios/buy/${idItemParam}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+            });
 
-    // Lógica del buscador
-    filterShop: () => {
-        const term = document.getElementById('shop-search').value.toLowerCase();
-        // Filtramos el catálogo global
-        const filtered = catalogoCosmeticos.filter(item => 
-            item.nombre.toLowerCase().includes(term) || 
-            item.desc.toLowerCase().includes(term)
-        );
-        app.renderShopItems(filtered);
-    },
+            const data = await response.json();
 
-    // --- ACCIONES DE TIENDA/PERFIL ---
-    buyItem: (itemId) => {
-        const item = catalogoCosmeticos.find(c => c.id === itemId);
-        if(!item) return;
+            if (response.ok) {
+                app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo; // Por si el saldo también viene en snake_case
 
-        if(app.currentUser.creditos >= item.precio) {
-            app.currentUser.creditos -= item.precio;
-            app.currentUser.inventario.push(itemId);
-            alert(`¡Has comprado ${item.nombre}!`);
-            app.updateUserUI();
-            
-            // Recargamos la tienda para que desaparezca el item comprado
-            app.filterShop(); 
-        } else {
-            alert("No tienes suficientes créditos.");
+                // CORRECCIÓN: Guardamos usando id_item para mantener coherencia
+                app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem });
+
+                localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
+
+                alert("¡Has comprado: " + nombreItem + "!");
+
+                app.updateUserUI();
+                app.loadTienda();
+            } else {
+                alert(data.mensaje || "Hubo un error en la compra");
+            }
+        } catch (error) {
+            console.error("Error:", error);
         }
-    },
-
-    equipItem: (itemId) => {
-        app.currentUser.colorTema = itemId;
-        // Aquí iría la lógica para aplicar el CSS real (class changes)
-        alert("¡Objeto equipado!");
-        app.openProfile(); // Recargar para actualizar botones
     },
 
     addCreditsAdmin: () => {
+        // Tu función admin (La dejamos tal cual estaba)
         const targetUser = document.getElementById('admin-user-target').value;
         const amount = parseInt(document.getElementById('admin-credits-amount').value);
-        const user = usuariosRepository.find(u => u.username === targetUser);
-        
-        if(user && !isNaN(amount)) {
-            user.creditos += amount;
-            alert(`Éxito. Saldo de ${user.username}: ${user.creditos}`);
-            if(user.username === app.currentUser.username) app.updateUserUI();
-        } else {
-            alert("Error: Usuario no encontrado.");
+        if(app.currentUser.isAdmin && !isNaN(amount)) {
+            app.currentUser.creditos += amount;
+            alert(`Éxito. Saldo sumado a tu cuenta.`);
+            app.updateUserUI();
+            localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
         }
     }
-};
+}; // <-- FINAL DEL OBJETO APP (Asegúrate de no borrar esto ni el window.onload de debajo)
 
 window.app = app;
 
+window.onload = () => {
+    app.restoreSession();
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Listeners generales
+    // 1. Generales y Menú
     document.getElementById('theme-toggle').addEventListener('click', app.toggleTheme);
     document.getElementById('btn-login').addEventListener('click', app.login);
     document.getElementById('btn-logout').addEventListener('click', app.logout);
-    
-    // Navegación
+
+    // 2. Navegación de las Tarjetas
     document.getElementById('card-play').addEventListener('click', app.startGame);
-    
-    // PERFIL
     document.getElementById('card-profile').addEventListener('click', app.openProfile);
-    document.getElementById('btn-back-profile').addEventListener('click', () => app.showScreen('dashboard-screen'));
-    document.getElementById('btn-add-credits').addEventListener('click', app.addCreditsAdmin);
-
-    // TIENDA
     document.getElementById('card-shop').addEventListener('click', app.openShop);
-    document.getElementById('btn-back-shop').addEventListener('click', () => app.showScreen('dashboard-screen'));
-    
-    // BUSCADOR (Evento 'input' para búsqueda en tiempo real)
-    document.getElementById('shop-search').addEventListener('input', app.filterShop);
 
-    // Juego
+    // 3. Tarjeta Admin (Ir a la otra página)
+    document.getElementById('card-admin').addEventListener('click', () => {
+        window.location.href = 'gestion-usuarios.html';
+    });
+
+    // 4. Botones de Volver
+    document.getElementById('btn-back-profile').addEventListener('click', () => app.showScreen('dashboard-screen'));
+    document.getElementById('btn-back-shop').addEventListener('click', () => app.showScreen('dashboard-screen'));
+
+    // 5. Controles del Juego
     document.getElementById('btn-abort').addEventListener('click', app.abortGame);
     document.getElementById('btn-retry').addEventListener('click', app.startGame);
     document.getElementById('btn-menu').addEventListener('click', () => app.showScreen('dashboard-screen'));
+
     const gameInput = document.getElementById('game-input');
-    gameInput.addEventListener('input', app.checkInput);
-    gameInput.addEventListener('keydown', app.handleKeydown);
-    gameInput.addEventListener('paste', e => e.preventDefault());
-    gameInput.addEventListener('contextmenu', e => e.preventDefault());
+    if (gameInput) {
+        gameInput.addEventListener('input', app.checkInput);
+        gameInput.addEventListener('keydown', app.handleKeydown);
+        gameInput.addEventListener('paste', e => e.preventDefault()); // Evitar hacer trampa copiando
+        gameInput.addEventListener('contextmenu', e => e.preventDefault());
+    }
 });

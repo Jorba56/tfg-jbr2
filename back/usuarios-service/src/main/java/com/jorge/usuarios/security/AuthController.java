@@ -35,14 +35,17 @@ public class AuthController {
         this.userServiceImpl = userServiceImpl;
         this.authServiceImpl = authServiceImpl;
     }
-    @Operation(summary = "Iniciar sesión", description = "Valida las credenciales del usuario y devuelve un token JWT para acceder a los endpoints protegidos.")
-    @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginDTO loginDto) throws ConflictException, BadRequestException {
-        return ResponseEntity.ok(authServiceImpl.login(loginDto));
-    }
+
     @Operation(summary = "Registrar nuevo usuario", description = "Crea un usuario en el sistema, encripta su contraseña y le asigna el rol ALUMNO por defecto.")
     @PostMapping("/register")
     public ResponseEntity<UsersAllDTO> registro(@Valid @RequestBody UserAddDTO dto) throws DuplicateException {
         return ResponseEntity.ok(userServiceImpl.addUsuario(dto));
+    }
+
+    @Operation(summary = "Iniciar sesión", description = "Valida las credenciales del usuario y devuelve un token JWT para acceder a los endpoints protegidos.")
+    @PostMapping("/login")
+    // FÍJATE AQUÍ: Cambiamos <String, String> por <String, Object>
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDTO loginDto) throws ConflictException, BadRequestException {
+        return ResponseEntity.ok(authServiceImpl.login(loginDto));
     }
 }

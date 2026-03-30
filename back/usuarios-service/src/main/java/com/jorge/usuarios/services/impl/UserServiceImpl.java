@@ -1,6 +1,8 @@
 package com.jorge.usuarios.services.impl;
 
+import com.jorge.usuarios.entity.Item;
 import com.jorge.usuarios.entity.Rol;
+import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.repository.RolRepository;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.dto.RolPostUser;
@@ -12,11 +14,13 @@ import com.jorge.usuarios.repository.UserRepository;
 import com.jorge.usuarios.exceptions.*;
 import com.jorge.usuarios.mapping.UserMapper;
 import com.jorge.usuarios.services.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -31,6 +35,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRep;
     private final UserMapper userMap;
     private final PasswordEncoder passwordEncoder;
+    private final ItemRepository itemRepository;
+
 
     /**
      * Crea una nueva instancia del servicio de usuarios inyectando sus dependencias.
@@ -41,11 +47,12 @@ public class UserServiceImpl implements UserService {
      * @param userMap mapper encargado de transformar entidades de usuario y sus DTOs
      * @param rolRep repositorio para la gestión de la persistencia de roles asociados a usuarios
      */
-    public UserServiceImpl(UserRepository userRep, UserMapper userMap, RolRepository rolRep, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRep, UserMapper userMap, RolRepository rolRep, PasswordEncoder passwordEncoder, com.jorge.usuarios.repository.ItemRepository itemRepository) {
         this.userRep = userRep;
         this.userMap = userMap;
         this.rolRep = rolRep;
         this.passwordEncoder = passwordEncoder;
+        this.itemRepository = itemRepository; // NUEVO
     }
 
     String rolNoEncontrado="El rol introducido no existe en el sistema.";
@@ -241,5 +248,63 @@ public class UserServiceImpl implements UserService {
             return "Rol con id "+idRol+" eliminado correctamente del usuario con id "+idUser;
         }
         throw new NotFoundException("Error: El usuario no tenía asignado ese rol.");
+    }
+
+    @Override
+    public List<Item> listarTienda() {
+        return itemRepository.findAll();
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> comprarItem(String emailUsuario, Long itemId) throws BadRequestException {
+        // 1. Buscamos al usuario (En tu repo devuelve User, no Optional)
+        User user = userRep.findUserByEmailUsuario(emailUsuario);
+        if (user == null) {
+            throw new BadRequestException("Usuario no encontrado");
+        }
+
+        // 2. Buscamos el objeto
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new BadRequestException("El objeto no existe"));
+
+        // 3. Validar si ya lo tiene
+        if (user.getInventario().contains(item)) {
+            throw new BadRequestException("Ya posees este objeto en tu inventario");
+        }
+
+        // 4. Validar saldo
+        if (user.getCreditos() < item.getPrecio()) {
+            throw new BadRequestException("Créditos insuficientes");
+        }
+
+        // 5. Transacción
+        user.setCreditos(user.getCreditos() - item.getPrecio());
+        user.getInventario().add(item);
+
+        userRep.save(user); // Corregido: es userRep, no userRepository
+
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("mensaje", "Compra realizada con éxito");
+        response.put("nuevoSaldo", user.getCreditos());
+
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> sumarCreditosAdmin(Long idUsuario, int cantidad) throws BadRequestException {
+        User user = userRep.findById(idUsuario)
+                .orElseThrow(() -> new BadRequestException("Usuario no encontrado con ID: " + idUsuario));
+
+        // Sumamos los créditos a los que ya tenía
+        user.setCreditos(user.getCreditos() + cantidad);
+        userRep.save(user);
+
+        // Devolvemos un JSON de confirmación
+        Map<String, Object> response = new java.util.HashMap<>();
+        response.put("mensaje", "Se han sumado " + cantidad + " créditos. Saldo actual: " + user.getCreditos());
+        response.put("nuevos_creditos", user.getCreditos());
+        return response;
     }
 }

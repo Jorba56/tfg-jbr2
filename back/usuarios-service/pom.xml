@@ -5,7 +5,7 @@
 
     <parent>
         <groupId>com.jorge</groupId>
-        <artifactId>generador-examenes-back</artifactId>
+        <artifactId>back</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
@@ -91,6 +91,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>annotationProcessor</scope>
         </dependency>
 
     </dependencies>

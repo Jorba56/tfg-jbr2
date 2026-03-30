@@ -1,5 +1,6 @@
 package com.jorge.usuarios.services.impl;
 
+import com.jorge.usuarios.entity.Item;
 import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.repository.UserRepository;
@@ -8,6 +9,7 @@ import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.ConflictException;
 import com.jorge.usuarios.security.JwtUtil;
 import com.jorge.usuarios.services.AuthService;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,10 +43,12 @@ public class AuthServiceImpl implements AuthService {
      * @return Mapa clave-valor que contiene el Token JWT generado.
      */
     @Override
-    public Map<String, String> login(LoginDTO loginDto) throws BadRequestException, ConflictException {
+    @Transactional
+    public Map<String, Object> login(LoginDTO loginDto) throws BadRequestException, ConflictException {
+        // 1. Buscamos al usuario
         User usuario = userRep.findUserByEmailUsuario(loginDto.getEmailUsuario());
 
-        // matches() compara la contraseña plana que viene del JSON con el hash guardado en la BD
+        // 2. Validaciones de credenciales y estado
         if (usuario == null || !passwordEncoder.matches(loginDto.getContrasenhaUsuario(), usuario.getContrasenhaUsuario())) {
             throw new BadRequestException("Credenciales de acceso incorrectas.");
         }
@@ -53,16 +57,33 @@ public class AuthServiceImpl implements AuthService {
             throw new ConflictException("La cuenta de usuario se encuentra desactivada.");
         }
 
+        // 3. Extraemos los roles
         List<String> rolesString = new ArrayList<>();
         for (Rol rol : usuario.getRoles()) {
             rolesString.add(rol.getName());
         }
 
-        // Generamos el token y lo devolvemos
+        // 4. GENERACIÓN DEL TOKEN (Esta es la línea que debe estar para que no salga en rojo)
         String token = jwtUtil.generarToken(usuario.getEmailUsuario(), rolesString);
-        Map<String, String> respuesta = new HashMap<>();
+        List<Map<String, Object>> inventarioUsuario = new ArrayList<>();
+
+        for (Item item : usuario.getInventario()) {
+            Map<String, Object> itemData = new HashMap<>();
+            itemData.put("id_item", item.getIdItem()); // Usamos snake_case por el application.properties
+            itemData.put("nombre", item.getNombre());
+            inventarioUsuario.add(itemData);
+        }
+
+        Map<String, Object> respuesta = new HashMap<>();
         respuesta.put("token", token);
+        respuesta.put("username", usuario.getNombreUsuario());
+        respuesta.put("creditos", usuario.getCreditos());
+        respuesta.put("inventario", inventarioUsuario);
+
+        // ¡NUEVA LÍNEA! Comprobamos si en su lista de roles está el de ADMIN
+        respuesta.put("isAdmin", rolesString.contains("ADMIN"));
 
         return respuesta;
+
     }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.beans.MutablePropertyValues;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +66,17 @@ public class User{
     inverseJoinColumns = @JoinColumn(name = "id_rol"))
     private List<Rol> roles= new ArrayList<>();
 
+    @ManyToMany(fetch = FetchType.EAGER) // EAGER para que carguen siempre con el usuario
+    @JoinTable(
+            name = "usuario_items",
+            joinColumns = @JoinColumn(name = "id_user"),
+            inverseJoinColumns = @JoinColumn(name = "id_item")
+    )
+    private List<Item> inventario = new ArrayList<>();
+
+    public List<Item> getInventario() { return inventario; }
+    public void setInventario(List<Item> inventario) { this.inventario = inventario; }
+
     // Getters and setters
     @JsonIgnore
     public Long getIdUser() { return idUser; }
@@ -120,6 +132,7 @@ public class User{
             this.roles = null;
         }
     }
+
 }
 
 
