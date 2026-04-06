@@ -1,0 +1,27 @@
+# ==========================================
+# Etapa 1: Construcción (Build)
+# ==========================================
+FROM maven:3.9.6-eclipse-temurin-21 AS build
+WORKDIR /app
+
+# Copiamos el pom y el código fuente
+COPY pom.xml .
+COPY src ./src
+
+# Empaquetamos la aplicación saltando los tests para que el despliegue sea más rápido
+RUN mvn clean package -DskipTests
+
+# ==========================================
+# Etapa 2: Ejecución (Run)
+# ==========================================
+FROM eclipse-temurin:21-jre-jammy
+WORKDIR /app
+
+# Copiamos el .jar generado en la etapa anterior
+COPY --from=build /app/target/*.jar app.jar
+
+# Exponemos el puerto de incidencias
+EXPOSE 8082
+
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["java", "-jar", "app.jar"]
