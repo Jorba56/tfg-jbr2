@@ -3,12 +3,18 @@ FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY . .
 
-# LIMITAMOS LA RAM A 256MB Y COMPILAMOS SOLO EL GATEWAY (-pl api-gateway)
+# Entramos en tu carpeta de código
+WORKDIR /app/back
+
+# Compilamos solo el gateway
 RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl api-gateway -am -DskipTests
 
 # --- ETAPA 2: Ejecución ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
+
+# Rescatamos el .jar desde la carpeta back
+COPY --from=build /app/back/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
