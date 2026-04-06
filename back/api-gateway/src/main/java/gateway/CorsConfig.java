@@ -7,7 +7,6 @@ import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 public class CorsConfig {
@@ -16,16 +15,23 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Aquí indicamos explícitamente los orígenes permitidos
-        corsConfig.setAllowedOrigins(Arrays.asList("http://127.0.0.1:5500", "http://localhost:5500", "http://localhost:63342","https://tfg-jbr2.onrender.com"));
+        // 1. Orígenes explícitos
+        corsConfig.setAllowedOrigins(Arrays.asList(
+                "https://tfg-jbr2.onrender.com",
+                "http://127.0.0.1:5500",
+                "http://localhost:5500",
+                "http://localhost:63342"
+        ));
 
-        // Permitimos todos los métodos y cabeceras
-        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        corsConfig.setAllowedHeaders(List.of("*"));
+        // 2. Métodos (OPTIONS es obligatorio para el preflight)
+        corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        // Importante para que el navegador acepte los tokens
+        // 3. Cabeceras explícitas (NUNCA usar "*" con allowCredentials=true)
+        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
+
+        // 4. Credenciales permitidas
         corsConfig.setAllowCredentials(true);
-        corsConfig.setMaxAge(3600L); // Cacheamos la respuesta del preflight durante 1 hora
+        corsConfig.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfig);
