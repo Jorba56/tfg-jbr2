@@ -9,12 +9,17 @@ const app = {
     timeLeft: 60,
     timerInterval: null,
     gameHistory: [],
+    escudoActivo: false, // <-- NUEVA VARIABLE
 
     // --- NAVEGACIÓN Y TEMA (Igual) ---
     toggleTheme: () => {
         const body = document.body;
         body.classList.toggle('light-mode');
-        document.getElementById('theme-toggle').innerText = body.classList.contains('light-mode') ? "☀️" : "🌙";
+        const isLight = body.classList.contains('light-mode');
+        document.getElementById('theme-toggle').innerText = isLight ? "☀️" : "🌙";
+
+        // ¡ESTA LÍNEA ES LA CLAVE! Guarda tu elección para que el panel Admin la pueda leer
+        localStorage.setItem('theme', isLight ? 'light' : 'dark');
     },
 
     showScreen: (screenId) => {
@@ -31,13 +36,28 @@ const app = {
         }
     },
     restoreSession: () => {
-        const perfilJson = localStorage.getItem('currentUser');
-        if (perfilJson) {
-            app.currentUser = JSON.parse(perfilJson);
-            // Si por alguna razón el inventario no existe, le ponemos un array vacío
-            if (!app.currentUser.inventario) app.currentUser.inventario = [];
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light-mode');
+            const btnTheme = document.getElementById('theme-toggle');
+            if (btnTheme) btnTheme.innerText = "☀️";
+        }
 
+        // Leemos la memoria del navegador
+        const token = localStorage.getItem('jwt_token');
+        const userData = localStorage.getItem('currentUser');
+
+        if (token && userData) {
+            // Si hay sesión guardada, la montamos en RAM
+            app.currentUser = JSON.parse(userData);
+
+            // Refrescamos la interfaz (pinta créditos, el perfil y el menú admin)
             app.updateUserUI();
+
+            // Saltamos directamente al menú principal, esquivando el login
+            app.showScreen('dashboard-screen');
+        } else {
+            // Si no hay datos, mostramos la pantalla de login normal
+            app.showScreen('login-screen');
         }
     },
 
@@ -123,31 +143,68 @@ const app = {
 
     updateUserUI: () => {
         if(!app.currentUser) return;
-
-        // Actualizar textos
         document.getElementById('user-display').innerText = app.currentUser.username;
         document.getElementById('user-credits').innerText = app.currentUser.creditos;
         document.getElementById('profile-credits').innerText = app.currentUser.creditos;
         document.getElementById('shop-credits').innerText = app.currentUser.creditos;
 
-        // LÓGICA DE ADMIN: Mostrar la tarjeta solo si el usuario es "admin"
         const adminCard = document.getElementById('card-admin');
         if (app.currentUser.isAdmin === true) {
             adminCard.classList.remove('hidden');
         } else {
             adminCard.classList.add('hidden');
         }
+
+        app.applyCosmetics();
     },
 
-    // --- LÓGICA DE JUEGO (Resumida para centrar en Tienda) ---
-    startGame: () => {
+    applyCosmetics: () => {
 
-        app.score = 0; app.timeLeft = 60; app.gameHistory = [];
+        document.body.classList.remove('tema-cyberpunk', 'teclado-neon');
+        if (!app.currentUser) return;
+
+
+        const equipado = app.currentUser.inventario.find(i => (i.id_item || i.idItem) === app.currentUser.colorTema);
+
+
+        if (equipado) {
+            if (equipado.nombre === 'Tema Cyberpunk') document.body.classList.add('tema-cyberpunk');
+            if (equipado.nombre === 'Teclado Neón') document.body.classList.add('teclado-neon');
+        }
+    },
+
+
+
+    // --- LÓGICA DE JUEGO ---
+    startGame: () => {
+        app.score = 0;
+        app.gameHistory = [];
+
+        // Aseguramos que los arrays existen
+        const inv = app.currentUser.inventario || [];
+        const habEquipadas = app.currentUser.habilidadesEquipadas || [];
+
+        // 1. Buscamos los objetos en el inventario para saber cuál es su ID
+        const relojItem = inv.find(i => i.nombre === 'Reloj de Arena');
+        const escudoItem = inv.find(i => i.nombre === 'Escudo de Error');
+
+        // --- VENTAJAS PASIVAS (Solo funcionan si están EQUIPADAS) ---
+        // Comprobamos si el ID del reloj está en el array de equipadas
+        const tieneReloj = relojItem && habEquipadas.includes(relojItem.id_item || relojItem.idItem);
+        app.timeLeft = tieneReloj ? 65 : 60;
+
+        // Comprobamos si el ID del escudo está en el array de equipadas
+        app.escudoActivo = escudoItem && habEquipadas.includes(escudoItem.id_item || escudoItem.idItem);
+
         document.getElementById('score').innerText = "0";
+        document.getElementById('timer').innerText = app.timeLeft;
+
         app.showScreen('game-screen');
         app.loadNewPhrase();
+
         const input = document.getElementById('game-input');
         input.value = ""; input.focus();
+
         if (app.timerInterval) clearInterval(app.timerInterval);
         app.timerInterval = setInterval(() => {
             app.timeLeft--;
@@ -225,14 +282,26 @@ const app = {
             app.phraseBuffer.push("La tecnología blockchain asegura la integridad de los datos digitales");
         }
     },
-    
+
     checkInput: () => {
         const input = document.getElementById('game-input');
         const val = input.value;
         const target = app.currentPhrase.texto;
-        if(val === target) input.style.borderColor = 'var(--success)';
-        else if(!target.startsWith(val)) input.style.borderColor = 'var(--error)';
-        else input.style.borderColor = 'var(--text-secondary)';
+
+        if(val === target) {
+            input.style.borderColor = 'var(--success)';
+        } else if(!target.startsWith(val)) {
+            // --- LÓGICA DEL ESCUDO DE ERROR ---
+            if (app.escudoActivo) {
+                // El borde se pone amarillo dorado advirtiendo del fallo, pero absorbe el golpe
+                input.style.borderColor = '#ffd700';
+                app.escudoActivo = false; // Se gasta el escudo en este fallo
+            } else {
+                input.style.borderColor = 'var(--error)';
+            }
+        } else {
+            input.style.borderColor = 'var(--text-secondary)';
+        }
     },
 
     handleKeydown: (e) => {
@@ -301,11 +370,10 @@ const app = {
 
 
     // --- NUEVO: PERFIL (Inventario + Admin) ---
-    // --- PERFIL E INVENTARIO (Conectado a la BBDD) ---
+
     openProfile: () => {
         app.updateUserUI();
 
-        // Pintar los objetos reales de la BBDD
         const inventoryList = document.getElementById('inventory-list');
         inventoryList.innerHTML = "";
 
@@ -314,13 +382,29 @@ const app = {
         } else {
             app.currentUser.inventario.forEach(item => {
                 const idDelObjeto = item.id_item || item.idItem;
-                const isEquipped = app.currentUser.colorTema === idDelObjeto;
+                const nombre = item.nombre || 'Objeto Misterioso';
+
+                // Determinamos el tipo de objeto basándonos en su nombre
+                const esCosmetico = nombre.includes('Tema') || nombre.includes('Teclado');
+
+                let isEquipped = false;
+                if (esCosmetico) {
+                    // Los cosméticos se guardan en colorTema
+                    isEquipped = app.currentUser.colorTema === idDelObjeto;
+                } else {
+                    // Las pasivas se guardan en el nuevo array habilidadesEquipadas
+                    const hab = app.currentUser.habilidadesEquipadas || [];
+                    isEquipped = hab.includes(idDelObjeto);
+                }
 
                 inventoryList.innerHTML += `
                     <div class="shop-item">
-                        <h4>${item.nombre || 'Objeto Misterioso'}</h4>
-                        <button class="${isEquipped ? 'btn-equipped' : 'btn-equip'}" onclick="app.equipItem(${idDelObjeto})">
-                            ${isEquipped ? 'Equipado' : 'Equipar'}
+                        <h4>${nombre}</h4>
+                        <span class="desc" style="color: var(--text-secondary); font-size: 0.8rem; display:block; margin-bottom: 10px;">
+                            ${esCosmetico ? '🎨 Estilo Visual (Máx 1)' : '⚡ Habilidad Pasiva (Máx 2)'}
+                        </span>
+                        <button class="${isEquipped ? 'btn-equipped' : 'btn-equip'}" onclick="app.toggleEquip(${idDelObjeto}, ${esCosmetico})">
+                            ${isEquipped ? (esCosmetico ? 'Equipado' : 'Desequipar') : 'Equipar'}
                         </button>
                     </div>
                 `;
@@ -329,11 +413,38 @@ const app = {
         app.showScreen('profile-screen');
     },
 
-    equipItem: (id_item) => {
-        app.currentUser.colorTema = id_item;
+    toggleEquip: (id_item, esCosmetico) => {
+        // Inicializamos el array de habilidades si el usuario es viejo y no lo tenía
+        if (!app.currentUser.habilidadesEquipadas) app.currentUser.habilidadesEquipadas = [];
+
+        if (esCosmetico) {
+            // LÓGICA: 1 SOLO COSMÉTICO (Si pulsas el que ya tienes, te lo quitas)
+            if (app.currentUser.colorTema === id_item) {
+                app.currentUser.colorTema = null; // Desequipar
+            } else {
+                app.currentUser.colorTema = id_item; // Equipar nuevo (reemplaza al anterior)
+            }
+        } else {
+            // LÓGICA: MÁXIMO 2 PASIVAS
+            const index = app.currentUser.habilidadesEquipadas.indexOf(id_item);
+
+            if (index > -1) {
+                // Si ya la tenía equipada, la quitamos (Desequipar)
+                app.currentUser.habilidadesEquipadas.splice(index, 1);
+            } else {
+                // Si no la tiene, comprobamos el límite antes de equipar
+                if (app.currentUser.habilidadesEquipadas.length >= 2) {
+                    alert("⚠️ Límite alcanzado: Solo puedes equipar 2 habilidades pasivas a la vez.");
+                    return;
+                }
+                app.currentUser.habilidadesEquipadas.push(id_item);
+            }
+        }
+
+        // Guardamos el perfil en memoria y refrescamos la vista
         localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
-        alert("¡Objeto equipado!");
-        app.openProfile(); // Recargar la vista
+        app.openProfile();
+        app.applyCosmetics(); // Actualizamos la interfaz gráfica al instante
     },
 
     // --- TIENDA (Conectada a la BBDD) ---

@@ -9,6 +9,7 @@ import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
+import com.jorge.usuarios.exceptions.NotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 
@@ -32,7 +33,7 @@ public interface UserService {
      * @param id Identificador del usuario.
      * @return DTO con la información detallada del usuario.
      */
-    UserIdDTo buscarPorId(Long id);
+    UsersAllDTO buscarPorId(Long id);
 
     /**
      * Registra un nuevo usuario en el sistema.
@@ -91,11 +92,13 @@ public interface UserService {
 
     List<Item> listarTienda();
 
-    Map<String, Object> comprarItem(String emailUsuario, Long itemId) throws com.jorge.usuarios.exceptions.BadRequestException;
+    Map<String, Object> comprarItem(String emailUsuario, Long itemId) throws BadRequestException;
 
     Map<String, Object> sumarCreditosAdmin(Long idUsuario, int cantidad) throws BadRequestException;
 
     List<UsersAllDTO> obtenerTodosLosUsuarios(String sortBy, String sortDir);
 
     Page<UsersAllDTO> obtenerTodosLosUsuariosPaginados(int page, int size, String sortBy, String sortDir);
+
+    UsersAllDTO buscarPorEmail(String correo) throws NotFoundException;
 }

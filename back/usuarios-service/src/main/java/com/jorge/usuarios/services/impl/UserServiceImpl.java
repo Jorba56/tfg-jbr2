@@ -83,14 +83,14 @@ public class UserServiceImpl implements UserService {
      * @return representación {@code UserIdDTo} del usuario encontrado o {@code null} si no existe
      */
     @Override
-    public UserIdDTo buscarPorId(Long id) {
+    public UsersAllDTO buscarPorId(Long id) {
         User usuarioEncontrado = userRep.findById(id)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado con ID: " + id));
 
         if (!usuarioEncontrado.getActivo()) {
             throw new NotFoundException("El usuario con ID " + id + " está desactivado y no se puede mostrar.");
         }
-        return userMap.userToIdDTO(usuarioEncontrado);
+        return userMap.mappingADTO(usuarioEncontrado);
     }
 
     /**
@@ -354,5 +354,10 @@ public class UserServiceImpl implements UserService {
             case "correo", "email", "emailusuario" -> "emailUsuario";
             default -> "idUser"; // O el nombre que tenga tu clave primaria en la entidad User
         };
+    }
+    @Override
+    public UsersAllDTO buscarPorEmail(String correo) {
+        User usuario= userRep.findUserByEmailUsuario(correo);
+        return userMap.mappingADTO(usuario);
     }
 }

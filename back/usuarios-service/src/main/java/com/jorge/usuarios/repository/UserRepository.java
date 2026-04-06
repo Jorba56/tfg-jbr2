@@ -15,6 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findUserByEmailUsuario(String correo);
     List<User> findByActivoTrue(Sort sort);
     Page<User> findByActivoTrue(Pageable pageable);
+
 }
 
 

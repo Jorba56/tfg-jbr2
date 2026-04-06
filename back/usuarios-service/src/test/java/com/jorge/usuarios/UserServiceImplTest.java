@@ -92,7 +92,7 @@ class UserServiceImplTest {
         given(userMap.userToIdDTO(usuario)).willReturn(dtoEsperado);
 
         //when
-        UserIdDTo userFind = userServiceImpl.buscarPorId(1L);
+        UsersAllDTO userFind = userServiceImpl.buscarPorId(1L);
 
         assertNotNull(userFind);
         assertEquals(("Jorge"), userFind.getNombreUsuario());

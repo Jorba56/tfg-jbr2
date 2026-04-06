@@ -79,17 +79,16 @@ class UserControllerTest {
 
     @Test
      void getUserId(){
-        UserIdDTo usuario=new UserIdDTo();
+        UsersAllDTO usuario=new UsersAllDTO();
         usuario.setIdUser(1L);
         usuario.setNombreUsuario("jorge");
         usuario.setApellidoUsuario("br");
         usuario.setEmailUsuario("jobr@gmail.com");
-        usuario.setActivo(true);
 
         given(userServiceImpl.buscarPorId(1L)).willReturn((usuario));
 
         //when
-        UserIdDTo userFind = userController.getUserId(1L);
+        UsersAllDTO userFind = userController.getUserId(1L);
 
         assertNotNull(userFind);
         assertEquals(("jorge"), userFind.getNombreUsuario());
@@ -140,7 +139,7 @@ class UserControllerTest {
         given(userServiceImpl.buscarPorId(99L)).willReturn(null);
 
         // when
-        UserIdDTo userFind = userController.getUserId(99L);
+        UsersAllDTO userFind= userController.getUserId(99L);
 
         // then
         assertNull(userFind);

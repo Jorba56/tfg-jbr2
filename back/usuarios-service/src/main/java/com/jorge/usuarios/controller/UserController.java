@@ -62,8 +62,19 @@ public class UserController {
     @Operation(summary = "Buscar usuario por ID", description = "Devuelve los detalles completos de un usuario específico. Solo accesible para administradores.")
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/{id}")
-    public UserIdDTo getUserId(@PathVariable Long id) {
+    public UsersAllDTO getUserId(@PathVariable Long id) {
         return userServiceImpl.buscarPorId(id);
+    }
+
+    /**
+     * Busca y devuelve los datos de un usuario específico mediante su correo.
+     * Exclusivo para el administrador.
+     */
+    @Operation(summary = "Buscar usuario por correo", description = "Devuelve los detalles completos de un usuario específico. Solo accesible para administradores.")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/correo/{email}")
+    public UsersAllDTO getUserId(@PathVariable String email) {
+        return userServiceImpl.buscarPorEmail(email);
     }
 
     /**
