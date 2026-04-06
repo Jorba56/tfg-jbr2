@@ -1,27 +1,24 @@
-# ==========================================
-# Etapa 1: Construcción (Build)
-# ==========================================
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# --- ETAPA 1: Compilación en la nube ---
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copiamos el pom y el código fuente
-COPY pom.xml .
-COPY src ./src
+# Copiamos el repositorio
+COPY . .
 
-# Empaquetamos la aplicación saltando los tests para que el despliegue sea más rápido
-RUN mvn clean package -DskipTests
+# Entramos en tu carpeta de código
+WORKDIR /app/back
 
-# ==========================================
-# Etapa 2: Ejecución (Run)
-# ==========================================
-FROM eclipse-temurin:21-jre-jammy
+# ¡CORRECCIÓN 1! Compilamos SOLO el microservicio de incidencias
+RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl incidencias-service -am -DskipTests
+
+# --- ETAPA 2: Ejecución ---
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Copiamos el .jar generado en la etapa anterior
-COPY --from=build /app/target/*.jar app.jar
+# Rescatamos el .jar desde la carpeta de incidencias (usamos *.jar por seguridad)
+COPY --from=build /app/back/incidencias-service/target/*.jar app.jar
 
-# Exponemos el puerto de incidencias
+# ¡CORRECCIÓN 2! Exponemos el puerto correcto para este microservicio
 EXPOSE 8082
 
-# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
