@@ -17,7 +17,7 @@ window.cerrarModalCreditos = function () {
     usuarioSeleccionadoParaCreditos = null;
     document.getElementById('modal-creditos').classList.add('hidden');
 };
-
+//dinero
 const btnCreditos = document.getElementById('btn-confirmar-creditos');
 if (btnCreditos) {
     btnCreditos.addEventListener('click', async () => {
