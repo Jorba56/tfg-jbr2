@@ -81,7 +81,7 @@ const app = {
             btnLogin.innerText = "Conectando...";
             btnLogin.disabled = true;
 
-            const response = await fetch('http://localhost:8080/auth/login', {
+            const response = await fetch('https://tfg-jbr2-production.up.railway.app/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
