@@ -457,7 +457,7 @@ const app = {
 
     loadTienda: async () => {
         try {
-            const response = await fetch('http://localhost:8080/usuarios/tienda', {
+            const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/tienda', {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
             });
             const items = await response.json();
@@ -503,7 +503,7 @@ const app = {
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/usuarios/buy/${idItemParam}`, {
+            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/buy/${idItemParam}`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
             });
