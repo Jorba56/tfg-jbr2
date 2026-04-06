@@ -81,7 +81,7 @@ const app = {
             btnLogin.innerText = "Conectando...";
             btnLogin.disabled = true;
 
-            const response = await fetch('https://gateway-production-a1f6.up.railway.app//auth/login', {
+            const response = await fetch('https://gateway-production-a1f6.up.railway.app/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
