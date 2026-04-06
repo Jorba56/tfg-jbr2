@@ -15,21 +15,20 @@ public class CorsConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // 1. Orígenes explícitos
-        corsConfig.setAllowedOrigins(Arrays.asList(
+        // LA SOLUCIÓN: Usar Patterns en lugar de Origins estrictos.
+        // Esto permite variaciones invisibles que pueda meter el navegador.
+        corsConfig.setAllowedOriginPatterns(Arrays.asList(
                 "https://tfg-jbr2.onrender.com",
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "http://localhost:63342"
+                "https://*.onrender.com", // Comodín por si Render usa subdominios internos
+                "http://localhost:*"      // Comodín para cualquier puerto local
         ));
 
-        // 2. Métodos (OPTIONS es obligatorio para el preflight)
+        // Métodos permitidos
         corsConfig.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        // 3. Cabeceras explícitas (NUNCA usar "*" con allowCredentials=true)
-        corsConfig.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin"));
+        // Con AllowedOriginPatterns SÍ podemos usar el comodín "*" para las cabeceras
+        corsConfig.setAllowedHeaders(Arrays.asList("*"));
 
-        // 4. Credenciales permitidas
         corsConfig.setAllowCredentials(true);
         corsConfig.setMaxAge(3600L);
 
