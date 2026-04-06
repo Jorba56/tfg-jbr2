@@ -1,7 +1,7 @@
 const token = localStorage.getItem('jwt_token');
 if (!token) window.top.location.href = 'index.html';
 
-const API_URL = 'https://tfg-jbr2-production.up.railway.app/';
+const API_URL = 'https://gateway-production-a1f6.up.railway.app/';
 
 let usuarioSeleccionadoParaCreditos = null;
 
