@@ -2,14 +2,13 @@
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY . .
-RUN mvn clean package -DskipTests
+
+# LIMITAMOS LA RAM A 256MB Y COMPILAMOS SOLO LOS USUARIOS (-pl usuarios-service)
+RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl usuarios-service -am -DskipTests
 
 # --- ETAPA 2: Ejecución ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-# Rescatamos el .jar de usuarios desde la Etapa 1
 COPY --from=build /app/usuarios-service/target/usuarios-service-0.0.1-SNAPSHOT.jar app.jar
-
 EXPOSE 8081
 ENTRYPOINT ["java", "-jar", "app.jar"]

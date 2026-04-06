@@ -1,19 +1,14 @@
 # --- ETAPA 1: Compilación en la nube ---
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
-
-# Copiamos tu código (sin las carpetas target) al contenedor
 COPY . .
 
-# Maven compila el código y genera las carpetas target INTERNAMENTE
-RUN mvn clean package -DskipTests
+# LIMITAMOS LA RAM A 256MB Y COMPILAMOS SOLO EL GATEWAY (-pl api-gateway)
+RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl api-gateway -am -DskipTests
 
 # --- ETAPA 2: Ejecución ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-# Rescatamos el .jar desde la Etapa 1
 COPY --from=build /app/api-gateway/target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
-
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
