@@ -245,7 +245,7 @@ const app = {
     fetchMorePhrases: async () => {
         try {
             const timestamp = new Date().getTime();
-            const response = await fetch(`http://localhost:8080/incidencias/game/frase?dificultad=media&t=${timestamp}`, {
+            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/incidencias/game/frase?dificultad=media&t=${timestamp}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
             });
