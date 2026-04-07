@@ -235,30 +235,38 @@ const app = {
         const display = document.getElementById('phrase-display');
         const input = document.getElementById('game-input');
 
-        // Si hay frases en la recámara, sacamos una e iniciamos YA
-        if (app.phraseBuffer && app.phraseBuffer.length > 0) {
-            const textoSacado = app.phraseBuffer.shift();
-            app.currentPhrase = { texto: textoSacado };
-            display.innerText = app.currentPhrase.texto;
+        // 1. Si no hay frases, esperamos pacientemente sin bloquear la pantalla
+        if (!app.phraseBuffer || app.phraseBuffer.length === 0) {
+            display.innerText = "⏳ Conectando con boxes... repostando frases";
+            input.disabled = true; // Bloqueamos el input temporalmente
 
-            display.style.opacity = "1";
-            input.disabled = false;
-            input.value = "";
-            input.focus();
-
-            // Si quedan pocas frases, pedimos más en segundo plano (sin await)
-            if (app.phraseBuffer.length <= 2) {
-                app.fetchMorePhrases();
+            // Si nadie está buscando frases, mandamos a buscarlas
+            if (!app.isFetchingPhrases) {
+                app.fetchMorePhrases(); // Sin await, que lo haga a su ritmo
             }
-            return;
+
+            // EL TRUCO MAGICO: Hacemos pausas de 200ms en bucle hasta que lleguen.
+            // El 'await new Promise' le da tiempo al navegador de actualizar la pantalla.
+            while (!app.phraseBuffer || app.phraseBuffer.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
         }
 
-        // Si no hay frases (solo pasará si el usuario es muy rápido nada más loguearse)
-        display.innerText = "🤖 Generando frases...";
-        await app.fetchMorePhrases();
-        app.loadNewPhrase();
-    },
+        // 2. AHORA SÍ tenemos frases en el buffer asegurado. Sacamos la primera.
+        const textoSacado = app.phraseBuffer.shift();
+        app.currentPhrase = { texto: textoSacado };
+        display.innerText = app.currentPhrase.texto;
 
+        display.style.opacity = "1";
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+
+        // 3. Si quedan pocas frases, pedimos más para el futuro
+        if (app.phraseBuffer.length <= 2 && !app.isFetchingPhrases) {
+            app.fetchMorePhrases();
+        }
+    },
     fetchMorePhrases: async () => {
         // 1. Si ya estamos hablando con el servidor, abortamos esta llamada extra
         if (app.isFetchingPhrases) return;
