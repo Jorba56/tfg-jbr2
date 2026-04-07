@@ -2,6 +2,7 @@ package com.jorge.incidencias.controller;
 
 import com.jorge.incidencias.services.impl.GeminiServiceImpl;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,6 +16,7 @@ public class GameController {
         this.geminiService = geminiService;
     }
 
+    @PreAuthorize("hasAnyAuthority('USUARIO', 'ADMIN')")
     @GetMapping("/frase")
     public ResponseEntity<String> obtenerFrase(@RequestParam(defaultValue = "media") String dificultad) {
         String frase = geminiService.generarFrase(dificultad);
