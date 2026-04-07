@@ -112,7 +112,7 @@ public class UserServiceImpl implements UserService {
         User usuario2= userMap.userAddDTO(usuario);
         usuario2.setContrasenhaUsuario(passwordEncoder.encode(usuario.getContrasenhaUsuario()));
 
-        Rol rolN=rolRep.findByName(("usuario")).orElseThrow(() -> new NotFoundException(rolNoEncontrado));
+        Rol rolN=rolRep.findByName(("USUARIO")).orElseThrow(() -> new NotFoundException(rolNoEncontrado));
         roles.add(rolN);
         usuario2.setRoles(roles);
         userRep.save(usuario2);
