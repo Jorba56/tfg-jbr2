@@ -18,25 +18,24 @@ public class GeminiServiceImpl implements GeminiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generarFrase(String dificultad) {
+        public String generarFrase(String dificultad) {
             String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
-            // 1. Creamos una ruleta de temas para forzar a la IA a ser variada
             String[] temas = {
                     "la antigua Roma", "el espacio exterior", "los animales marinos",
                     "los inventos tecnológicos", "la naturaleza", "la gastronomía mundial",
                     "la inteligencia artificial", "el cuerpo humano", "la historia del arte",
                     "los dinosaurios", "la física cuántica", "mitología griega", "historia del fútbol",
-                    "formula 1", "nba", "los juegos olímpicos"
+                    "formula 1", "nba", "juegos olímpicos"
             };
             String temaAleatorio = temas[(int) (Math.random() * temas.length)];
 
-            // 2. Inyectamos el tema en el prompt
-            String prompt = "Genera 5 frases curiosas sobre " +temaAleatorio +
-                    "Separa cada frase con '|'. " +
-                    "Las frases deben tener una gramática perfecta, natural y fluida (no parezcas un robot). " +
-                    "Cada frase tiene una longitud de 10 a 15 palabras.  " +
-                    "Al final de TODO el bloque de 5 frases, añade el símbolo '#'. " +
-                    "Regla de oro: No dejes ninguna frase sin terminar.";
+            // 1. Prompt blindado: Directo, sin saltos de línea raros y exigiendo a la IA que no hable de más.
+            String prompt = "Escribe 5 frases curiosas sobre " + temaAleatorio + ". " +
+                    "Usa una gramática natural y fluida de 10 a 15 palabras por frase. " +
+                    "REGLA ESTRICTA: Responde ÚNICAMENTE con las frases separadas por el carácter '|'. " +
+                    "No incluyas saludos ni repitas instrucciones. " +
+                    "Al final de todo el bloque, añade el símbolo '#'.";
 
             String requestBody = "{" +
                     "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
@@ -45,27 +44,30 @@ public class GeminiServiceImpl implements GeminiService {
                     "\"maxOutputTokens\": 1000" +
                     "}" +
                     "}";
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-        try {
-            // 4. Hacer la petición POST a Gemini
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-            // 5. Extraer solo el texto de la respuesta (Parsear el JSON)
-            JsonNode root = objectMapper.readTree(response.getBody());
-            String fraseGenerada = root.path("candidates").get(0)
-                    .path("content")
-                    .path("parts").get(0)
-                    .path("text").asText().trim();
+            try {
+                ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-            return fraseGenerada;
+                JsonNode root = objectMapper.readTree(response.getBody());
+                String fraseGenerada = root.path("candidates").get(0)
+                        .path("content")
+                        .path("parts").get(0)
+                        .path("text").asText().trim();
 
-        } catch (Exception e) {
-            System.err.println("Error al contactar con Gemini: " + e.getMessage());
-            // FALLBACK: Si falla el internet o la IA, devolvemos una frase de emergencia para que el juego no se rompa
-            return  e.getMessage();
+                System.out.println("TEMA ELEGIDO PARA ESTA TANDA: " + temaAleatorio);
+
+                return fraseGenerada;
+
+            } catch (Exception e) {
+                // 2. Telemetría limpia en consola para ti (sin usar slf4j)
+                System.err.println("Fallo en boxes al contactar con Gemini: " + e.getMessage());
+
+                // 3. Fallback limpio para el jugador: Frases de emergencia con el formato correcto
+                return "El servidor de IA está repostando combustible|Inténtalo de nuevo en unos segundos|El coche de seguridad está en pista|#";
+            }
         }
-    }
 }
