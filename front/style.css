@@ -152,10 +152,24 @@ button:active { transform: translateY(1px); }
     padding: 10px 20px;
 }
 
+.btn-main {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    text-decoration: none;
+    border-radius: var(--radius);
+    font-weight: 600;
+    box-sizing: border-box;
+    transition: 0.3s;
+    font-family: 'Poppins', sans-serif;
+}
+
 .btn-registro {
     background: transparent;
     color: var(--primary);
     border: 2px solid var(--primary);
+    margin-top: 10px;
 }
 .btn-registro:hover {
     background: var(--primary);
