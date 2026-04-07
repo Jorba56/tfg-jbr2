@@ -20,7 +20,7 @@ document.getElementById('registroForm').addEventListener('submit', async functio
     const usuarioNuevo = {
         nombre_usuario: nombre,
         apellido_usuario: apellido,
-        email_usuario: email,
+        correo_usuario: email,
         contrasenha_usuario: password
     };
 
