@@ -56,18 +56,64 @@ h1, h2, h3, .big-score {
     align-items: center;
 }
 
+.racing-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    text-align: center; /* Centramos el texto con el input */
+    color: var(--text-highlight);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Ajuste del enlace inferior */
+.link-inferior {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 25px;
+    width: 100%;
+}
+
+.link-inferior a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 800;
+    transition: 0.3s;
+}
+
+.link-inferior a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px var(--primary);
+}
+
 /* --- INPUTS TÉCNICOS --- */
 input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
     width: 100%;
-    padding: 14px;
-    margin-top:2%;
+    box-sizing: border-box; /* 👈 ESTA ES LA MAGIA: Obliga a que la caja no desborde el 100% */
+    padding: 14px 20px; /* 👈 Relleno extra a los lados para que el corte diagonal no pise el texto */
+    margin-top: 10px;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--card-border);
-    border-radius: 0; /* Rectos */
+    border-radius: 0;
     color: var(--primary);
     font-family: 'Inter', sans-serif;
     transition: 0.3s;
-    clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%); /* Ligero trapecio */
+    clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+    text-align: left; /* 👈 Devolvemos el texto a la izquierda, como tú querías */
 }
 
 input:focus {
@@ -227,6 +273,7 @@ body.tema-cyberpunk input:focus {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 25px;
     margin: 20px 0 40px 0;
+    width: 100%;
 }
 
 /* Tarjeta de Producto Individual */
@@ -584,6 +631,27 @@ body.light-mode .btn-equip:hover {
 body.light-mode .shop-item:hover h4,
 body.light-mode .shop-item:hover .desc {
     color: var(--text-highlight); /* Forzamos que el texto se oscurezca para leerse bien */
+}
+
+body.light-mode .form-group label {
+    color: var(--text-highlight) !important;
+    text-shadow: none;
+    font-weight: 800;
+}
+
+/* Texto secundario de "¿Ya tienes cuenta?" */
+body.light-mode .link-inferior {
+    color: var(--text-secondary) !important;
+}
+
+/* Enlace a Iniciar Sesión en azul escudería */
+body.light-mode .link-inferior a {
+    color: var(--primary) !important;
+}
+
+/* Brillo del enlace adaptado al día (sutil) */
+body.light-mode .link-inferior a:hover {
+    text-shadow: 0 0 10px rgba(0, 92, 230, 0.3) !important;
 }
 
 /* Ajuste de fuentes para móviles */
