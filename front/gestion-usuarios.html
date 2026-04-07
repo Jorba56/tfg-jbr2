@@ -19,55 +19,48 @@
 
     <style>
         body {
-            background-color: var(--bg) !important;
-            color: var(--text) !important;
-            transition: 0.3s;
-            /* ESTAS TRES LÍNEAS ARREGLAN EL DESASTRE VISUAL: */
-            display: block !important;
-            height: auto !important;
-            overflow-y: auto !important;
+            background-color: #050b14 !important; /* El nuevo azul profundo */
         }
 
-        /* Transformamos los fondos blancos de Tailwind en tus fondos dinámicos */
-        .bg-white, .bg-gray-50, .bg-blue-900 { background-color: var(--card-bg) !important; }
-
-        /* Transformamos los textos grises en tu texto dinámico */
-        .text-gray-800, .text-gray-700, .text-gray-600, .text-gray-500 { color: var(--text) !important; }
-        .border-gray-200, .border-gray-300, .border-gray-100 { border-color: var(--text-secondary) !important; }
-
-        /* Tablas adaptativas */
-        thead th { background-color: rgba(0,0,0,0.2) !important; color: var(--primary) !important; }
-        tbody tr { border-bottom: 1px solid var(--text-secondary) !important; }
-        tbody tr:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
-        body.light-mode tbody tr:hover { background-color: rgba(0, 0, 0, 0.05) !important; }
-
-        /* Inputs y buscadres dinámicos */
-        input[type="text"], input[type="number"], input[type="email"] {
-            background-color: var(--bg) !important;
-            color: var(--text) !important;
-            border: 1px solid var(--text-secondary) !important;
+        .theme-card {
+            background-color: rgba(31, 40, 51, 0.9) !important;
+            border: 1px solid rgba(0, 242, 254, 0.2) !important;
+            border-top: 4px solid #00f2fe !important; /* Línea de color de equipo */
         }
-        input:focus { border-color: var(--primary) !important; outline: none; }
 
-        input, button { margin: 0 !important; } /* Quita los márgenes gruesos del login */
+        thead th {
+            background-color: #0b0c10 !important;
+            color: #00f2fe !important;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            font-style: italic;
+        }
 
-        /* Solo se aplica en pantallas de ordenador o tablet grande */
-        @media (min-width: 768px) {
-            button {
-                width: auto !important; /* Quita el 94% de ancho forzado por el juego */
-                padding: 8px 16px !important; /* Botones más finos y elegantes */
+        th, td {
+            min-width: 140px; /* Ancho mínimo para que los datos respiren */
+            padding: 12px 10px !important;
+        }
+
+        /* El ID es el único que puede ser estrecho */
+        th:first-child, td:first-child {
+            min-width: 60px !important;
+        }
+
+        /* Ajuste de los botones de acción para que no se amontonen */
+        .flex.gap-2 {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+
+        /* Reducimos el tamaño de la fuente en móvil para ver más datos */
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.75rem;
             }
-
-            /* Excepción para los iconos de la tabla, que deben seguir siendo pequeños */
-            td button { padding: 5px !important; background: transparent !important; }
-
-            /* Ajustar barras de búsqueda para que sean estilizadas */
-            input[type="text"], input[type="number"], input[type="email"] {
-                padding: 8px 16px !important;
-                height: 40px !important;
+            .theme-card {
+                padding: 1rem !important;
             }
-            #inputBusquedaId { width: 120px !important; }
-            #inputBusquedaCorreo { width: 280px !important; }
         }
     </style>
 </head>
