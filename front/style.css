@@ -169,6 +169,196 @@ button:hover {
     display: none !important;
 }
 
+body.tema-cyberpunk {
+    --bg: #05050a;                  /* Negro casi absoluto */
+    --primary: #ff00ff;             /* Magenta Neón vibrante */
+    --card-bg: rgba(20, 10, 36, 0.9); /* Morado muy oscuro traslúcido */
+    --card-border: rgba(0, 255, 255, 0.4); /* Bordes secundarios en Cian */
+    --text-highlight: #00ffff;      /* Texto importante en Cian eléctrico */
+
+    /* Gradiente de botones estilo "Synthwave" */
+    --btn-gradient: linear-gradient(135deg, #ff00ff 0%, #7000ff 100%);
+
+    /* Resplandor de neón más fuerte */
+    --glass-shadow: 0 0 25px rgba(255, 0, 255, 0.2);
+}
+
+/* --- DETALLES ESPECÍFICOS DEL TEMA --- */
+
+/* Borde izquierdo estilo Williams ahora en Magenta */
+body.tema-cyberpunk .login-container,
+body.tema-cyberpunk .shop-container,
+body.tema-cyberpunk .score-reveal-box,
+body.tema-cyberpunk .registro-container {
+    border-left: 5px solid var(--primary) !important;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.15), var(--glass-shadow);
+}
+
+/* Efecto de parpadeo para los títulos en modo Cyberpunk */
+body.tema-cyberpunk h1,
+body.tema-cyberpunk .big-score {
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 2px 2px 0px #00ffff;
+    animation: neon-flicker 3s infinite alternate;
+}
+
+/* Personalización del input de juego para este tema */
+body.tema-cyberpunk input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+/* ========================================== */
+/* TIENDA Y EQUIPAMIENTO (ESTILO PERFORMANCE) */
+/* ========================================== */
+
+/* Contenedor de rejilla con espaciado dinámico */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
+    margin: 20px 0 40px 0;
+}
+
+/* Tarjeta de Producto Individual */
+.shop-item {
+    background: rgba(11, 12, 16, 0.6);
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform: skewX(-4deg); /* Inclinación sutil coherente con el index */
+    overflow: hidden;
+}
+
+/* Efecto de resplandor al pasar el ratón */
+.shop-item:hover {
+    background: rgba(0, 242, 254, 0.05);
+    border-color: var(--primary);
+    transform: skewX(-4deg) translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 242, 254, 0.2);
+}
+
+/* Etiquetas de Tipo (COSMETICO / POWERUP) */
+.item-type-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--text-secondary);
+    color: var(--bg);
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 4px 12px;
+    text-transform: uppercase;
+    transform: skewX(0deg); /* Enderezar tag */
+}
+
+.type-cosmetico { background: var(--primary); }
+.type-powerup { background: #ffd700; }
+
+/* Título y Detalles */
+.shop-item h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    margin: 15px 0 5px 0;
+    color: var(--text-highlight);
+    transform: skewX(4deg); /* Enderezar texto */
+}
+
+.shop-item .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 20px;
+    min-height: 40px;
+    display: block;
+    transform: skewX(4deg);
+}
+
+/* Visualización del Precio */
+.shop-item .price {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    transform: skewX(4deg);
+}
+
+.shop-item .price::before {
+    content: '🪙';
+    font-size: 1rem;
+}
+
+/* --- ESTADOS DE BOTONES EN TIENDA/INVENTARIO --- */
+
+.btn-item-action {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.3s;
+    transform: skewX(0deg); /* Botón interno recto para contraste */
+}
+
+/* Botón Comprar */
+.btn-buy {
+    background: var(--primary);
+    color: #000;
+}
+
+.btn-buy:hover {
+    background: white;
+    box-shadow: 0 0 20px var(--primary);
+}
+
+/* Botón Equipar */
+.btn-equip {
+    background: transparent;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-equip:hover {
+    background: var(--primary);
+    color: #000;
+}
+
+/* Botón Ya Equipado */
+.btn-equipped {
+    background: rgba(0, 230, 118, 0.1);
+    color: #00e676;
+    border-color: #00e676;
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-equipped::after {
+    content: '✓';
+    font-weight: bold;
+}
+
+/* Animación de pulso neón */
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+    }
+    20%, 22%, 24%, 55% {
+        opacity: 0.7;
+    }
+}
+
 /* Ajuste de fuentes para móviles */
 @media (max-width: 640px) {
     :root {
