@@ -18,19 +18,20 @@ public class GeminiServiceImpl implements GeminiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generarFrase(String dificultad) {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
             // 1. Creamos una ruleta de temas para forzar a la IA a ser variada
             String[] temas = {
                     "la antigua Roma", "el espacio exterior", "los animales marinos",
                     "los inventos tecnológicos", "la naturaleza", "la gastronomía mundial",
                     "la inteligencia artificial", "el cuerpo humano", "la historia del arte",
-                    "los dinosaurios", "la física cuántica", "mitología griega"
+                    "los dinosaurios", "la física cuántica", "mitología griega", "historia del fútbol",
+                    "formula 1", "nba", "los juegos olímpicos"
             };
             String temaAleatorio = temas[(int) (Math.random() * temas.length)];
 
             // 2. Inyectamos el tema en el prompt
-            String prompt = "Genera 5 frases curiosas sobre un tema aleatorio. " +
+            String prompt = "Genera 5 frases curiosas sobre " +temaAleatorio +
                     "Separa cada frase con '|'. " +
                     "Cada frase tiene un máximo de 13 palabras.  " +
                     "Al final de TODO el bloque de 5 frases, añade el símbolo '#'. " +
@@ -39,8 +40,8 @@ public class GeminiServiceImpl implements GeminiService {
             String requestBody = "{" +
                     "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
                     "\"generationConfig\": {" +
-                    "\"temperature\": 0.4," +
-                    "\"maxOutputTokens\": 800" +
+                    "\"temperature\": 1.4," +
+                    "\"maxOutputTokens\": 1000" +
                     "}" +
                     "}";
         HttpHeaders headers = new HttpHeaders();
