@@ -56,9 +56,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 // Asumimos que tu token guarda el rol en un claim llamado "rol" o "role"
                 // Si en usuarios no lo guardas, luego te digo cómo añadirlo.
                 List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+                System.out.println("--- DEBUG JWT ---");
+                System.out.println("Usuario: " + username + " | Roles extraídos: " + roles);
 
                 if (roles == null || roles.isEmpty()) {
-                    roles = Collections.singletonList("USER");
+                    roles = Collections.singletonList("USUARIO");
                 }
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
