@@ -349,21 +349,48 @@ const app = {
         return points;
     },
 
-    endGame: () => {
+    endGame: async () => { // <-- 1. Añadimos 'async' aquí
         clearInterval(app.timerInterval);
         const inputVal = document.getElementById('game-input').value;
+
+        // Sumar los puntos de la última frase a medias
         if(inputVal.length > 0) {
             const points = app.calculatePhraseScore(app.currentPhrase.texto, inputVal);
             app.score += points;
             app.gameHistory.push({ target: app.currentPhrase.texto, input: inputVal, points: points });
         }
+
+        // Calcular créditos
         const creditsEarned = Math.floor(app.score * 0.1);
+
+        // 2. Actualizamos la interfaz al instante (El jugador ve su premio al momento)
         app.currentUser.creditos += creditsEarned;
         app.updateUserUI();
         document.getElementById('earned-credits').innerText = creditsEarned;
         app.renderResults();
         app.showScreen('results-screen');
         app.animateValue("final-score", 0, app.score, 1500);
+
+        // 3. LA CONEXIÓN A BOXES: Guardamos en la base de datos de forma silenciosa
+        if (creditsEarned > 0) {
+            try {
+                const url = 'https://gateway-production-a1f6.up.railway.app/incidencias/usuarios/actualizar-creditos';
+                const response = await fetch(url, {
+                    method: 'PUT', // Asegúrate de que coincida con tu endpoint de Java (PUT o POST)
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    },
+                    body: JSON.stringify({ creditosExtra: creditsEarned })
+                });
+
+                if (!response.ok) throw new Error("Los mecánicos no confirmaron la recepción");
+
+                console.log("🏁 ¡Telemetría guardada! +" + creditsEarned + " créditos asegurados en la BBDD.");
+            } catch (error) {
+                console.error("Fallo de conexión al intentar guardar la partida:", error);
+            }
+        }
     },
 
     renderResults: () => {
