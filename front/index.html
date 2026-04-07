@@ -3,62 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenido a la Plataforma</title>
+    <title>Bienvenido - Red de Seguridad</title>
     <style>
+        /* Estilos Base Futuristas */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Montserrat', 'Inter', Arial, sans-serif; /* Usamos fuentes geométricas */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh; /* Ocupa toda la altura de la pantalla */
+            height: 100vh;
             margin: 0;
-            background-color: #f4f6f9;
+            background-color: #18042c; /* Fondo morado oscuro de la guía */
+            color: #fcf40c; /* Texto amarillo eléctrico */
         }
+
+        /* Contenedor con Resplandor (Glow) */
         .landing-container {
             text-align: center;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            max-width: 400px;
+            background-color: transparent; /* Fondo transparente */
+            padding: 50px;
+            border: 2px solid #8c04e4; /* Borde morado vibrante */
+            border-radius: 12px;
+            /* Efecto de resplandor morado */
+            box-shadow: 0 0 20px rgba(140, 4, 228, 0.4), inset 0 0 10px rgba(140, 4, 228, 0.2);
+            max-width: 450px;
             width: 90%;
         }
-        h1 { color: #333; margin-top: 0; }
-        p { color: #666; margin-bottom: 30px; line-height: 1.5; }
 
-        /* Estilos de los botones */
+        h1 { color: #fcf40c; margin-top: 0; font-size: 32px; font-weight: bold; letter-spacing: -1px;}
+        p { color: #fcf40c; margin-bottom: 40px; line-height: 1.6; font-size: 16px; font-weight: normal;}
+
+        /* Estilos de Botones Futuristas */
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
+            padding: 14px;
+            margin-bottom: 20px;
             text-decoration: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 16px;
             box-sizing: border-box;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
         }
-        .btn-login {
-            background-color: #007bff;
-            color: white;
-            border: 2px solid #007bff;
-        }
-        .btn-login:hover { background-color: #0056b3; border-color: #0056b3;}
 
-        .btn-registro {
-            background-color: white;
-            color: #28a745;
-            border: 2px solid #28a745;
+        /* Botón Iniciar Sesión (Morado vibrante, texto amarillo) */
+        .btn-login {
+            background-color: #8c04e4;
+            color: #fcf40c;
+            border: 2px solid #8c04e4;
         }
-        .btn-registro:hover { background-color: #28a745; color: white; }
+        .btn-login:hover {
+            background-color: transparent; /* Efecto hover inverso */
+            border-color: #fcf40c;
+        }
+
+        /* Botón Registro (Outline amarillo, texto amarillo) */
+        .btn-registro {
+            background-color: transparent;
+            color: #fcf40c;
+            border: 2px solid #fcf40c;
+        }
+        .btn-registro:hover {
+            background-color: #fcf40c;
+            color: #18042c; /* Fondo oscuro al hover */
+        }
     </style>
 </head>
 <body>
 
 <div class="landing-container">
     <h1>¡Bienvenido!</h1>
-    <p>Aprende, resuelve incidencias y mejora tus habilidades. ¿Qué deseas hacer hoy?</p>
+    <p>Aprende, resuelve incidencias y mejora tus habilidades en nuestra red segura. ¿Qué deseas hacer hoy?</p>
 
     <a href="login.html" class="btn btn-login">Iniciar Sesión</a>
     <a href="registro.html" class="btn btn-registro">Crear una cuenta nueva</a>
