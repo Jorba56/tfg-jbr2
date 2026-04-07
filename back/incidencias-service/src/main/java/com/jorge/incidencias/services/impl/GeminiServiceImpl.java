@@ -18,7 +18,7 @@ public class GeminiServiceImpl implements GeminiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generarFrase(String dificultad) {
-            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+            String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
             String[] temas = {
                     "la antigua Roma", "el espacio exterior", "los animales marinos",
