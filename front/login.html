@@ -40,8 +40,14 @@
         <p class="subtitle">Arena de tecleo competitivo</p>
         <input type="text" id="username" placeholder="Usuario (admin / alumno)">
         <input type="password" id="password" placeholder="Contraseña">
-        <button id="btn-login">Entrar a la Arena</button>
-        <button><a href="registro.html" class="btn-main btn-registro">Crear una cuenta</a></button>
+        <div class="button-group">
+            <button id="btn-login" class="btn-main">
+                <div>Entrar a la Arena</div>
+            </button>
+            <a href="registro.html" class="btn-main btn-registro">
+                <div>Crear una cuenta</div>
+            </a>
+        </div>
         <p id="error-msg" class="hidden error-text">Credenciales incorrectas</p>
     </div>
 </section>
@@ -66,7 +72,7 @@
             <div class="item-type-tag">GARAJE</div>
             <h4>👤 Mi Perfil</h4>
             <span class="desc">Gestiona tu inventario, equipa tus cosméticos y revisa tus estadísticas de carrera.</span>
-            <button class="btn-item-action btn-equip"><div>VER EQUIPO</div></button>
+            <button class="btn-item-action"><div>VER EQUIPO</div></button>
         </div>
 
         <div id="card-shop" class="shop-item playable group">
@@ -77,10 +83,10 @@
         </div>
 
         <div id="card-admin" class="shop-item playable admin-card hidden group">
-            <div class="item-type-tag" style="background: var(--error, #ff4b5c);">SISTEMA</div>
+            <div class="item-type-tag" style="background:#ff4b5c;">SISTEMA</div>
             <h4>⚙️ Panel Admin</h4>
             <span class="desc">Acceso restringido a la telemetría global y gestión de usuarios del sistema.</span>
-            <button class="btn-item-action" style="background: var(--error, #ff4b5c); color: white;"><div>CONFIGURAR</div></button>
+            <button class="btn-item-action" style="background: #ff4b5c; color: white;"><div>CONFIGURAR</div></button>
         </div>
 
         <div class="shop-item locked opacity-50 grayscale">

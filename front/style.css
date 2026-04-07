@@ -14,6 +14,7 @@
     --btn-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
     --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     --radius: 4px; /* Bordes más rectos/agresivos para estilo racing */
+    --error: red;
 }
 
 body {
@@ -50,12 +51,16 @@ h1, h2, h3, .big-score {
     padding: 40px;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* --- INPUTS TÉCNICOS --- */
 input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
     width: 100%;
     padding: 14px;
+    margin-top:2%;
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--card-border);
     border-radius: 0; /* Rectos */
@@ -72,31 +77,35 @@ input:focus {
 }
 
 /* --- BOTONES DE ALTO RENDIMIENTO (SKEWED) --- */
-button, .btn-main {
-    background: var(--btn-gradient);
+.btn-main, button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    /* QUITADO: background: transparent !important; */
+    background: var(--btn-gradient); /* Usamos el gradiente por defecto */
     color: #000;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 900;
-    text-transform: uppercase;
-    font-style: italic;
-    padding: 15px;
     border: none;
     cursor: pointer;
-    transition: 0.3s;
-    /* El famoso corte diagonal de tu index.html */
+    transition: all 0.3s ease;
     transform: skewX(-12deg);
-    margin: 10px 0;
+    padding: 12px 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-top: 20px;
 }
 
-button span, .btn-main span, button div, .btn-main div {
-    transform: skewX(12deg); /* Enderezar el texto dentro del botón */
-    display: inline-block;
+.btn-main div, button div, .btn-main>span, button span {
+    transform: skewX(12deg);
+    display: block;
 }
 
-button:hover {
-    filter: brightness(1.2);
+.btn-main:hover, button:hover {
+    filter: brightness(1.1);
     transform: skewX(-12deg) scale(1.02);
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
 }
 
 /* --- CARTAS DEL DASHBOARD --- */
@@ -222,12 +231,12 @@ body.tema-cyberpunk input:focus {
 
 /* Tarjeta de Producto Individual */
 .shop-item {
-    background: rgba(11, 12, 16, 0.6);
+    background: var(--card-bg); /* <--- ESTA ES LA LÍNEA MÁGICA */
     border: 1px solid var(--card-border);
     padding: 25px;
     position: relative;
     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-    transform: skewX(-4deg); /* Inclinación sutil coherente con el index */
+    transform: skewX(-4deg);
     overflow: hidden;
 }
 
@@ -381,56 +390,64 @@ body.tema-cyberpunk input:focus {
 
 /* --- BOTÓN DE REGISTRO ESTILO OUTLINE RACING --- */
 
-.btn-registro {
-    background: transparent !important; /* Sin relleno */
-    border: 2px solid var(--primary) !important; /* Borde cian eléctrico */
+.btn-main.btn-registro {
+    background: transparent !important; /* Aquí SÍ lo queremos transparente */
+    border: 0.5px solid var(--primary) !important; /* Borde cian eléctrico */
     color: var(--primary) !important; /* Texto cian */
-    text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    /* Mantenemos la inclinación del resto de botones */
-    transform: skewX(-12deg);
-    margin-top: 15px;
 }
 
-.btn-registro:hover {
-    background: var(--primary) !important; /* Se llena al hacer hover */
-    color: #000 !important; /* El texto pasa a negro para contrastar */
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
-    transform: skewX(-12deg) scale(1.02);
+.btn-main.btn-registro:hover {
+    background: var(--primary) !important; /* Al pasar el ratón se llena */
+    color: #000 !important; /* El texto pasa a negro */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
 }
 
 /* Enderezamos el texto interno */
 .btn-registro div {
     transform: skewX(12deg);
     font-family: 'Montserrat', sans-serif;
-    font-weight: 900;
+    font-weight: 700;
     text-transform: uppercase;
     font-style: italic;
 }
 
 .logout-btn {
     background: transparent !important;
-    border: 2px solid var(--error, #ff4b5c) !important;
+    /*border: 10px solid var(--error, #ff4b5c) !important;*/
     color: var(--error, #ff4b5c) !important;
     padding: 8px 20px !important;
     font-size: 0.8rem !important;
     transform: skewX(-12deg);
     transition: 0.3s;
+    border: 2px solid;
 }
 
 .logout-btn:hover {
     background: var(--error, #ff4b5c) !important;
-    color: white !important;
+    color: black  !important;
     box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
     transform: skewX(-12deg) scale(1.05);
 }
 
 .logout-btn div {
     transform: skewX(12deg);
+
+}
+
+.button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 15px; /* El espacio de separación entre ambos botones */
+    width: 100%; /* La caja ocupa el ancho de los inputs */
+    margin-top: 15px;
+}
+
+.button-group .btn-main {
+    flex: 1; /* Magia pura: ambos miden exactamente lo mismo */
+    margin: 0 !important; /* Anulamos cualquier margen vertical antiguo */
+    padding: 12px 5px; /* Reducimos un pelín el padding lateral para que quepa el texto */
+    font-size: 0.85rem; /* Letra un pelín más ajustada para evitar desbordes */
+    justify-content: center; /* Asegura que el texto esté centrado */
 }
 
 /* Animación de pulso neón */
@@ -441,6 +458,115 @@ body.tema-cyberpunk input:focus {
     20%, 22%, 24%, 55% {
         opacity: 0.7;
     }
+}
+
+/* ========================================== */
+/* TEMA CLARO (ESTILO PIT LANE / DAYTONA)     */
+/* ========================================== */
+
+body.light-mode {
+    /* Paleta Clara de Alto Rendimiento */
+    --bg: #f4f6f9;            /* Plata muy claro */
+    --card-bg: rgba(255, 255, 255, 0.85); /* Blanco traslúcido */
+    --card-border: rgba(0, 102, 255, 0.2); /* Borde azul deportivo */
+    --text: #475569;          /* Gris asfalto */
+    --text-highlight: #0f172a;/* Casi negro para buena lectura */
+    --text-secondary: #64748b;
+    --primary: #005ce6;       /* Azul Escudería (más oscuro que el cian para contrastar) */
+
+    /* Ajuste de sombras y gradientes */
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --btn-gradient: linear-gradient(135deg, #005ce6 0%, #0088ff 100%);
+}
+
+/* Fondo de rejilla específico para el tema claro */
+body.light-mode {
+    background-image: linear-gradient(rgba(0, 92, 230, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 92, 230, 0.04) 1px, transparent 1px);
+}
+
+/* Ajuste de inputs para que destaquen sobre el blanco */
+body.light-mode input[type="text"],
+body.light-mode input[type="password"],
+body.light-mode input[type="email"],
+body.light-mode input[type="number"] {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-highlight);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 92, 230, 0.2);
+}
+
+/* Los botones sólidos ahora llevan texto blanco para contrastar con el azul */
+body.light-mode .btn-main,
+body.light-mode button {
+    color: #ffffff;
+}
+
+/* El botón de Registro (Outline) se invierte al pasar el ratón */
+body.light-mode .btn-main.btn-registro:hover {
+    color: #ffffff !important;
+}
+
+/* Ajuste del botón de logout para que resalte en blanco */
+body.light-mode .logout-btn {
+    border-color: var(--error) !important;
+    color: var(--error) !important;
+}
+
+body.light-mode .logout-btn:hover {
+    color: white !important;
+}
+
+body.light-mode .shop-item {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra más suave de día */
+}
+
+body.light-mode .shop-item:hover {
+    background: rgba(0, 92, 230, 0.05); /* Brillo azul escudería al pasar el ratón */
+    border-color: var(--primary);
+}
+
+body.light-mode .shop-item .desc {
+    font-weight: 500; /* Le damos un pelín más de grosor a la letra para que se lea perfecto sobre blanco */
+}
+
+/* --- ARREGLO DE HOVERS PARA TEMA CLARO --- */
+
+/* 1. Suavizamos la sombra brutal del modo oscuro al pasar el ratón por las tarjetas */
+body.light-mode .shop-item.playable:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 92, 230, 0.2) !important;
+    background: rgba(0, 92, 230, 0.05);
+}
+
+/* Sombra suave para la tarjeta de admin en modo claro */
+body.light-mode .admin-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 75, 92, 0.2) !important;
+}
+
+/* 2. Arreglo de los botones interiores (evitar blanco sobre blanco) */
+body.light-mode .btn-buy:hover {
+    background: var(--text-highlight); /* Fondo asfalto oscuro */
+    color: #ffffff !important; /* Texto blanco asegurado */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .btn-equip {
+    color: var(--primary); /* Texto azul por defecto */
+}
+
+body.light-mode .btn-equip:hover {
+    background: var(--primary); /* Fondo azul al pasar el ratón */
+    color: #ffffff !important; /* Texto blanco */
+}
+
+/* 3. Textos dentro de la tarjeta al hacer hover */
+body.light-mode .shop-item:hover h4,
+body.light-mode .shop-item:hover .desc {
+    color: var(--text-highlight); /* Forzamos que el texto se oscurezca para leerse bien */
 }
 
 /* Ajuste de fuentes para móviles */
@@ -459,6 +585,10 @@ body.tema-cyberpunk input:focus {
     }
     button div, .btn-main div {
         transform: skewX(6deg);
+    }
+
+    .button-group {
+        flex-direction: column;
     }
 
     .login-container, .registro-container {
