@@ -683,7 +683,7 @@ body.light-mode .link-inferior a:hover {
 /* --- ERRADICACIÓN TOTAL DEL SCROLL FANTASMA (MÓVILES Y TABLETS) --- */
 /* --- ESCALADO DE CAJAS PARA MÓVILES Y TABLETS --- */
 
-@media (max-width: 1024px) {
+@media (max-width: 800px) {
     /* 1. Permitimos bajar (vertical), pero bloqueamos ir a los lados (horizontal) */
     html, body {
         overflow-x: hidden !important;
