@@ -16,7 +16,7 @@ public class GameController {
         this.geminiService = geminiService;
     }
 
-    @PreAuthorize("hasAnyAuthority('USUARIO', 'ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/frase")
     public ResponseEntity<String> obtenerFrase(@RequestParam(defaultValue = "media") String dificultad) {
         String frase = geminiService.generarFrase(dificultad);
