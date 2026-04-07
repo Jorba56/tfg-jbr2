@@ -33,14 +33,15 @@ public class GeminiServiceImpl implements GeminiService {
             // 2. Inyectamos el tema en el prompt
             String prompt = "Genera 5 frases curiosas sobre " +temaAleatorio +
                     "Separa cada frase con '|'. " +
-                    "Cada frase tiene un máximo de 13 palabras.  " +
+                    "Las frases deben tener una gramática perfecta, natural y fluida (no parezcas un robot). " +
+                    "Cada frase tiene una longitud de 10 a 15 palabras.  " +
                     "Al final de TODO el bloque de 5 frases, añade el símbolo '#'. " +
                     "Regla de oro: No dejes ninguna frase sin terminar.";
 
             String requestBody = "{" +
                     "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
                     "\"generationConfig\": {" +
-                    "\"temperature\": 1.4," +
+                    "\"temperature\": 1.2," +
                     "\"maxOutputTokens\": 1000" +
                     "}" +
                     "}";
