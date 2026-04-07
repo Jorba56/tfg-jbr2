@@ -332,7 +332,7 @@ body.tema-cyberpunk input:focus {
 /* Botón Equipar */
 .btn-equip {
     background: transparent;
-    border-color: var(--primary);
+    border: 2px solid var(--primary);
     color: var(--primary);
 }
 
@@ -534,6 +534,22 @@ body.light-mode .shop-item .desc {
     font-weight: 500; /* Le damos un pelín más de grosor a la letra para que se lea perfecto sobre blanco */
 }
 
+body.light-mode .btn-equipped {
+    background: #00e676;
+    color: #2a8613;
+    border-color: #00e676;
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+body.light-mode .btn-equipped::after {
+    content: '✓';
+    font-weight: bold;
+}
+
 /* --- ARREGLO DE HOVERS PARA TEMA CLARO --- */
 
 /* 1. Suavizamos la sombra brutal del modo oscuro al pasar el ratón por las tarjetas */
@@ -556,6 +572,7 @@ body.light-mode .btn-buy:hover {
 
 body.light-mode .btn-equip {
     color: var(--primary); /* Texto azul por defecto */
+    border: 2px solid var(--primary);
 }
 
 body.light-mode .btn-equip:hover {
