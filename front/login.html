@@ -47,41 +47,41 @@
 </section>
 
 <section id="dashboard-screen" class="screen hidden">
-    <div class="shop-container">
-        <header class="shop-header">
-            <div class="user-info">
-                <h2 style="margin: 0;">Hola, <span id="user-display">Jugador</span></h2>
-                <div class="credits-badge">🪙 <span id="user-credits">0</span></div>
-            </div>
-            <button id="btn-logout" class="logout-btn">Salir</button>
-        </header>
+    <div class="menu-grid items-grid"> <div id="card-play" class="shop-item playable group">
+        <div class="item-type-tag type-powerup">DISPONIBLE</div>
+        <h4>⚡ Contrarreloj</h4>
+        <span class="desc">Demuestra tu velocidad punta en la arena de tecleo. Gana créditos por cada acierto.</span>
+        <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
+    </div>
 
-        <div class="menu-grid">
-            <div id="card-play" class="card playable">
-                <h3>⚡ Contrarreloj</h3>
-                <p>Gana créditos jugando.</p>
-            </div>
-
-            <div id="card-profile" class="card playable">
-                <h3>👤 Mi Perfil</h3>
-                <p>Inventario y cosméticos.</p>
-            </div>
-
-            <div id="card-shop" class="card playable shop-card">
-                <h3>🛒 Tienda</h3>
-                <p>Comprar ventajas.</p>
-            </div>
-
-            <div id="card-admin" class="card playable hidden admin-card">
-                <h3>⚙️ Panel Admin</h3>
-                <p>Gestión y base de datos.</p>
-            </div>
-
-            <div class="card locked">
-                <h3>🔒 Battle Royale</h3>
-                <p>Próximamente</p>
-            </div>
+        <div id="card-profile" class="shop-item playable group">
+            <div class="item-type-tag">GARAJE</div>
+            <h4>👤 Mi Perfil</h4>
+            <span class="desc">Gestiona tu inventario, equipa tus cosméticos y revisa tus estadísticas de carrera.</span>
+            <button class="btn-item-action btn-equip"><div>VER EQUIPO</div></button>
         </div>
+
+        <div id="card-shop" class="shop-item playable group">
+            <div class="item-type-tag type-cosmetico">OFICIAL</div>
+            <h4>🛒 Tienda</h4>
+            <span class="desc">Adquiere mejoras de rendimiento y temas visuales exclusivos para tu interfaz.</span>
+            <button class="btn-item-action btn-buy"><div>IR A COMPRAR</div></button>
+        </div>
+
+        <div id="card-admin" class="shop-item playable admin-card hidden group">
+            <div class="item-type-tag" style="background: var(--error, #ff4b5c);">SISTEMA</div>
+            <h4>⚙️ Panel Admin</h4>
+            <span class="desc">Acceso restringido a la telemetría global y gestión de usuarios del sistema.</span>
+            <button class="btn-item-action" style="background: var(--error, #ff4b5c); color: white;"><div>CONFIGURAR</div></button>
+        </div>
+
+        <div class="shop-item locked opacity-50 grayscale">
+            <div class="item-type-tag">PRÓXIMAMENTE</div>
+            <h4>🔒 Battle Royale</h4>
+            <span class="desc">Compite contra otros 99 corredores en tiempo real. Próxima actualización.</span>
+            <button class="btn-item-action" disabled style="background: #333; cursor: not-allowed;"><div>BLOQUEADO</div></button>
+        </div>
+
     </div>
 </section>
 

@@ -352,6 +352,33 @@ body.tema-cyberpunk input:focus {
     margin: 10px;
 }
 
+/* --- MEJORAS PARA EL DASHBOARD RACING --- */
+
+/* Forzamos que las tarjetas del menú respiren bien */
+.menu-grid.items-grid {
+    padding: 20px 0;
+    max-width: 1000px; /* Un poco más ancho para el menú */
+}
+
+/* Efecto de elevación y brillo para las tarjetas clicables */
+.shop-item.playable:hover {
+    cursor: pointer;
+    border-color: var(--primary);
+    transform: skewX(-4deg) translateY(-10px); /* Elevación agresiva */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+/* Estilo para la tarjeta de Admin */
+.admin-card:hover {
+    border-color: var(--error, #ff4b5c) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 75, 92, 0.3) !important;
+}
+
+/* Transición suave para todos los elementos internos */
+.shop-item * {
+    transition: all 0.3s ease;
+}
+
 /* Animación de pulso neón */
 @keyframes neon-flicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {

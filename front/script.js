@@ -1,5 +1,18 @@
 import { frasesRepository, usuariosRepository, catalogoCosmeticos } from './data.js';
 
+function navegarA(idPantalla) {
+    // Escondemos todas las secciones con clase .screen
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active');
+        s.classList.add('hidden');
+    });
+
+    // Mostramos solo la elegida
+    const destino = document.getElementById(idPantalla);
+    destino.classList.remove('hidden');
+    destino.classList.add('active');
+}
+
 const app = {
     // --- ESTADO (Igual) ---
     currentUser: null,
@@ -60,6 +73,9 @@ const app = {
             app.showScreen('login-screen');
         }
     },
+
+
+
 
  // --- LOGIN (Conectado al Backend Real) ---
     login: async () => {
