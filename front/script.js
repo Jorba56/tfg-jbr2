@@ -22,7 +22,8 @@ const app = {
     timeLeft: 60,
     timerInterval: null,
     gameHistory: [],
-    escudoActivo: false, // <-- NUEVA VARIABLE
+    escudoActivo: false,
+    isFetchingPhrases: false,
 
     // --- NAVEGACIÓN Y TEMA (Igual) ---
     toggleTheme: () => {
@@ -259,6 +260,12 @@ const app = {
     },
 
     fetchMorePhrases: async () => {
+        // 1. Si ya estamos hablando con el servidor, abortamos esta llamada extra
+        if (app.isFetchingPhrases) return;
+
+        // 2. Cerramos el candado
+        app.isFetchingPhrases = true;
+
         try {
             const timestamp = new Date().getTime();
             const response = await fetch(`https://gateway-production-a1f6.up.railway.app/incidencias/game/frase?dificultad=media&t=${timestamp}`, {
@@ -269,33 +276,25 @@ const app = {
             if (!response.ok) throw new Error("Error en la petición");
 
             let textoBruto = await response.text();
-
-            // 1. Limpieza total de caracteres extraños y saltos de línea
             textoBruto = textoBruto.replace(/[\r\n]+/g, " ").trim();
-
-            // 2. Separar por el símbolo '|'
             const partes = textoBruto.split('|');
 
-            // 3. Limpiar cada frase individualmente y filtrar
             const nuevasFrases = partes
                 .map(f => f.trim())
-                // Eliminamos frases que empiecen por números o puntos (basura de IA)
                 .map(f => f.replace(/^[0-9.\-\s]+/, ""))
-                // Filtro de calidad: Solo frases con sentido (más de 25 caracteres)
-                // y que no sean el último trozo vacío si la IA puso un '|' al final
                 .filter(f => f.length > 25);
 
             if (!app.phraseBuffer) app.phraseBuffer = [];
-
-            // Añadimos las frases limpias a la recámara
             app.phraseBuffer.push(...nuevasFrases);
 
             console.log("Frases añadidas con éxito:", nuevasFrases);
 
         } catch (error) {
             console.error("Fallo al procesar frases de la IA:", error);
-            // Backup por si acaso
-            app.phraseBuffer.push("La tecnología blockchain asegura la integridad de los datos digitales");
+            app.phraseBuffer.push("El coche de seguridad está en la pista por un fallo técnico");
+        } finally {
+            // 3. Pase lo que pase (éxito o error), volvemos a abrir el candado
+            app.isFetchingPhrases = false;
         }
     },
 
