@@ -33,9 +33,10 @@ public class SecurityConfig {
                         // 2. EL TÚNEL PARA LOS ERRORES
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/incidencias/**").permitAll()
 
-                        // 3. SOLO ADMIN PUEDE LEER INCIDENCIAS
+                        .requestMatchers("/incidencias/game/**").authenticated()
+
                         .requestMatchers("/incidencias/**").hasAuthority("ADMIN")
-                        .requestMatchers("/incidencias/game/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 // Metemos nuestro filtro lector de JWT antes del filtro por defecto de Spring
