@@ -170,6 +170,7 @@ button:active { transform: translateY(1px); }
     color: var(--primary);
     border: 2px solid var(--primary);
     margin-top: 10px;
+    text-align: center;
 }
 .btn-registro:hover {
     background: var(--primary);
