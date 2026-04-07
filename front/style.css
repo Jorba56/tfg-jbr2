@@ -348,6 +348,9 @@ body.tema-cyberpunk input:focus {
     content: '✓';
     font-weight: bold;
 }
+.theme-toggle{
+    margin: 10px;
+}
 
 /* Animación de pulso neón */
 @keyframes neon-flicker {
