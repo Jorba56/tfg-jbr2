@@ -379,6 +379,60 @@ body.tema-cyberpunk input:focus {
     transition: all 0.3s ease;
 }
 
+/* --- BOTÓN DE REGISTRO ESTILO OUTLINE RACING --- */
+
+.btn-registro {
+    background: transparent !important; /* Sin relleno */
+    border: 2px solid var(--primary) !important; /* Borde cian eléctrico */
+    color: var(--primary) !important; /* Texto cian */
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    /* Mantenemos la inclinación del resto de botones */
+    transform: skewX(-12deg);
+    margin-top: 15px;
+}
+
+.btn-registro:hover {
+    background: var(--primary) !important; /* Se llena al hacer hover */
+    color: #000 !important; /* El texto pasa a negro para contrastar */
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    transform: skewX(-12deg) scale(1.02);
+}
+
+/* Enderezamos el texto interno */
+.btn-registro div {
+    transform: skewX(12deg);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+}
+
+.logout-btn {
+    background: transparent !important;
+    border: 2px solid var(--error, #ff4b5c) !important;
+    color: var(--error, #ff4b5c) !important;
+    padding: 8px 20px !important;
+    font-size: 0.8rem !important;
+    transform: skewX(-12deg);
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: var(--error, #ff4b5c) !important;
+    color: white !important;
+    box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
+    transform: skewX(-12deg) scale(1.05);
+}
+
+.logout-btn div {
+    transform: skewX(12deg);
+}
+
 /* Animación de pulso neón */
 @keyframes neon-flicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {

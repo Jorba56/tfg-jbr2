@@ -41,7 +41,7 @@
         <input type="text" id="username" placeholder="Usuario (admin / alumno)">
         <input type="password" id="password" placeholder="Contraseña">
         <button id="btn-login">Entrar a la Arena</button>
-        <a href="registro.html" class="btn-main btn-registro">Crear una cuenta</a>
+        <button><a href="registro.html" class="btn-main btn-registro">Crear una cuenta</a></button>
         <p id="error-msg" class="hidden error-text">Credenciales incorrectas</p>
     </div>
 </section>
@@ -51,6 +51,10 @@
         <h2 style="margin: 0;">Hola, <span id="user-display">Jugador</span></h2>
         <div class="credits-badge">🪙 <span id="user-credits">0</span></div>
     </div>
+
+    <button id="btn-logout" class="logout-btn">
+        <div><i class="fas fa-sign-out-alt mr-2"></i> SALIR DEL BOX</div>
+    </button>
     <div class="menu-grid items-grid"> <div id="card-play" class="shop-item playable group">
         <div class="item-type-tag type-powerup">DISPONIBLE</div>
         <h4>⚡ Contrarreloj</h4>
