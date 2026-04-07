@@ -143,6 +143,32 @@ button:hover {
 
 .shop-container { --max-w: 900px; }
 
+/* --- MOTOR DE VISIBILIDAD DE PANTALLAS --- */
+
+/* Escondemos TODAS las pantallas por defecto y con máxima prioridad */
+.screen {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+    width: 100%;
+}
+
+/* Solo la pantalla que tenga la clase .active será visible */
+.screen.active {
+    display: flex !important; /* Usamos flex para centrar el contenido racing */
+    opacity: 1;
+    pointer-events: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Regla de oro para la clase hidden */
+.hidden {
+    display: none !important;
+}
+
 /* Ajuste de fuentes para móviles */
 @media (max-width: 640px) {
     :root {
