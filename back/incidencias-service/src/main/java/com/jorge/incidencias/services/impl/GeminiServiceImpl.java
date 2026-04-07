@@ -2,13 +2,14 @@ package com.jorge.incidencias.services.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jorge.incidencias.services.GeminiService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class GeminiServiceImpl {
+public class GeminiServiceImpl implements GeminiService {
 
     @Value("${gemini.api.key}")
     private String apiKey;
@@ -31,6 +32,7 @@ public class GeminiServiceImpl {
             // 2. Inyectamos el tema en el prompt
             String prompt = "Genera 5 frases curiosas sobre un tema aleatorio. " +
                     "Separa cada frase con '|'. " +
+                    "Cada frase tiene un máximo de 10 palabras.  " +
                     "Al final de TODO el bloque de 5 frases, añade el símbolo '#'. " +
                     "Regla de oro: No dejes ninguna frase sin terminar.";
 
@@ -38,7 +40,7 @@ public class GeminiServiceImpl {
                     "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
                     "\"generationConfig\": {" +
                     "\"temperature\": 0.4," +
-                    "\"maxOutputTokens\": 800" + // ¡Doblamos el espacio!
+                    "\"maxOutputTokens\": 800" +
                     "}" +
                     "}";
         HttpHeaders headers = new HttpHeaders();

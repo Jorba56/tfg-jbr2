@@ -1,5 +1,5 @@
 const token = localStorage.getItem('jwt_token');
-if (!token) window.top.location.href = 'index.html';
+if (!token) window.top.location.href = 'login.html';
 
 const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
