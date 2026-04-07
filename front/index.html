@@ -3,81 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenido - Red de Seguridad</title>
+    <title>Bienvenido - FastFingers</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
     <style>
-        /* Estilos Base Futuristas */
+        /* Usamos tus propias variables del :root */
         body {
-            font-family: 'Montserrat', 'Inter', Arial, sans-serif; /* Usamos fuentes geométricas */
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #18042c; /* Fondo morado oscuro de la guía */
-            color: #fcf40c; /* Texto amarillo eléctrico */
+            font-family: 'Inter', sans-serif;
         }
 
-        /* Contenedor con Resplandor (Glow) */
         .landing-container {
-            text-align: center;
-            background-color: transparent; /* Fondo transparente */
-            padding: 50px;
-            border: 2px solid #8c04e4; /* Borde morado vibrante */
-            border-radius: 12px;
-            /* Efecto de resplandor morado */
-            box-shadow: 0 0 20px rgba(140, 4, 228, 0.4), inset 0 0 10px rgba(140, 4, 228, 0.2);
-            max-width: 450px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--glass-shadow);
+            max-width: 400px;
             width: 90%;
+            text-align: center;
+            backdrop-filter: blur(10px); /* Efecto cristal de tu estilo */
         }
 
-        h1 { color: #fcf40c; margin-top: 0; font-size: 32px; font-weight: bold; letter-spacing: -1px;}
-        p { color: #fcf40c; margin-bottom: 40px; line-height: 1.6; font-size: 16px; font-weight: normal;}
+        h1 {
+            color: var(--text-highlight);
+            font-family: 'Poppins', sans-serif;
+            margin-top: 0;
+        }
 
-        /* Estilos de Botones Futuristas */
-        .btn {
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .btn-main {
             display: block;
             width: 100%;
-            padding: 14px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 15px;
             text-decoration: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 16px;
+            border-radius: var(--radius);
+            font-weight: 600;
             box-sizing: border-box;
-            transition: all 0.3s ease;
+            transition: 0.3s;
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Botón Iniciar Sesión (Morado vibrante, texto amarillo) */
         .btn-login {
-            background-color: #8c04e4;
-            color: #fcf40c;
-            border: 2px solid #8c04e4;
+            background: var(--btn-gradient);
+            color: #000;
+            border: none;
         }
         .btn-login:hover {
-            background-color: transparent; /* Efecto hover inverso */
-            border-color: #fcf40c;
+            box-shadow: 0 0 15px var(--primary);
         }
 
-        /* Botón Registro (Outline amarillo, texto amarillo) */
         .btn-registro {
-            background-color: transparent;
-            color: #fcf40c;
-            border: 2px solid #fcf40c;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
         }
         .btn-registro:hover {
-            background-color: #fcf40c;
-            color: #18042c; /* Fondo oscuro al hover */
+            background: var(--primary);
+            color: #000;
         }
     </style>
 </head>
 <body>
 
 <div class="landing-container">
-    <h1>¡Bienvenido!</h1>
-    <p>Aprende, resuelve incidencias y mejora tus habilidades en nuestra red segura. ¿Qué deseas hacer hoy?</p>
+    <h1>FastFingers</h1>
+    <p>Mejora tu velocidad de escritura, resuelve incidencias y equípate en la tienda.</p>
 
-    <a href="login.html" class="btn btn-login">Iniciar Sesión</a>
-    <a href="registro.html" class="btn btn-registro">Crear una cuenta nueva</a>
+    <a href="login.html" class="btn-main btn-login">Iniciar Sesión</a>
+    <a href="registro.html" class="btn-main btn-registro">Crear una cuenta</a>
 </div>
 
 </body>
