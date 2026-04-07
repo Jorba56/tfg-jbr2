@@ -30,9 +30,9 @@ public class GeminiServiceImpl implements GeminiService {
             String temaAleatorio = temas[(int) (Math.random() * temas.length)];
 
             // 2. Inyectamos el tema en el prompt
-            String prompt = "Genera 5 frases curiosas sobre un tema aleatorio. " +
+            String prompt = "Genera 6 frases curiosas sobre un tema aleatorio. " +
                     "Separa cada frase con '|'. " +
-                    "Cada frase tiene un máximo de 10 palabras.  " +
+                    "Cada frase tiene un máximo de 13 palabras.  " +
                     "Al final de TODO el bloque de 5 frases, añade el símbolo '#'. " +
                     "Regla de oro: No dejes ninguna frase sin terminar.";
 

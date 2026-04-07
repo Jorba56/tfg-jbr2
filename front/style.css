@@ -655,28 +655,88 @@ body.light-mode .link-inferior a:hover {
 }
 
 /* Ajuste de fuentes para móviles */
-@media (max-width: 640px) {
-    :root {
-        --radius: 2px; /* Más sutil en móvil */
+/* --- ARREGLO DE SCROLL EN MÓVILES (EVITAR CORTES) --- */
+/* --- ARREGLO DE SCROLL EN MÓVILES (EVITAR CORTES Y SCROLL FANTASMA) --- */
+/* --- ERRADICACIÓN TOTAL DEL SCROLL FANTASMA (MÓVILES Y TABLETS) --- */
+/* --- ESCALADO DE CAJAS PARA MÓVILES Y TABLETS --- */
+
+@media (max-width: 1024px) {
+    /* 1. Permitimos bajar (vertical), pero bloqueamos ir a los lados (horizontal) */
+    html, body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
     }
 
-    h1 { font-size: 1.8rem !important; }
-    h2 { font-size: 1.5rem !important; }
-
-    /* Reducimos la inclinación en móvil para ganar espacio de lectura */
-    button, .btn-main {
-        transform: skewX(-6deg);
-        padding: 12px;
-    }
-    button div, .btn-main div {
-        transform: skewX(6deg);
+    /* 2. La pantalla crece hacia abajo lo que necesite de forma natural */
+    .screen.active {
+        height: auto !important;
+        min-height: 100vh;
+        padding: 20px 0 !important;
+        justify-content: flex-start !important; /* Que las cajas empiecen arriba */
     }
 
-    .button-group {
+    /* 3. ACHICAMOS LOS CONTENEDORES: Más estrechos y con menos relleno */
+    .shop-container, .login-container, .registro-container, .score-reveal-box {
+        width: 92% !important; /* Deja un pequeño margen respecto a los bordes del móvil */
+        padding: 1.5rem !important; /* Reducimos el relleno interno drásticamente */
+        margin: 0 auto 30px auto !important; /* Centrado y con margen inferior */
+        max-height: none !important; /* Anulamos el límite de altura, que crezca libremente */
+        box-sizing: border-box !important;
+    }
+
+    /* 4. ACHICAMOS LAS TARJETAS INTERIORES (Menú y Tienda) */
+    .items-grid {
+        /* Reducimos el tamaño mínimo de la tarjeta de 240px a 180px para que encajen mejor */
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        gap: 15px !important; /* Juntamos un poco más las tarjetas */
+        width: 100% !important;
+    }
+
+    .shop-item {
+        padding: 15px !important; /* Menos relleno en la propia tarjeta */
+    }
+
+    /* 5. Ajuste proporcional de textos y botones para las nuevas cajas pequeñas */
+    .shop-item h4 { font-size: 1.1rem !important; }
+    .shop-item .price { font-size: 1.1rem !important; margin-bottom: 10px !important; }
+
+    .btn-main, .btn-item-action {
+        padding: 10px !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* 1. Limitamos el ancho de la pantalla del dashboard para que no toque los bordes */
+    #dashboard-screen {
+        width: 92% !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        padding-top: 20px;
+    }
+
+    /* 2. Forzamos 1 SOLA COLUMNA en el menú principal.
+       Así las tarjetas respiran, el texto se lee bien y nada se corta */
+    .menu-grid.items-grid {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+        gap: 20px !important;
+    }
+
+    /* 3. Centramos el saludo y los créditos para que queden simétricos */
+    .user-info {
+        display: flex;
         flex-direction: column;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 20px;
+        gap: 10px;
     }
 
-    .login-container, .registro-container {
-        padding: 1.5rem;
+    /* 4. Centramos el botón de salir del box */
+    #btn-logout {
+        margin: 0 auto 20px auto !important;
+        display: flex;
     }
 }
