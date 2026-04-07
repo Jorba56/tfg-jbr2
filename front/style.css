@@ -730,7 +730,7 @@ body.light-mode .link-inferior a:hover {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
     /* 1. Limitamos el ancho de la pantalla del dashboard para que no toque los bordes */
     #dashboard-screen {
         width: 92% !important;
