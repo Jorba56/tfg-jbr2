@@ -35,18 +35,18 @@ const app = {
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
     },
 
-    showScreen: (screenId) => {
-        document.querySelectorAll('.screen').forEach(s => {
-            s.classList.remove('active');
-            s.classList.add('hidden');
-        });
-        const target = document.getElementById(screenId);
-        target.classList.remove('hidden');
-        if (screenId === 'results-screen') target.style.display = 'flex';
-        else {
-            target.style.display = 'block';
-            target.classList.add('active');
-        }
+        showScreen: (screenId) => {
+            // 1. Apagamos todas las pantallas y limpiamos estilos basura
+            document.querySelectorAll('.screen').forEach(s => {
+                s.classList.remove('active');
+                s.classList.add('hidden');
+                s.style.display = '';
+            });
+
+            // 2. Encendemos únicamente la pantalla de destino
+            const target = document.getElementById(screenId);
+            target.classList.remove('hidden');
+            target.classList.add('active'); // ¡Ahora la de resultados sí recibe esto!
     },
     restoreSession: () => {
         if (localStorage.getItem('theme') === 'light') {
