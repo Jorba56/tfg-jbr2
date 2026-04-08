@@ -20,7 +20,7 @@ public class GameController {
     @GetMapping("/frase")
     public ResponseEntity<String> obtenerFrase(@RequestParam(defaultValue = "media") String dificultad,
         @RequestParam(required = false) String tema){
-        String frase = geminiService.generarFrase(dificultad);
+        String frase = geminiService.generarFrase(dificultad, tema);
         return ResponseEntity.ok(frase);
     }
 }

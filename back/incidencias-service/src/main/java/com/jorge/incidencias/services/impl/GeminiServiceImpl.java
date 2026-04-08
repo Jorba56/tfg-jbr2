@@ -28,7 +28,7 @@ public class GeminiServiceImpl implements GeminiService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String generarFrase(String temaPersonalizado) {
+    public String generarFrase(String temaPersonalizado, String dificultad) {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
 
         String temaFinal = "";
