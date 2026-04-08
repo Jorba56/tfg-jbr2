@@ -777,6 +777,10 @@ body.light-mode .link-inferior a:hover {
         padding: 10px !important;
         font-size: 0.8rem !important;
     }
+
+    .rosco-layout {
+        transform: scale(0.8); /* Lo reducimos al 80% */
+    }
 }
 
 @media (max-width: 600px) {
@@ -818,5 +822,35 @@ body.light-mode .link-inferior a:hover {
     #btn-logout {
         margin: 0 auto 20px auto !important;
         display: flex;
+    }
+
+    .rosco-layout {
+        transform: scale(0.55); /* Lo reducimos casi a la mitad */
+        /* Al usar 'scale', la caja original sigue ocupando su espacio real.
+           Estos márgenes negativos quitan los huecos vacíos de arriba y abajo */
+        margin-top: -100px;
+        margin-bottom: -100px;
+    }
+
+    /* El contenedor oscuro del fondo no necesita ser tan ancho en móvil */
+    #ui-rosco .shop-container {
+        padding: 10px !important;
+        border-left: 3px solid var(--primary) !important; /* Borde más fino */
+    }
+
+    /* Ajustamos el botón de salir para que no se pise con las letras */
+    #ui-rosco .back-btn {
+        margin-top: 10px;
+        margin-bottom: 0px !important;
+        z-index: 50; /* Lo ponemos bien arriba */
+        align-self: center !important; /* Lo centramos en móviles */
+    }
+}
+
+@media (max-width: 400px) {
+    .rosco-layout {
+        transform: scale(0.48); /* Aún más pequeño para que no toque los bordes */
+        margin-top: -140px;
+        margin-bottom: -140px;
     }
 }

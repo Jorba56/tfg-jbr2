@@ -18,245 +18,277 @@ function navegarA(idPantalla) {
 // ==========================================
 
 const Rosco = {
-    data: [], curr: 0, ok: 0, bad: 0, time: 180, timer: null,
+        data: [], curr: 0, ok: 0, bad: 0, time: 180, timer: null,
 
-    // --- 1. ARRANQUE MODO CLÁSICO (Usa la variable DB si la tienes) ---
-    init: async function() {
-        const temaInput = document.getElementById('input-tema-rosco').value.trim();
+        // --- 1. ARRANQUE MODO CLÁSICO (Usa la variable DB si la tienes) ---
+        init: async function () {
+            const temaInput = document.getElementById('input-tema-rosco').value.trim();
 
-        if (temaInput.length < 3) {
-            alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
-            return;
-        }
-
-        // 1. Ocultamos el menú principal y mostramos la pantalla del Rosco
-        document.getElementById('dashboard-screen').classList.remove('active');
-        document.getElementById('dashboard-screen').classList.add('hidden');
-
-        const pantallaRosco = document.getElementById('ui-rosco');
-        pantallaRosco.classList.remove('hidden');
-        pantallaRosco.classList.add('active');
-
-        // Mostramos la zona de juego y ocultamos los resultados
-        document.getElementById('r-play').classList.remove('hidden');
-        document.getElementById('r-end').classList.add('hidden');
-        document.getElementById('r-summary').classList.add('hidden');
-
-        // 2. Pantalla de carga
-        document.getElementById('r-char').innerText = "⏳";
-        document.getElementById('r-def').innerText = "Conectando con boxes... Generando 25 palabras sobre: " + temaInput;
-        document.getElementById('r-circle').innerHTML = '';
-        document.getElementById('r-input').disabled = true; // Bloqueamos el input mientras carga
-
-        try {
-            // 3. Petición a tu backend
-            const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
-            });
-
-            if (!response.ok) throw new Error("La IA no pudo generar el rosco");
-
-            const roscoIA = await response.json();
-
-            // 4. Transformamos el JSON al formato del juego
-            this.data = roscoIA.map(item => {
-                return {
-                    id: item.letra.toUpperCase(),
-                    q: item.definicion,
-                    a: item.palabra,
-                    st: null
-                };
-            });
-
-            // 5. Desbloqueamos, reseteamos contadores y arrancamos
-            document.getElementById('r-input').disabled = false;
-            this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
-            this.draw();
-            this.loadQ();
-            this.startTimer();
-
-        } catch (error) {
-            console.error("Fallo:", error);
-            alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
-            app.showScreen('dashboard-screen');
-        }
-    },
-
-    // --- 2. ARRANQUE MODO IA (El nuevo motor) ---
-    initIA: async function() {
-        const temaInput = document.getElementById('input-tema-rosco').value.trim();
-        if (temaInput.length < 3) {
-            alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
-            return;
-        }
-
-        // Ocultamos el menú (ajusta esto si tu menú principal tiene otro ID)
-        document.getElementById('main-menu').classList.add('hidden');
-        document.getElementById('ui-rosco').classList.remove('hidden');
-        document.getElementById('r-play').classList.remove('hidden');
-        document.getElementById('r-end').classList.add('hidden');
-        document.getElementById('r-summary').classList.add('hidden');
-
-        // Texto temporal mientras carga
-        document.getElementById('r-char').innerText = "⏳";
-        document.getElementById('r-def').innerText = "Conectando con la IA... Generando 25 palabras sobre: " + temaInput;
-        document.getElementById('r-circle').innerHTML = '';
-
-        try {
-            // Petición a tu backend (asegúrate de que la ruta coincide con tu GameController)
-            const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
-            });
-
-            if (!response.ok) throw new Error("La IA no pudo generar el rosco");
-
-            const roscoIA = await response.json();
-
-            // Transformamos el JSON de la IA al formato del juego
-            this.data = roscoIA.map(item => {
-                return {
-                    id: item.letra.toUpperCase(),
-                    q: item.definicion,
-                    a: item.palabra,
-                    st: null
-                };
-            });
-
-            // Reseteamos contadores y arrancamos
-            this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
-            this.draw();
-            this.loadQ();
-            this.startTimer();
-
-        } catch (error) {
-            console.error("Fallo:", error);
-            alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
-            // Cambia App.home() por tu función real para volver al menú, por ejemplo app.showScreen('menu-screen');
-            if(typeof App !== 'undefined') App.home();
-        }
-    },
-
-    // --- 3. DIBUJAR EL ROSCO CIRCULAR ---
-    draw() {
-        const ul = document.getElementById('r-circle'); ul.innerHTML = '';
-        const total = this.data.length;
-        this.data.forEach((d, i) => {
-            const li = document.createElement('li'); li.className = 'letter-item';
-            li.id = 'rn-' + i; li.innerText = d.id;
-            const ang = (360 / total) * i - 90; const rad = ang * (Math.PI / 180);
-            li.style.transform = `translate(${300 * Math.cos(rad)}px, ${300 * Math.sin(rad)}px)`;
-            ul.appendChild(li);
-        });
-    },
-
-    // --- 4. CARGAR LA SIGUIENTE PREGUNTA ---
-    loadQ() {
-        let p = -1;
-        const total = this.data.length;
-        for(let i = this.curr; i < total; i++) if (!this.data[i].st) { p = i; break; }
-        if (p === -1) for(let i = 0; i < total; i++) if (!this.data[i].st) { p = i; break; }
-        if (p === -1) { this.finish(); return; }
-        this.curr = p;
-        document.getElementById('r-char').innerText = this.data[p].id;
-        document.getElementById('r-def').innerText = this.data[p].q;
-        document.getElementById('r-input').value = ''; document.getElementById('r-input').focus();
-        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
-        document.getElementById('rn-' + p).classList.add('active');
-    },
-
-    // --- 5. COMPROBAR RESPUESTA ---
-    check() {
-        const v = normalize(document.getElementById('r-input').value);
-        const item = this.data[this.curr];
-        const node = document.getElementById('rn-' + this.curr);
-        if (v === normalize(item.a)) { item.st = 'ok'; this.ok++; node.classList.add('correct'); }
-        else { item.st = 'bad'; this.bad++; node.classList.add('wrong'); }
-        this.curr++; this.loadQ();
-    },
-
-    // --- 6. PASAR PALABRA ---
-    pass() {
-        document.getElementById('rn-' + this.curr).classList.remove('active');
-        this.curr++;
-        this.loadQ();
-    },
-
-    // --- 7. TEMPORIZADOR ---
-    startTimer() {
-        clearInterval(this.timer);
-        this.timer = setInterval(() => {
-            this.time--; document.getElementById('r-time').innerText = this.time;
-            if (this.time <= 0) this.finish();
-        }, 1000);
-    },
-    stop() { clearInterval(this.timer); },
-
-    // --- 8. PANTALLA FINAL ---
-    finish: async function() { // <-- AÑADIMOS ASYNC AQUÍ
-        this.stop();
-        document.getElementById('r-play').classList.add('hidden');
-        document.getElementById('r-end').classList.remove('hidden');
-        document.getElementById('r-ok').innerText = this.ok;
-        document.getElementById('r-bad').innerText = this.bad;
-
-        // 🛠️ FIX VISUAL: Apagamos cualquier letra que se haya quedado encendida (La famosa "R" rebelde)
-        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
-
-        const sum = document.getElementById('r-summary');
-        sum.innerHTML = '';
-        sum.classList.remove('hidden');
-
-        this.data.forEach(d => {
-            const div = document.createElement('div'); div.className = 'summary-item';
-            const icon = d.st === 'ok' ? '✅' : '❌';
-            div.innerHTML = `<span class="${d.st === 'ok' ? 'sum-correct' : 'sum-wrong'}">${d.id} ${icon}</span> <b>${d.a.toUpperCase()}</b><br><small>${d.q}</small>`;
-            sum.appendChild(div);
-        });
-
-        // 💰 SISTEMA DE RECOMPENSAS: 10 créditos por cada acierto
-        const creditosGanados = this.ok * 10;
-
-        if (creditosGanados > 0) {
-            // Sumamos al perfil en RAM y actualizamos la interfaz al instante
-            if(typeof app !== 'undefined' && app.currentUser) {
-                app.currentUser.creditos += creditosGanados;
-                app.updateUserUI();
+            if (temaInput.length < 3) {
+                alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
+                return;
             }
 
-            // Enviamos el paquete a boxes (Java)
-            const payloadJSON = JSON.stringify({ creditosExtra: parseInt(creditosGanados) });
+            // 1. Ocultamos el menú principal y mostramos la pantalla del Rosco
+            document.getElementById('dashboard-screen').classList.remove('active');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+
+            const pantallaRosco = document.getElementById('ui-rosco');
+            pantallaRosco.classList.remove('hidden');
+            pantallaRosco.classList.add('active');
+
+            // Mostramos la zona de juego y ocultamos los resultados
+            document.getElementById('r-play').classList.remove('hidden');
+            document.getElementById('r-end').classList.add('hidden');
+            document.getElementById('r-summary').classList.add('hidden');
+
+            // 2. Pantalla de carga
+            document.getElementById('r-char').innerText = "⏳";
+            document.getElementById('r-def').innerText = "Conectando con boxes... Generando 25 palabras sobre: " + temaInput;
+            document.getElementById('r-circle').innerHTML = '';
+            document.getElementById('r-input').disabled = true; // Bloqueamos el input mientras carga
 
             try {
-                const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                // 3. Petición a tu backend
+                const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
                 const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-                    },
-                    body: payloadJSON
+                    method: 'GET',
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
                 });
 
-                const serverMessage = await response.text();
+                if (!response.ok) throw new Error("La IA no pudo generar el rosco");
 
-                if (!response.ok) {
-                    throw new Error(`Mecánico dice: "${serverMessage}"`);
+                const roscoIA = await response.json();
+
+                // 4. Transformamos el JSON al formato del juego
+                this.data = roscoIA.map(item => {
+                    return {
+                        id: item.letra.toUpperCase(),
+                        q: item.definicion,
+                        a: item.palabra,
+                        st: null
+                    };
+                });
+
+                // 5. Desbloqueamos, reseteamos contadores y arrancamos
+                document.getElementById('r-input').disabled = false;
+                this.curr = 0;
+                this.ok = 0;
+                this.bad = 0;
+                this.time = 180;
+                this.draw();
+                this.loadQ();
+                this.startTimer();
+
+            } catch (error) {
+                console.error("Fallo:", error);
+                alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
+                app.showScreen('dashboard-screen');
+            }
+        },
+
+        // --- 2. ARRANQUE MODO IA (El nuevo motor) ---
+        initIA: async function () {
+            const temaInput = document.getElementById('input-tema-rosco').value.trim();
+            if (temaInput.length < 3) {
+                alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
+                return;
+            }
+
+            // Ocultamos el menú (ajusta esto si tu menú principal tiene otro ID)
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('ui-rosco').classList.remove('hidden');
+            document.getElementById('r-play').classList.remove('hidden');
+            document.getElementById('r-end').classList.add('hidden');
+            document.getElementById('r-summary').classList.add('hidden');
+
+            // Texto temporal mientras carga
+            document.getElementById('r-char').innerText = "⏳";
+            document.getElementById('r-def').innerText = "Conectando con la IA... Generando 25 palabras sobre: " + temaInput;
+            document.getElementById('r-circle').innerHTML = '';
+
+            try {
+                // Petición a tu backend (asegúrate de que la ruta coincide con tu GameController)
+                const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                });
+
+                if (!response.ok) throw new Error("La IA no pudo generar el rosco");
+
+                const roscoIA = await response.json();
+
+                // Transformamos el JSON de la IA al formato del juego
+                this.data = roscoIA.map(item => {
+                    return {
+                        id: item.letra.toUpperCase(),
+                        q: item.definicion,
+                        a: item.palabra,
+                        st: null
+                    };
+                });
+
+                // Reseteamos contadores y arrancamos
+                this.curr = 0;
+                this.ok = 0;
+                this.bad = 0;
+                this.time = 180;
+                this.draw();
+                this.loadQ();
+                this.startTimer();
+
+            } catch (error) {
+                console.error("Fallo:", error);
+                alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
+                // Cambia App.home() por tu función real para volver al menú, por ejemplo app.showScreen('menu-screen');
+                if (typeof App !== 'undefined') App.home();
+            }
+        },
+
+        // --- 3. DIBUJAR EL ROSCO CIRCULAR ---
+        draw() {
+            const ul = document.getElementById('r-circle');
+            ul.innerHTML = '';
+            const total = this.data.length;
+            this.data.forEach((d, i) => {
+                const li = document.createElement('li');
+                li.className = 'letter-item';
+                li.id = 'rn-' + i;
+                li.innerText = d.id;
+                const ang = (360 / total) * i - 90;
+                const rad = ang * (Math.PI / 180);
+                li.style.transform = `translate(${300 * Math.cos(rad)}px, ${300 * Math.sin(rad)}px)`;
+                ul.appendChild(li);
+            });
+        },
+
+        // --- 4. CARGAR LA SIGUIENTE PREGUNTA ---
+        loadQ() {
+            let p = -1;
+            const total = this.data.length;
+            for (let i = this.curr; i < total; i++) if (!this.data[i].st) {
+                p = i;
+                break;
+            }
+            if (p === -1) for (let i = 0; i < total; i++) if (!this.data[i].st) {
+                p = i;
+                break;
+            }
+            if (p === -1) {
+                this.finish();
+                return;
+            }
+            this.curr = p;
+            document.getElementById('r-char').innerText = this.data[p].id;
+            document.getElementById('r-def').innerText = this.data[p].q;
+            document.getElementById('r-input').value = '';
+            document.getElementById('r-input').focus();
+            document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('rn-' + p).classList.add('active');
+        },
+
+        // --- 5. COMPROBAR RESPUESTA ---
+        check() {
+            const v = normalize(document.getElementById('r-input').value);
+            const item = this.data[this.curr];
+            const node = document.getElementById('rn-' + this.curr);
+            if (v === normalize(item.a)) {
+                item.st = 'ok';
+                this.ok++;
+                node.classList.add('correct');
+            } else {
+                item.st = 'bad';
+                this.bad++;
+                node.classList.add('wrong');
+            }
+            this.curr++;
+            this.loadQ();
+        },
+
+        // --- 6. PASAR PALABRA ---
+        pass() {
+            document.getElementById('rn-' + this.curr).classList.remove('active');
+            this.curr++;
+            this.loadQ();
+        },
+
+        // --- 7. TEMPORIZADOR ---
+        startTimer() {
+            clearInterval(this.timer);
+            this.timer = setInterval(() => {
+                this.time--;
+                document.getElementById('r-time').innerText = this.time;
+                if (this.time <= 0) this.finish();
+            }, 1000);
+        },
+        stop() {
+            clearInterval(this.timer);
+        },
+
+        // --- 8. PANTALLA FINAL ---
+        finish: async function () {
+            this.stop();
+            document.getElementById('r-play').classList.add('hidden');
+            document.getElementById('r-end').classList.remove('hidden');
+            document.getElementById('r-ok').innerText = this.ok;
+            document.getElementById('r-bad').innerText = this.bad;
+
+            // 🛠️ FIX VISUAL: Apagamos cualquier letra que se haya quedado encendida
+            document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+
+            const sum = document.getElementById('r-summary');
+            sum.innerHTML = '';
+            sum.classList.remove('hidden');
+
+            this.data.forEach(d => {
+                const div = document.createElement('div');
+                div.className = 'summary-item';
+                const icon = d.st === 'ok' ? '✅' : '❌';
+                div.innerHTML = `<span class="${d.st === 'ok' ? 'sum-correct' : 'sum-wrong'}">${d.id} ${icon}</span> <b>${d.a.toUpperCase()}</b><br><small>${d.q}</small>`;
+                sum.appendChild(div);
+            });
+
+            // 💰 SISTEMA DE RECOMPENSAS: 10 créditos por cada acierto
+            const creditosGanados = this.ok * 10;
+
+            // 🎯 AQUI PINTAMOS LOS CRÉDITOS EN LA PANTALLA
+            document.getElementById('r-credits').innerText = creditosGanados;
+
+            if (creditosGanados > 0) {
+                // Sumamos al perfil en RAM y actualizamos la interfaz
+                if (typeof app !== 'undefined' && app.currentUser) {
+                    app.currentUser.creditos += creditosGanados;
+                    app.updateUserUI();
                 }
 
-                console.log(`🏁 ¡Rosco finalizado! +${creditosGanados} créditos asegurados en la BBDD.`);
-            } catch (error) {
-                console.error("Fallo de conexión al guardar créditos del Rosco ->", error.message);
-            }
-        } else {
-            console.log("🚦 Cero aciertos en el Rosco. No contactamos con la base de datos.");
-        }
-    }
-};
+                // Enviamos el paquete a boxes (Java)
+                const payloadJSON = JSON.stringify({creditosExtra: parseInt(creditosGanados)});
 
+                try {
+                    const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                        },
+                        body: payloadJSON
+                    });
+
+                    const serverMessage = await response.text();
+
+                    if (!response.ok) {
+                        throw new Error(`Mecánico dice: "${serverMessage}"`);
+                    }
+
+                    console.log(`🏁 ¡Rosco finalizado! +${creditosGanados} créditos asegurados en la BBDD.`);
+                } catch (error) {
+                    console.error("Fallo de conexión al guardar créditos del Rosco ->", error.message);
+                }
+            }
+        }
+    };
 // HERRAMIENTA OBLIGATORIA: Función para quitar tildes y mayúsculas al comprobar
 function normalize(s) {
     return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
