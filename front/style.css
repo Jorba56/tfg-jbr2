@@ -545,6 +545,10 @@ body.tema-cyberpunk input:focus {
     align-items: center;
     gap: 15px;
 }
+.admin-actions .btn-main {
+    margin-bottom: 20px;
+    transform: scale(0.95);
+}
 
 /* El interruptor de Usuarios/Roles (estilo cápsula) */
 .toggle-switch {
@@ -562,6 +566,7 @@ body.tema-cyberpunk input:focus {
     padding: 10px 20px;
     margin: 0;
     transform: none; /* Quitamos la inclinación racing aquí para que sea más formal */
+
 }
 
 .toggle-switch button.active {
@@ -742,6 +747,17 @@ body.light-mode input:focus {
 body.light-mode .btn-main,
 body.light-mode button {
     color: #ffffff;
+}
+
+body.light-mode td .text-yellow-500 { color: #d97706 !important; } /* Monedas */
+body.light-mode td .text-blue-500 { color: #2563eb !important; } /* Editar */
+body.light-mode td .text-purple-500 { color: #7e22ce !important; } /* Roles */
+body.light-mode td .text-red-500 { color: #dc2626 !important; } /* Borrar */
+
+/* Efecto hover más marcado para los iconos en modo claro */
+body.light-mode td button:hover {
+    transform: scale(1.1);
+    filter: brightness(0.8);
 }
 
 /* El botón de Registro (Outline) se invierte al pasar el ratón */
@@ -1015,5 +1031,9 @@ body.light-mode .data-table td {
     .rosco-layout {
         transform: scale(0.48);
         margin-bottom: -330px !important;
+    }
+    .toggle-switch{
+        transform: scale(0.8);
+        width: 60%
     }
 }

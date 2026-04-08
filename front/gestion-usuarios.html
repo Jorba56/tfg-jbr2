@@ -22,9 +22,6 @@
     </script>
 
     <style>
-        body {
-            background-color: #050b14 !important; /* El nuevo azul profundo */
-        }
 
         .theme-card {
             background-color: rgba(31, 40, 51, 0.9) !important;
@@ -73,13 +70,14 @@
 <div class="admin-dashboard">
 
     <header class="admin-header">
+        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema">🌙</button>
         <div class="admin-titles">
             <h1>CENTRO DE CONTROL</h1>
             <p>Administra los accesos y roles de la plataforma.</p>
         </div>
 
         <div class="admin-actions">
-            <a href="login.html"<button class="back-btn" >
+            <a href="login.html"><button class="btn-main">
                 ⬅ Volver al Juego
             </button></a>
 
@@ -99,7 +97,7 @@
 
             <div class="search-group">
                 <input type="text" id="search-email" placeholder="Correo...">
-                <button class="btn-main" style="margin: 0;" onclick="buscarUsuarioPorCorreo()">Buscar</button>
+                <button class="btn-main" style="margin: 0 5px;" onclick="buscarUsuarioPorCorreo()">Buscar</button>
             </div>
 
             <div class="spacer" style="flex-grow: 1;"></div>

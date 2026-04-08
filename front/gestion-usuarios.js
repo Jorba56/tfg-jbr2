@@ -4,6 +4,17 @@ if (!token) window.top.location.href = 'login.html';
 const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
 let usuarioSeleccionadoParaCreditos = null;
+document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+function toggleTheme () {
+    const body = document.body;
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    document.getElementById('theme-toggle').innerText = isLight ? "☀️" : "🌙";
+
+    // ¡ESTA LÍNEA ES LA CLAVE! Guarda tu elección para que el panel Admin la pueda leer
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
 
 window.anadirCreditos = function (idUsuario) {
     usuarioSeleccionadoParaCreditos = idUsuario;
