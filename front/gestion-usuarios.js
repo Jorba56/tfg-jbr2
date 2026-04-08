@@ -53,22 +53,31 @@ if (btnCreditos) {
 let pagUsuarios = 0;
 
 window.cambiarPestana = function(pestana) {
+    // 1. Enganchamos las pantallas y los botones
     const secUsu = document.getElementById('seccion-usuarios');
     const secRol = document.getElementById('seccion-roles');
     const tabUsu = document.getElementById('tab-usuarios');
     const tabRol = document.getElementById('tab-roles');
 
     if (pestana === 'usuarios') {
+        // 2. Mostramos Usuarios, Ocultamos Roles
         secUsu.classList.remove('hidden');
         secRol.classList.add('hidden');
-        tabUsu.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm bg-blue-100 text-blue-700 transition w-1/2 sm:w-auto";
-        tabRol.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm theme-text hover:bg-gray-500/10 transition w-1/2 sm:w-auto";
+
+        // 3. Encendemos el botón de Usuarios (Diseño Racing)
+        tabUsu.classList.add('active');
+        tabRol.classList.remove('active');
+
         cargarUsuarios();
     } else {
+        // 2. Mostramos Roles, Ocultamos Usuarios
         secUsu.classList.add('hidden');
         secRol.classList.remove('hidden');
-        tabRol.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm bg-purple-100 text-purple-700 transition w-1/2 sm:w-auto";
-        tabUsu.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm theme-text hover:bg-gray-500/10 transition w-1/2 sm:w-auto";
+
+        // 3. Encendemos el botón de Roles (Diseño Racing)
+        tabRol.classList.add('active');
+        tabUsu.classList.remove('active');
+
         cargarRoles();
     }
 }
@@ -164,13 +173,13 @@ window.exportarExcelUsuarios = async function() {
 }
 
 window.buscarUsuarioPorId = function() {
-    const id = document.getElementById('inputBusquedaId').value.trim();
+    const id = document.getElementById('search-id').value.trim();
     if (!id) { pagUsuarios = 0; return cargarUsuarios(); }
     realizarBusqueda(`${API_URL}/usuarios/${id}`, true);
 };
 
 window.buscarUsuarioPorCorreo = function() {
-    const correo = document.getElementById('inputBusquedaCorreo').value.trim();
+    const correo = document.getElementById('search-email').value.trim();
     if (!correo) { pagUsuarios = 0; return cargarUsuarios(); }
 
     // 1. Codificamos el correo para que el @ y otros caracteres no rompan la petición HTTP
