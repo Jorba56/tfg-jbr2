@@ -268,20 +268,27 @@ const app = {
         }
     },
     fetchMorePhrases: async () => {
-        // 1. Si ya estamos hablando con el servidor, abortamos esta llamada extra
         if (app.isFetchingPhrases) return;
-
-        // 2. Cerramos el candado
         app.isFetchingPhrases = true;
 
         try {
             const timestamp = new Date().getTime();
-            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/incidencias/game/frase?dificultad=media&t=${timestamp}`, {
+
+            // 1. Armamos la URL base
+            let url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/frase?dificultad=media&t=${timestamp}`;
+
+            // 2. Si estamos en modo personalizado, acoplamos el tema a la URL
+            if (app.modoPersonalizado && app.temaElegido) {
+                // encodeURIComponent asegura que los espacios (ej: "Formula 1") viajen bien por internet
+                url += `&tema=${encodeURIComponent(app.temaElegido)}`;
+            }
+
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
             });
 
-            if (!response.ok) throw new Error("Error en la petición");
+            if (!response.ok) throw new Error("Error en la petición a boxes");
 
             let textoBruto = await response.text();
             textoBruto = textoBruto.replace(/[\r\n]+/g, " ").trim();
@@ -301,11 +308,9 @@ const app = {
             console.error("Fallo al procesar frases de la IA:", error);
             app.phraseBuffer.push("El coche de seguridad está en la pista por un fallo técnico");
         } finally {
-            // 3. Pase lo que pase (éxito o error), volvemos a abrir el candado
             app.isFetchingPhrases = false;
         }
     },
-
     checkInput: () => {
         const input = document.getElementById('game-input');
         const val = input.value;

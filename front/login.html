@@ -6,6 +6,10 @@
     <title>FastFingers</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/images/favicon-16x16.png">
+    <link rel="manifest" href="static/images/site.webmanifest">
 </head>
 <body>
 
@@ -13,7 +17,7 @@
 
 <section id="login-screen" class="screen active">
     <div class="login-container">
-        <h1>FastFingers ⌨️</h1>
+        <h1><img src="static/images/favicon-32x32.png" alt="20"/> FastFingers</h1>
         <p class="subtitle">Arena de tecleo competitivo</p>
         <input type="text" id="username" placeholder="Usuario (admin / alumno)">
         <input type="password" id="password" placeholder="Contraseña">
@@ -30,6 +34,7 @@
 </section>
 
 <section id="dashboard-screen" class="screen hidden">
+    <img src="static/images/favicon.png" alt="Logo" class="logo-esquina"/>
     <div class="user-info">
         <h2 style="margin: 0;">Hola, <span id="user-display">Jugador</span></h2>
         <div class="credits-badge">🪙 <span id="user-credits">0</span></div>
@@ -39,11 +44,24 @@
         <div><i class="fas fa-sign-out-alt mr-2"></i> SALIR DEL BOX</div>
     </button>
     <div class="menu-grid items-grid"> <div id="card-play" class="shop-item playable group">
-        <div class="item-type-tag type-powerup">DISPONIBLE</div>
+        <div class="item-type-tag type-powerup">MODO IA</div>
         <h4>⚡ Contrarreloj</h4>
         <span class="desc">Demuestra tu velocidad punta en la arena de tecleo. Gana créditos por cada acierto.</span>
         <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
     </div>
+
+        <div id="card-custom" class="shop-item playable group">
+            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">MODO IA PERSONALIZADO</div>
+            <h4>🧠 Partida a Medida</h4>
+            <span class="desc">Dile a la IA sobre qué quieres teclear (ciencia, cine, motor...) y creará la pista.</span>
+
+            <input type="text" id="input-tema" placeholder="Ej: Fórmula 1 en los 90..."
+                   style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
+
+            <button class="btn-item-action btn-buy" onclick="app.iniciarPartidaPersonalizada()">
+                <div>GENERAR Y JUGAR</div>
+            </button>
+        </div>
 
         <div id="card-profile" class="shop-item playable group">
             <div class="item-type-tag">GARAJE</div>

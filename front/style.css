@@ -56,6 +56,14 @@ h1, h2, h3, .big-score {
     align-items: center;
 }
 
+.logo-esquina {
+    position: absolute;
+    top: 30px;
+    left: 20px;
+    height: 50px;  /* Tu tamaño personalizado */
+    width: 50px;
+}
+
 .racing-form {
     width: 100%;
     display: flex;
