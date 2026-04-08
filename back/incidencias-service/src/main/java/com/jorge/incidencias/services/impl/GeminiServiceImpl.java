@@ -85,4 +85,44 @@ public class GeminiServiceImpl implements GeminiService {
             return "El servidor de IA está repostando combustible|Inténtalo de nuevo en unos segundos|El coche de seguridad está en pista|#";
         }
     }
+
+    public String generarRosco(String temaPersonalizado) {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+
+        String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
+                ? temaPersonalizado : "cultura general y curiosidades";
+
+        // El prompt es una obra de ingeniería estricta para que el JSON no falle
+        String prompt = "Actúa como el presentador del juego Pasapalabra. Genera un rosco completo sobre el tema: '" + temaFinal + "'. " +
+                "REGLAS ESTRICTAS:\n" +
+                "1. Debes generar exactamente 25 palabras, una para cada una de estas letras: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z.\n" +
+                "2. Para las letras difíciles (X, Y) la palabra puede simplemente 'Contener' la letra, indícalo en la definición (ej: 'Contiene la X: ...').\n" +
+                "3. Responde ÚNICA Y EXCLUSIVAMENTE con un array JSON crudo. No uses etiquetas markdown como ```json, no saludes, no añadas texto extra.\n" +
+                "4. El formato de cada objeto debe ser exacto a este: {\"letra\": \"A\", \"palabra\": \"Anillo\", \"definicion\": \"Joya circular que se lleva en el dedo\"}.";
+
+        String requestBody = "{" +
+                "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
+                "\"generationConfig\": {\"temperature\": 0.7, \"maxOutputTokens\": 2000}" +
+                "}";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            String jsonCrudo = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText().trim();
+
+            // Limpiamos posibles etiquetas markdown por si la IA desobedece
+            jsonCrudo = jsonCrudo.replace("```json", "").replace("```", "").trim();
+
+            logger.info("ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaFinal);
+            return jsonCrudo;
+
+        } catch (Exception e) {
+            logger.error("Fallo al generar el Rosco IA: {}", e.getMessage());
+            return "[]"; // Devuelve un array vacío si falla para que el JS no explote
+        }
+    }
 }

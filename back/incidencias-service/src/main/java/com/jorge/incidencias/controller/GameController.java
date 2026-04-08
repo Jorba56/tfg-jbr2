@@ -27,4 +27,18 @@ public class GameController {
 
         return ResponseEntity.ok(frase);
     }
+
+    @GetMapping("/rosco-ia")
+    public ResponseEntity<String> obtenerRoscoIA(@RequestParam(value = "tema", required = false) String tema) {
+        // Llamamos al servicio que acabamos de crear
+        String jsonRosco = geminiService.generarRosco(tema);
+
+        // Si falló y viene vacío, mandamos un error 400
+        if(jsonRosco.equals("[]")) {
+            return ResponseEntity.badRequest().body("Error al generar el rosco");
+        }
+
+        // Devolvemos el JSON tal cual a JavaScript
+        return ResponseEntity.ok(jsonRosco);
+    }
 }

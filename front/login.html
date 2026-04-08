@@ -91,6 +91,22 @@
             <button class="btn-item-action" disabled style="background: #333; cursor: not-allowed;"><div>BLOQUEADO</div></button>
         </div>
 
+        <div class="menu-card card-rosco" style="display: flex; flex-direction: column; align-items: center;">
+            <span class="icon">🔵</span>
+            <h3>EL ROSCO IA</h3>
+
+            <button class="btn-main" style="width: 100%; padding: 10px; font-size: 0.9rem; margin-bottom: 10px;" onclick="App.start('rosco')">
+                JUGAR CLÁSICO
+            </button>
+
+            <input type="text" id="input-tema-rosco" placeholder="Ej: Universo Marvel..."
+                   style="width: 100%; padding: 8px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-bottom: 10px;">
+
+            <button class="btn-main" style="width: 100%; padding: 10px; font-size: 0.9rem; background: #a855f7; color: white;" onclick="Rosco.initIA()">
+                GENERAR CON IA 🧠
+            </button>
+        </div>
+
     </div>
 </section>
 
