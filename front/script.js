@@ -302,7 +302,6 @@ document.getElementById('r-input').addEventListener('keypress', e => {
 
 const app = {
     // --- ESTADO (Igual) ---
-    currentUser: null,
     currentPhrase: null,
     phraseBuffer: [],
     score: 0,
@@ -445,7 +444,12 @@ const app = {
         }
     },
     
-    logout: () => { app.currentUser = null; app.showScreen('login-screen'); },
+    logout: () => {
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("jwt_token");
+        app.currentUser = null;
+        app.showScreen('login-screen');
+    },
 
     updateUserUI: () => {
         if(!app.currentUser) return;

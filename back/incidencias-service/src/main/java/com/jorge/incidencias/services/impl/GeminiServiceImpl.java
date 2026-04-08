@@ -94,8 +94,8 @@ public class GeminiServiceImpl implements GeminiService {
 
         // El prompt es una obra de ingeniería estricta para que el JSON no falle
         String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
-                "Crea 25 palabras, una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "Para la X y la Y, la palabra puede simplemente contener la letra. " +
+                "Crea 25 palabras (UNICA Y EXCLUSIVAMENTE UNA PALABRA), una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
+                "Evita palabras en inglés. centrate en el español. " +
                 "REGLA ESTRICTA: Responde ÚNICAMENTE con un array JSON crudo. No añadas saludos. " +
                 "El formato de cada objeto debe ser: {'letra': 'A', 'palabra': '...', 'definicion': '...'}";
 
