@@ -779,7 +779,9 @@ body.light-mode .link-inferior a:hover {
     }
 
     .rosco-layout {
-        transform: scale(0.8); /* Lo reducimos al 80% */
+        transform: scale(0.8);
+        transform-origin: top center; /* Encogemos desde arriba */
+        margin-bottom: -130px; /* Recortamos el espacio vacío que sobra abajo */
     }
 }
 
@@ -825,32 +827,37 @@ body.light-mode .link-inferior a:hover {
     }
 
     .rosco-layout {
-        transform: scale(0.55); /* Lo reducimos casi a la mitad */
-        /* Al usar 'scale', la caja original sigue ocupando su espacio real.
-           Estos márgenes negativos quitan los huecos vacíos de arriba y abajo */
-        margin-top: -100px;
-        margin-bottom: -100px;
+        transform: scale(0.55);
+        transform-origin: top center;
+        /* LA MAGIA: Centramos la caja gigante restando su tamaño a la pantalla */
+        margin-left: calc((100% - 650px) / 2) !important;
+        margin-bottom: -290px !important; /* Cortamos el espacio fantasma inferior */
     }
 
-    /* El contenedor oscuro del fondo no necesita ser tan ancho en móvil */
     #ui-rosco .shop-container {
-        padding: 10px !important;
-        border-left: 3px solid var(--primary) !important; /* Borde más fino */
+        padding: 15px !important;
+        overflow-x: hidden; /* Muro de contención para que no empuje la pantalla */
     }
 
-    /* Ajustamos el botón de salir para que no se pise con las letras */
+    /* Domamos el botón gigante de Abandonar Partida */
     #ui-rosco .back-btn {
-        margin-top: 10px;
-        margin-bottom: 0px !important;
-        z-index: 50; /* Lo ponemos bien arriba */
-        align-self: center !important; /* Lo centramos en móviles */
+        align-self: center !important; /* Lo forzamos al medio */
+        font-size: 0.85rem !important; /* Letra tamaño normal */
+        padding: 10px 20px !important;
+        margin-bottom: 25px !important;
+        width: auto !important;
+        white-space: nowrap;
+    }
+
+    /* Aumentamos un pelín la definición para que se lea mejor en el móvil */
+    #ui-rosco .definition {
+        font-size: 1.15rem !important;
     }
 }
 
 @media (max-width: 400px) {
     .rosco-layout {
-        transform: scale(0.48); /* Aún más pequeño para que no toque los bordes */
-        margin-top: -140px;
-        margin-bottom: -140px;
+        transform: scale(0.48);
+        margin-bottom: -330px !important;
     }
 }
