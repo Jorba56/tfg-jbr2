@@ -196,25 +196,27 @@ const app = {
 
     // --- LÓGICA DE JUEGO ---
     startGame: () => {
+        // 1. Ajustes del Modo y Limpieza TOTAL
+        app.modoPersonalizado = false;
+        app.temaElegido = "";
+        app.phraseBuffer = []; // Vaciamos frases viejas
+
         app.score = 0;
         app.gameHistory = [];
 
-        // Aseguramos que los arrays existen
+        // 2. Lectura de Inventario y Power-ups
         const inv = app.currentUser.inventario || [];
         const habEquipadas = app.currentUser.habilidadesEquipadas || [];
 
-        // 1. Buscamos los objetos en el inventario para saber cuál es su ID
         const relojItem = inv.find(i => i.nombre === 'Reloj de Arena');
         const escudoItem = inv.find(i => i.nombre === 'Escudo de Error');
 
-        // --- VENTAJAS PASIVAS (Solo funcionan si están EQUIPADAS) ---
-        // Comprobamos si el ID del reloj está en el array de equipadas
         const tieneReloj = relojItem && habEquipadas.includes(relojItem.id_item || relojItem.idItem);
         app.timeLeft = tieneReloj ? 65 : 60;
 
-        // Comprobamos si el ID del escudo está en el array de equipadas
         app.escudoActivo = escudoItem && habEquipadas.includes(escudoItem.id_item || escudoItem.idItem);
 
+        // 3. Preparar Interfaz
         document.getElementById('score').innerText = "0";
         document.getElementById('timer').innerText = app.timeLeft;
 
@@ -222,8 +224,10 @@ const app = {
         app.loadNewPhrase();
 
         const input = document.getElementById('game-input');
-        input.value = ""; input.focus();
+        input.value = "";
+        input.focus();
 
+        // 4. Arrancar el Motor (Temporizador)
         if (app.timerInterval) clearInterval(app.timerInterval);
         app.timerInterval = setInterval(() => {
             app.timeLeft--;
@@ -232,6 +236,7 @@ const app = {
         }, 1000);
     },
 
+    // --- MODO PERSONALIZADO ---
     iniciarPartidaPersonalizada: () => {
         const inputTema = document.getElementById('input-tema').value.trim();
 
@@ -240,13 +245,44 @@ const app = {
             return;
         }
 
+        // 1. Ajustes del Modo y Limpieza TOTAL
         app.modoPersonalizado = true;
         app.temaElegido = inputTema;
-        app.phraseBuffer = []; // Limpiamos frases viejas
+        app.phraseBuffer = []; // Vaciamos frases viejas
 
-        // Vamos a la pantalla de juego y cargamos la primera frase
+        app.score = 0;
+        app.gameHistory = [];
+
+        // 2. Lectura de Inventario y Power-ups
+        const inv = app.currentUser.inventario || [];
+        const habEquipadas = app.currentUser.habilidadesEquipadas || [];
+
+        const relojItem = inv.find(i => i.nombre === 'Reloj de Arena');
+        const escudoItem = inv.find(i => i.nombre === 'Escudo de Error');
+
+        const tieneReloj = relojItem && habEquipadas.includes(relojItem.id_item || relojItem.idItem);
+        app.timeLeft = tieneReloj ? 65 : 60;
+
+        app.escudoActivo = escudoItem && habEquipadas.includes(escudoItem.id_item || escudoItem.idItem);
+
+        // 3. Preparar Interfaz
+        document.getElementById('score').innerText = "0";
+        document.getElementById('timer').innerText = app.timeLeft;
+
         app.showScreen('game-screen');
         app.loadNewPhrase();
+
+        const input = document.getElementById('game-input');
+        input.value = "";
+        input.focus();
+
+        // 4. Arrancar el Motor (Temporizador)
+        if (app.timerInterval) clearInterval(app.timerInterval);
+        app.timerInterval = setInterval(() => {
+            app.timeLeft--;
+            document.getElementById('timer').innerText = app.timeLeft;
+            if(app.timeLeft <= 0) app.endGame();
+        }, 1000);
     },
 
     // --- NUEVA CARGA DE FRASE CON IA ---
