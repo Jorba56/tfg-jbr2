@@ -423,7 +423,6 @@ const app = {
         // Calcular créditos
         const creditsEarned = Math.floor(app.score * 0.1);
 
-        // 2. Actualizamos la interfaz al instante (El jugador ve su premio al momento)
         app.currentUser.creditos += creditsEarned;
         app.updateUserUI();
         document.getElementById('earned-credits').innerText = creditsEarned;
@@ -431,16 +430,17 @@ const app = {
         app.showScreen('results-screen');
         app.animateValue("final-score", 0, app.score, 1500);
 
-        // 3. LA CONEXIÓN A BOXES: Guardamos en la base de datos de forma silenciosa
+        // 🛑 EL FILTRO INTELIGENTE: Solo llamamos a Java si hemos ganado algo
         if (creditsEarned > 0) {
             try {
                 const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
                 const response = await fetch(url, {
-                    method: 'POST',
+                    method: 'POST', // <-- OJO: Tiene que ser POST
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                     },
+                    // Asegúrate de que la variable se llama exactamente "creditosExtra"
                     body: JSON.stringify({ creditosExtra: creditsEarned })
                 });
 
@@ -450,6 +450,8 @@ const app = {
             } catch (error) {
                 console.error("Fallo de conexión al intentar guardar la partida:", error);
             }
+        } else {
+            console.log("No se ganaron créditos en esta ronda. No contactamos con boxes.");
         }
     },
 
