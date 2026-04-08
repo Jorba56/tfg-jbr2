@@ -228,31 +228,36 @@ public class UserController {
      */
     @Operation(summary = "Guardar recompensa de partida", description = "Suma créditos al terminar la partida.")
     @PostMapping("/actualizar-creditos")
-    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody RecompensaPayload payload, Authentication authentication) {
+    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody java.util.Map<String, Integer> payload, Authentication authentication) {
         System.out.println("\n--- 🚥 RECEPCIÓN DE TELEMETRÍA ---");
         try {
             String emailUsuario = authentication.getName();
-            // Usamos el molde para sacar el número
-            Integer creditosExtra = payload.getCreditosExtra();
 
-            System.out.println("Piloto: " + emailUsuario + " | Créditos a sumar: " + creditosExtra);
-
-            // Filtro de seguridad
-            if (creditosExtra == null || creditosExtra <= 0) {
-                System.out.println("❌ ERROR: El paquete venía con 0 créditos o nulo.");
-                return ResponseEntity.badRequest().body("No hay créditos que guardar");
+            // 1. Comprobamos si el paquete llegó roto o vacío
+            if (payload == null || !payload.containsKey("creditosExtra")) {
+                System.out.println("❌ ERROR: El JSON no contiene la palabra 'creditosExtra'");
+                return ResponseEntity.badRequest().body("Formato JSON incorrecto");
             }
 
-            // Guardamos en BBDD
+            // 2. Extraemos el número con total seguridad
+            Integer creditosExtra = payload.get("creditosExtra");
+            System.out.println("Piloto: " + emailUsuario + " | Créditos a sumar: " + creditosExtra);
+
+            // 3. Filtro antitrámite
+            if (creditosExtra == null || creditosExtra <= 0) {
+                System.out.println("❌ ERROR: Créditos nulos o a cero.");
+                return ResponseEntity.badRequest().body("No se han ganado créditos válidos");
+            }
+
+            // 4. Guardamos en base de datos
             userServiceImpl.sumarCreditosPartida(emailUsuario, creditosExtra);
 
             System.out.println("🏁 ÉXITO: +" + creditosExtra + " créditos guardados en BBDD.\n");
-            return ResponseEntity.ok("Telemetría guardada");
+            return ResponseEntity.ok("Telemetría guardada correctamente");
 
         } catch (Exception e) {
-            System.err.println("💥 ERROR AL GUARDAR: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("Error interno en boxes");
+            System.err.println("💥 ERROR INTERNO AL GUARDAR: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Fallo catastrófico en el motor de guardado");
         }
     }
 }

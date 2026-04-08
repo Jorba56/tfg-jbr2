@@ -432,26 +432,36 @@ const app = {
 
         // 🛑 EL FILTRO INTELIGENTE: Solo llamamos a Java si hemos ganado algo
         if (creditsEarned > 0) {
+            // Forzamos a que sea un entero puro de JavaScript
+            const payloadJSON = JSON.stringify({ creditosExtra: parseInt(creditsEarned) });
+            console.log("📦 PAQUETE SALIENDO HACIA BOXES:", payloadJSON);
+
             try {
                 const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
                 const response = await fetch(url, {
-                    method: 'POST', // <-- OJO: Tiene que ser POST
+                    method: 'POST', // Aseguramos que es POST
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                     },
-                    // Asegúrate de que la variable se llama exactamente "creditosExtra"
-                    body: JSON.stringify({ creditosExtra: creditsEarned })
+                    body: payloadJSON
                 });
 
-                if (!response.ok) throw new Error("Los mecánicos no confirmaron la recepción");
+                // 🚨 EL CHIVATO MÁXIMO: Leemos qué dice Java exactamente si nos rechaza
+                const serverMessage = await response.text();
 
-                console.log("🏁 ¡Telemetría guardada! +" + creditsEarned + " créditos asegurados en la BBDD.");
+                if (!response.ok) {
+                    // Si hay error, imprimimos el mensaje devuelto por Spring Boot
+                    throw new Error(`Mecánico dice: "${serverMessage}"`);
+                }
+
+                console.log("🏁 ¡Telemetría guardada! +" + creditsEarned + " créditos.");
             } catch (error) {
-                console.error("Fallo de conexión al intentar guardar la partida:", error);
+                // Esto nos dirá el motivo exacto del rechazo
+                console.error("Fallo de conexión ->", error.message);
             }
         } else {
-            console.log("No se ganaron créditos en esta ronda. No contactamos con boxes.");
+            console.log("🚦 Cero créditos ganados. No contactamos con la base de datos.");
         }
     },
 
