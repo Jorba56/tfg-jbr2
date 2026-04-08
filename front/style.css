@@ -275,6 +275,7 @@ input:focus {
 
 table{
     width: 100%;
+    text-align: center;
 }
 
 body.tema-cyberpunk {
