@@ -94,16 +94,13 @@
         <div class="menu-card card-rosco" style="display: flex; flex-direction: column; align-items: center;">
             <span class="icon">🔵</span>
             <h3>EL ROSCO IA</h3>
-
-            <button class="btn-main" style="width: 100%; padding: 10px; font-size: 0.9rem; margin-bottom: 10px;" onclick="App.start('rosco')">
-                JUGAR CLÁSICO
-            </button>
+            <span class="desc" style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px; text-align: center;">Elige cualquier tema del universo y la IA creará la pista.</span>
 
             <input type="text" id="input-tema-rosco" placeholder="Ej: Universo Marvel..."
                    style="width: 100%; padding: 8px; border-radius: 8px; text-align: center; font-size: 0.9rem; margin-bottom: 10px;">
 
-            <button class="btn-main" style="width: 100%; padding: 10px; font-size: 0.9rem; background: #a855f7; color: white;" onclick="Rosco.initIA()">
-                GENERAR CON IA 🧠
+            <button class="btn-main" style="width: 100%; padding: 10px; font-size: 0.9rem; background: #a855f7; color: white;" onclick="Rosco.init()">
+                <div>GENERAR Y JUGAR 🧠</div>
             </button>
         </div>
 
@@ -179,24 +176,51 @@
 </section>
 
 <section id="ui-rosco" class="screen hidden">
-    <div class="rosco-layout">
-        <ul class="circle" id="r-circle"></ul>
-        <div class="center-panel">
-            <div id="r-play">
-                <div class="timer-box">⏳ <span id="r-time">180</span>s</div>
-                <h2 id="r-char" style="font-size:4rem; color:var(--accent-yellow); margin:0">A</h2>
-                <p id="r-def" class="definition">...</p>
-                <input type="text" id="r-input" placeholder="..." autocomplete="off" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
-                <div class="controls">
-                    <button class="btn-main" style="padding:10px 25px; width: 100px;" onclick="Rosco.check()">OK</button>
-                    <button class="btn-sec" style="padding:10px 25px; width: 100px;" onclick="Rosco.pass()">PASA</button>
+    <div class="shop-container" style="max-width: 700px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+
+        <button class="back-btn" style="align-self: flex-start; margin-bottom: 20px;" onclick="app.showScreen('dashboard-screen'); Rosco.stop();">
+            ⬅ Abandonar Partida
+        </button>
+
+        <div class="rosco-layout">
+            <ul class="circle" id="r-circle"></ul>
+            <div class="center-panel">
+
+                <div id="r-play">
+                    <div class="timer-box" style="font-weight: bold; font-size: 1.2rem; color: var(--text-highlight);">
+                        ⏳ <span id="r-time">180</span>s
+                    </div>
+
+                    <h2 id="r-char" style="font-size:4.5rem; color:var(--primary); margin: 0; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">A</h2>
+
+                    <p id="r-def" class="definition" style="color: var(--text); font-size: 1rem; margin-top: 5px;">...</p>
+
+                    <input type="text" id="r-input" placeholder="Tu respuesta..." autocomplete="off">
+
+                    <div class="button-group" style="justify-content: center; margin-top: 15px; gap: 10px;">
+                        <button class="btn-main" onclick="Rosco.check()">
+                            <div>OK</div>
+                        </button>
+                        <button class="btn-main btn-registro" onclick="Rosco.pass()">
+                            <div>PASA</div>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div id="r-end" class="hidden">
-                <h2 style="color:var(--accent-yellow); margin:0">¡FIN!</h2>
-                <p style="font-size:1.4rem">✅ <span id="r-ok">0</span> | ❌ <span id="r-bad">0</span></p>
-                <div class="summary-box" id="r-summary"></div>
-                <button class="btn-main" onclick="Rosco.init()">REINTENTAR</button>
+
+                <div id="r-end" class="hidden">
+                    <h2 style="color:var(--primary); margin: 0; font-size: 2.5rem;">¡FIN!</h2>
+
+                    <p style="font-size:1.4rem; font-weight: bold; margin: 10px 0;">
+                        ✅ <span id="r-ok" style="color: #00e676;">0</span> | ❌ <span id="r-bad" style="color: var(--error);">0</span>
+                    </p>
+
+                    <div class="summary-box" id="r-summary" style="max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid var(--card-border); padding: 10px; text-align: left; font-size: 0.85rem;"></div>
+
+                    <button class="btn-main" onclick="app.showScreen('dashboard-screen')">
+                        <div>VOLVER AL MENÚ</div>
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>

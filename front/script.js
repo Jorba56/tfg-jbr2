@@ -21,25 +21,67 @@ const Rosco = {
     data: [], curr: 0, ok: 0, bad: 0, time: 180, timer: null,
 
     // --- 1. ARRANQUE MODO CLÁSICO (Usa la variable DB si la tienes) ---
-    init() {
-        // OJO: Si no vas a usar la base de datos local (DB), este init() no te hará falta.
-        // Lo dejamos por si quieres mantener ambos modos.
-        if (typeof DB === 'undefined') {
-            alert("No se encontró la base de datos local para el modo clásico.");
+    init: async function() {
+        const temaInput = document.getElementById('input-tema-rosco').value.trim();
+
+        if (temaInput.length < 3) {
+            alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
             return;
         }
-        const availableLetters = Object.keys(DB.questionsPool).sort();
-        this.data = availableLetters.map(l => {
-            const variants = DB.questionsPool[l];
-            const rand = variants[Math.floor(Math.random() * variants.length)];
-            return { id: l, q: rand.question, a: rand.answer, st: null };
-        });
-        this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
-        document.getElementById('ui-rosco').classList.remove('hidden');
+
+        // 1. Ocultamos el menú principal y mostramos la pantalla del Rosco
+        document.getElementById('dashboard-screen').classList.remove('active');
+        document.getElementById('dashboard-screen').classList.add('hidden');
+
+        const pantallaRosco = document.getElementById('ui-rosco');
+        pantallaRosco.classList.remove('hidden');
+        pantallaRosco.classList.add('active');
+
+        // Mostramos la zona de juego y ocultamos los resultados
         document.getElementById('r-play').classList.remove('hidden');
         document.getElementById('r-end').classList.add('hidden');
         document.getElementById('r-summary').classList.add('hidden');
-        this.draw(); this.loadQ(); this.startTimer();
+
+        // 2. Pantalla de carga
+        document.getElementById('r-char').innerText = "⏳";
+        document.getElementById('r-def').innerText = "Conectando con boxes... Generando 25 palabras sobre: " + temaInput;
+        document.getElementById('r-circle').innerHTML = '';
+        document.getElementById('r-input').disabled = true; // Bloqueamos el input mientras carga
+
+        try {
+            // 3. Petición a tu backend
+            const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+            });
+
+            if (!response.ok) throw new Error("La IA no pudo generar el rosco");
+
+            const roscoIA = await response.json();
+
+            // 4. Transformamos el JSON al formato del juego
+            this.data = roscoIA.map(item => {
+                return {
+                    id: item.letra.toUpperCase(),
+                    q: item.definicion,
+                    a: item.palabra,
+                    st: null
+                };
+            });
+
+            // 5. Desbloqueamos, reseteamos contadores y arrancamos
+            document.getElementById('r-input').disabled = false;
+            this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
+            this.draw();
+            this.loadQ();
+            this.startTimer();
+
+        } catch (error) {
+            console.error("Fallo:", error);
+            alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
+            app.showScreen('dashboard-screen');
+        }
     },
 
     // --- 2. ARRANQUE MODO IA (El nuevo motor) ---
@@ -836,6 +878,7 @@ const app = {
 }; // <-- FINAL DEL OBJETO APP (Asegúrate de no borrar esto ni el window.onload de debajo)
 
 window.app = app;
+window.Rosco= Rosco;
 
 window.onload = () => {
     app.restoreSession();

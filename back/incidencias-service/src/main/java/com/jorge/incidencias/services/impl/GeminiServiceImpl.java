@@ -112,17 +112,34 @@ public class GeminiServiceImpl implements GeminiService {
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             JsonNode root = objectMapper.readTree(response.getBody());
-            String jsonCrudo = root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText().trim();
 
-            // Limpiamos posibles etiquetas markdown por si la IA desobedece
-            jsonCrudo = jsonCrudo.replace("```json", "").replace("```", "").trim();
+            // 1. Chivato antiescudos de seguridad (A veces Gemini bloquea temas sin avisar)
+            if (root.path("candidates").isEmpty()) {
+                logger.error("🛑 Gemini bloqueó la respuesta o devolvió vacío: {}", response.getBody());
+                return "[]";
+            }
 
-            logger.info("ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaFinal);
+            String jsonCrudo = root.path("candidates").get(0)
+                    .path("content")
+                    .path("parts").get(0)
+                    .path("text").asText().trim();
+
+            // 2. FILTRO EXTREMO ANTIBASURA:
+            // Si Gemini mete texto antes o después del JSON, lo recortamos de cuajo.
+            int inicioArray = jsonCrudo.indexOf("[");
+            int finArray = jsonCrudo.lastIndexOf("]");
+
+            if (inicioArray != -1 && finArray != -1) {
+                jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
+            }
+
+            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaFinal);
             return jsonCrudo;
 
         } catch (Exception e) {
-            logger.error("Fallo al generar el Rosco IA: {}", e.getMessage());
-            return "[]"; // Devuelve un array vacío si falla para que el JS no explote
+            // 3. Telemetría de alta precisión
+            logger.error("💥 FALLO CRÍTICO AL GENERAR ROSCO. Motivo exacto: {}", e.getMessage());
+            return "[]"; // Activará el error 400 en el controlador
         }
     }
 }
