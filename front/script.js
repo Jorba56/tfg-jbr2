@@ -434,7 +434,6 @@ const app = {
         if (creditsEarned > 0) {
             // Forzamos a que sea un entero puro de JavaScript
             const payloadJSON = JSON.stringify({ creditosExtra: parseInt(creditsEarned) });
-            console.log("📦 PAQUETE SALIENDO HACIA BOXES:", payloadJSON);
 
             try {
                 const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
@@ -454,14 +453,12 @@ const app = {
                     // Si hay error, imprimimos el mensaje devuelto por Spring Boot
                     throw new Error(`Mecánico dice: "${serverMessage}"`);
                 }
-
-                console.log("🏁 ¡Telemetría guardada! +" + creditsEarned + " créditos.");
             } catch (error) {
                 // Esto nos dirá el motivo exacto del rechazo
                 console.error("Fallo de conexión ->", error.message);
             }
         } else {
-            console.log("🚦 Cero créditos ganados. No contactamos con la base de datos.");
+            alert("Cero créditos ganados. ¡Puedes hacerlo mejor!");
         }
     },
 
