@@ -186,11 +186,6 @@ document.getElementById('r-input').addEventListener('keypress', e => {
     if(e.key === 'Enter') Rosco.check();
 });
 
-// Y no te olvides de esta pequeña función que usa el Rosco para quitar tildes
-function normalize(s) {
-    return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-}
-
 const app = {
     // --- ESTADO (Igual) ---
     currentUser: null,
