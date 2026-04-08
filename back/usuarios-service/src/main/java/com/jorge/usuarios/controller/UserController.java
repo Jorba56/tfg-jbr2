@@ -216,34 +216,42 @@ public class UserController {
         }
     }
 
+    public static class RecompensaPayload {
+        public Integer creditosExtra;
+        // Getter y Setter necesarios para que Spring lea el JSON
+        public Integer getCreditosExtra() { return creditosExtra; }
+        public void setCreditosExtra(Integer creditosExtra) { this.creditosExtra = creditosExtra; }
+    }
+
     /**
      * Endpoint para que el juego (script.js) envíe los créditos ganados al acabar una contrarreloj o modo IA.
      */
     @Operation(summary = "Guardar recompensa de partida", description = "Suma créditos al terminar la partida.")
     @PostMapping("/actualizar-creditos")
-    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody java.util.Map<String, Integer> payload, Authentication authentication) {
-        System.out.println("\n--- 🚥 INICIANDO GUARDADO DE TELEMETRÍA ---");
+    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody RecompensaPayload payload, Authentication authentication) {
+        System.out.println("\n--- 🚥 RECEPCIÓN DE TELEMETRÍA ---");
         try {
             String emailUsuario = authentication.getName();
-            System.out.println("Paso 1: Piloto detectado en el Token: [" + emailUsuario + "]");
+            // Usamos el molde para sacar el número
+            Integer creditosExtra = payload.getCreditosExtra();
 
-            Integer creditosExtra = payload.get("creditosExtra");
-            System.out.println("Paso 2: Créditos recibidos desde JS: [" + creditosExtra + "]");
+            System.out.println("Piloto: " + emailUsuario + " | Créditos a sumar: " + creditosExtra);
 
+            // Filtro de seguridad
             if (creditosExtra == null || creditosExtra <= 0) {
-                System.out.println("❌ ERROR: Los créditos llegaron vacíos o a cero.");
-                return ResponseEntity.badRequest().body("Datos de telemetría inválidos");
+                System.out.println("❌ ERROR: El paquete venía con 0 créditos o nulo.");
+                return ResponseEntity.badRequest().body("No hay créditos que guardar");
             }
 
-            System.out.println("Paso 3: Enviando datos al Servicio...");
+            // Guardamos en BBDD
             userServiceImpl.sumarCreditosPartida(emailUsuario, creditosExtra);
 
-            System.out.println("🏁 PASO FINAL: Telemetría guardada correctamente para " + emailUsuario + "\n");
-            return ResponseEntity.ok("Telemetría guardada en BBDD");
+            System.out.println("🏁 ÉXITO: +" + creditosExtra + " créditos guardados en BBDD.\n");
+            return ResponseEntity.ok("Telemetría guardada");
 
         } catch (Exception e) {
-            System.err.println("💥 ERROR FATAL EN EL CONTROLADOR: " + e.getMessage());
-            e.printStackTrace(); // Esto nos dirá la línea exacta del fallo
+            System.err.println("💥 ERROR AL GUARDAR: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.internalServerError().body("Error interno en boxes");
         }
     }
