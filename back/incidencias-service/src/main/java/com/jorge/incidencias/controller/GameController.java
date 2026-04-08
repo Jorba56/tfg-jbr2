@@ -18,9 +18,13 @@ public class GameController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/frase")
-    public ResponseEntity<String> obtenerFrase(@RequestParam(defaultValue = "media") String dificultad,
-        @RequestParam(required = false) String tema){
+    public ResponseEntity<String> obtenerFrase(
+        @RequestParam(defaultValue = "media") String dificultad,
+        @RequestParam(required = false) String tema) {
+
+        System.out.println("🏁 EL CONTROLADOR HA RECIBIDO EL TEMA: " + tema);
         String frase = geminiService.generarFrase(dificultad, tema);
+
         return ResponseEntity.ok(frase);
     }
 }
