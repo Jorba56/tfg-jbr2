@@ -13,6 +13,184 @@ function navegarA(idPantalla) {
     destino.classList.add('active');
 }
 
+// ==========================================
+// MOTOR DEL JUEGO: EL ROSCO (Clásico + IA)
+// ==========================================
+
+const Rosco = {
+    data: [], curr: 0, ok: 0, bad: 0, time: 180, timer: null,
+
+    // --- 1. ARRANQUE MODO CLÁSICO (Usa la variable DB si la tienes) ---
+    init() {
+        // OJO: Si no vas a usar la base de datos local (DB), este init() no te hará falta.
+        // Lo dejamos por si quieres mantener ambos modos.
+        if (typeof DB === 'undefined') {
+            alert("No se encontró la base de datos local para el modo clásico.");
+            return;
+        }
+        const availableLetters = Object.keys(DB.questionsPool).sort();
+        this.data = availableLetters.map(l => {
+            const variants = DB.questionsPool[l];
+            const rand = variants[Math.floor(Math.random() * variants.length)];
+            return { id: l, q: rand.question, a: rand.answer, st: null };
+        });
+        this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
+        document.getElementById('ui-rosco').classList.remove('hidden');
+        document.getElementById('r-play').classList.remove('hidden');
+        document.getElementById('r-end').classList.add('hidden');
+        document.getElementById('r-summary').classList.add('hidden');
+        this.draw(); this.loadQ(); this.startTimer();
+    },
+
+    // --- 2. ARRANQUE MODO IA (El nuevo motor) ---
+    initIA: async function() {
+        const temaInput = document.getElementById('input-tema-rosco').value.trim();
+        if (temaInput.length < 3) {
+            alert("Introduce un tema válido de al menos 3 letras. ¡Acelera un poco más!");
+            return;
+        }
+
+        // Ocultamos el menú (ajusta esto si tu menú principal tiene otro ID)
+        document.getElementById('main-menu').classList.add('hidden');
+        document.getElementById('ui-rosco').classList.remove('hidden');
+        document.getElementById('r-play').classList.remove('hidden');
+        document.getElementById('r-end').classList.add('hidden');
+        document.getElementById('r-summary').classList.add('hidden');
+
+        // Texto temporal mientras carga
+        document.getElementById('r-char').innerText = "⏳";
+        document.getElementById('r-def').innerText = "Conectando con la IA... Generando 25 palabras sobre: " + temaInput;
+        document.getElementById('r-circle').innerHTML = '';
+
+        try {
+            // Petición a tu backend (asegúrate de que la ruta coincide con tu GameController)
+            const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+            });
+
+            if (!response.ok) throw new Error("La IA no pudo generar el rosco");
+
+            const roscoIA = await response.json();
+
+            // Transformamos el JSON de la IA al formato del juego
+            this.data = roscoIA.map(item => {
+                return {
+                    id: item.letra.toUpperCase(),
+                    q: item.definicion,
+                    a: item.palabra,
+                    st: null
+                };
+            });
+
+            // Reseteamos contadores y arrancamos
+            this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
+            this.draw();
+            this.loadQ();
+            this.startTimer();
+
+        } catch (error) {
+            console.error("Fallo:", error);
+            alert("Hubo un fallo en boxes al contactar con la IA. Volviendo al menú.");
+            // Cambia App.home() por tu función real para volver al menú, por ejemplo app.showScreen('menu-screen');
+            if(typeof App !== 'undefined') App.home();
+        }
+    },
+
+    // --- 3. DIBUJAR EL ROSCO CIRCULAR ---
+    draw() {
+        const ul = document.getElementById('r-circle'); ul.innerHTML = '';
+        const total = this.data.length;
+        this.data.forEach((d, i) => {
+            const li = document.createElement('li'); li.className = 'letter-item';
+            li.id = 'rn-' + i; li.innerText = d.id;
+            const ang = (360 / total) * i - 90; const rad = ang * (Math.PI / 180);
+            li.style.transform = `translate(${180 * Math.cos(rad)}px, ${180 * Math.sin(rad)}px)`;
+            ul.appendChild(li);
+        });
+    },
+
+    // --- 4. CARGAR LA SIGUIENTE PREGUNTA ---
+    loadQ() {
+        let p = -1;
+        const total = this.data.length;
+        for(let i = this.curr; i < total; i++) if (!this.data[i].st) { p = i; break; }
+        if (p === -1) for(let i = 0; i < total; i++) if (!this.data[i].st) { p = i; break; }
+        if (p === -1) { this.finish(); return; }
+        this.curr = p;
+        document.getElementById('r-char').innerText = this.data[p].id;
+        document.getElementById('r-def').innerText = this.data[p].q;
+        document.getElementById('r-input').value = ''; document.getElementById('r-input').focus();
+        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('rn-' + p).classList.add('active');
+    },
+
+    // --- 5. COMPROBAR RESPUESTA ---
+    check() {
+        const v = normalize(document.getElementById('r-input').value);
+        const item = this.data[this.curr];
+        const node = document.getElementById('rn-' + this.curr);
+        if (v === normalize(item.a)) { item.st = 'ok'; this.ok++; node.classList.add('correct'); }
+        else { item.st = 'bad'; this.bad++; node.classList.add('wrong'); }
+        this.curr++; this.loadQ();
+    },
+
+    // --- 6. PASAR PALABRA ---
+    pass() {
+        document.getElementById('rn-' + this.curr).classList.remove('active');
+        this.curr++;
+        this.loadQ();
+    },
+
+    // --- 7. TEMPORIZADOR ---
+    startTimer() {
+        clearInterval(this.timer);
+        this.timer = setInterval(() => {
+            this.time--; document.getElementById('r-time').innerText = this.time;
+            if (this.time <= 0) this.finish();
+        }, 1000);
+    },
+    stop() { clearInterval(this.timer); },
+
+    // --- 8. PANTALLA FINAL ---
+    finish() {
+        this.stop();
+        document.getElementById('r-play').classList.add('hidden');
+        document.getElementById('r-end').classList.remove('hidden');
+        document.getElementById('r-ok').innerText = this.ok;
+        document.getElementById('r-bad').innerText = this.bad;
+        const sum = document.getElementById('r-summary'); sum.innerHTML = '';
+        sum.classList.remove('hidden');
+        this.data.forEach(d => {
+            const div = document.createElement('div'); div.className = 'summary-item';
+            const icon = d.st === 'ok' ? '✅' : '❌';
+            div.innerHTML = `<span class="${d.st === 'ok' ? 'sum-correct' : 'sum-wrong'}">${d.id} ${icon}</span> <b>${d.a.toUpperCase()}</b><br><small>${d.q}</small>`;
+            sum.appendChild(div);
+        });
+
+        // Aquí puedes enlazar tu lógica para guardar los créditos si quieres:
+        // const creditosGanados = this.ok;
+        // Lógica de actualizarBBDD(creditosGanados);
+    }
+};
+
+// HERRAMIENTA OBLIGATORIA: Función para quitar tildes y mayúsculas al comprobar
+function normalize(s) {
+    return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
+// Añadir evento al input del rosco para que funcione al pulsar "Enter"
+// (Coloca esto en el bloque donde inicias tus otros EventListeners)
+document.getElementById('r-input').addEventListener('keypress', e => {
+    if(e.key === 'Enter') Rosco.check();
+});
+
+// Y no te olvides de esta pequeña función que usa el Rosco para quitar tildes
+function normalize(s) {
+    return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
 const app = {
     // --- ESTADO (Igual) ---
     currentUser: null,

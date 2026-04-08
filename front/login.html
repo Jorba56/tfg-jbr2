@@ -178,6 +178,31 @@
     </div>
 </section>
 
+<section id="ui-rosco" class="screen hidden">
+    <button class="back-btn" onclick="App.home()">⬅ Salir</button>
+    <div class="rosco-layout">
+        <ul class="circle" id="r-circle"></ul>
+        <div class="center-panel">
+            <div id="r-play">
+                <div class="timer-box">⏳ <span id="r-time">180</span>s</div>
+                <h2 id="r-char" style="font-size:4rem; color:var(--accent-yellow); margin:0">A</h2>
+                <p id="r-def" class="definition">...</p>
+                <input type="text" id="r-input" placeholder="..." autocomplete="off" style="width: 100%; border-radius: 10px; margin-bottom: 10px;">
+                <div class="controls">
+                    <button class="btn-main" style="padding:10px 25px; width: 100px;" onclick="Rosco.check()">OK</button>
+                    <button class="btn-sec" style="padding:10px 25px; width: 100px;" onclick="Rosco.pass()">PASA</button>
+                </div>
+            </div>
+            <div id="r-end" class="hidden">
+                <h2 style="color:var(--accent-yellow); margin:0">¡FIN!</h2>
+                <p style="font-size:1.4rem">✅ <span id="r-ok">0</span> | ❌ <span id="r-bad">0</span></p>
+                <div class="summary-box" id="r-summary"></div>
+                <button class="btn-main" onclick="Rosco.init()">REINTENTAR</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <script type="module" src="script.js"></script>
 </body>
 </html>
