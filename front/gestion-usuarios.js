@@ -136,7 +136,10 @@ async function cargarUsuarios() {
                 `;
             });
         }
-    } catch (error) { tabla.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-bold">Fallo de red al conectar.</td></tr>`; }
+    } catch (error) {
+        tabla.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-bold">Fallo de red al conectar. ${error}</td></tr>`;
+        console.log(error);
+    }
 }
 
 window.exportarExcelUsuarios = async function() {

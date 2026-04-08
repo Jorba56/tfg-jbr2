@@ -109,14 +109,24 @@
     </div>
 
     <div class="admin-table-box">
-        <table id="tablaUsuarios">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>USUARIO</th>
+                    <th>EMAIL</th>
+                    <th>ROLES</th>
+                    <th>ACCIONES</th>
+                </tr>
+            </thead>
+            <tbody id="tablaUsuarios"></tbody>
         </table>
 
         <div class="pagination-bar">
-            <span>Página 1 de 1</span>
+            <span id="infoPagUsuarios">Página 1 de 1</span>
             <div class="page-controls">
-                <button class="btn-sec">Anterior</button>
-                <button class="btn-sec">Siguiente</button>
+                <button class="btn-sec" id="btnAntUsu" >Anterior</button>
+                <button class="btn-sec" id="btnSigUsu" >Siguiente</button>
             </div>
         </div>
     </div>

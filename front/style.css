@@ -273,6 +273,10 @@ input:focus {
     display: none !important;
 }
 
+table{
+    width: 100%;
+}
+
 body.tema-cyberpunk {
     --bg: #05050a;                  /* Negro casi absoluto */
     --primary: #ff00ff;             /* Magenta Neón vibrante */
