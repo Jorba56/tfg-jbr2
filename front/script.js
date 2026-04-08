@@ -148,7 +148,7 @@ const Rosco = {
             const li = document.createElement('li'); li.className = 'letter-item';
             li.id = 'rn-' + i; li.innerText = d.id;
             const ang = (360 / total) * i - 90; const rad = ang * (Math.PI / 180);
-            li.style.transform = `translate(${180 * Math.cos(rad)}px, ${180 * Math.sin(rad)}px)`;
+            li.style.transform = `translate(${300 * Math.cos(rad)}px, ${300 * Math.sin(rad)}px)`;
             ul.appendChild(li);
         });
     },
@@ -196,14 +196,20 @@ const Rosco = {
     stop() { clearInterval(this.timer); },
 
     // --- 8. PANTALLA FINAL ---
-    finish() {
+    finish: async function() { // <-- AÑADIMOS ASYNC AQUÍ
         this.stop();
         document.getElementById('r-play').classList.add('hidden');
         document.getElementById('r-end').classList.remove('hidden');
         document.getElementById('r-ok').innerText = this.ok;
         document.getElementById('r-bad').innerText = this.bad;
-        const sum = document.getElementById('r-summary'); sum.innerHTML = '';
+
+        // 🛠️ FIX VISUAL: Apagamos cualquier letra que se haya quedado encendida (La famosa "R" rebelde)
+        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+
+        const sum = document.getElementById('r-summary');
+        sum.innerHTML = '';
         sum.classList.remove('hidden');
+
         this.data.forEach(d => {
             const div = document.createElement('div'); div.className = 'summary-item';
             const icon = d.st === 'ok' ? '✅' : '❌';
@@ -211,9 +217,43 @@ const Rosco = {
             sum.appendChild(div);
         });
 
-        // Aquí puedes enlazar tu lógica para guardar los créditos si quieres:
-        // const creditosGanados = this.ok;
-        // Lógica de actualizarBBDD(creditosGanados);
+        // 💰 SISTEMA DE RECOMPENSAS: 10 créditos por cada acierto
+        const creditosGanados = this.ok * 10;
+
+        if (creditosGanados > 0) {
+            // Sumamos al perfil en RAM y actualizamos la interfaz al instante
+            if(typeof app !== 'undefined' && app.currentUser) {
+                app.currentUser.creditos += creditosGanados;
+                app.updateUserUI();
+            }
+
+            // Enviamos el paquete a boxes (Java)
+            const payloadJSON = JSON.stringify({ creditosExtra: parseInt(creditosGanados) });
+
+            try {
+                const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                    },
+                    body: payloadJSON
+                });
+
+                const serverMessage = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(`Mecánico dice: "${serverMessage}"`);
+                }
+
+                console.log(`🏁 ¡Rosco finalizado! +${creditosGanados} créditos asegurados en la BBDD.`);
+            } catch (error) {
+                console.error("Fallo de conexión al guardar créditos del Rosco ->", error.message);
+            }
+        } else {
+            console.log("🚦 Cero aciertos en el Rosco. No contactamos con la base de datos.");
+        }
     }
 };
 
