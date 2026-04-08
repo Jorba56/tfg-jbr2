@@ -436,7 +436,7 @@ const app = {
             try {
                 const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
                 const response = await fetch(url, {
-                    method: 'PUT', // Asegúrate de que coincida con tu endpoint de Java (PUT o POST)
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
