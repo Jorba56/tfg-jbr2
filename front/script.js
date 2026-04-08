@@ -24,6 +24,8 @@ const app = {
     gameHistory: [],
     escudoActivo: false,
     isFetchingPhrases: false,
+    modoPersonalizado: false,
+    temaElegido: "",
 
     // --- NAVEGACIÓN Y TEMA (Igual) ---
     toggleTheme: () => {
@@ -228,6 +230,23 @@ const app = {
             document.getElementById('timer').innerText = app.timeLeft;
             if(app.timeLeft <= 0) app.endGame();
         }, 1000);
+    },
+
+    iniciarPartidaPersonalizada: () => {
+        const inputTema = document.getElementById('input-tema').value.trim();
+
+        if (inputTema.length < 3) {
+            alert("El tema debe tener al menos 3 letras. ¡Acelera un poco más!");
+            return;
+        }
+
+        app.modoPersonalizado = true;
+        app.temaElegido = inputTema;
+        app.phraseBuffer = []; // Limpiamos frases viejas
+
+        // Vamos a la pantalla de juego y cargamos la primera frase
+        app.showScreen('game-screen');
+        app.loadNewPhrase();
     },
 
     // --- NUEVA CARGA DE FRASE CON IA ---
