@@ -434,7 +434,7 @@ const app = {
         // 3. LA CONEXIÓN A BOXES: Guardamos en la base de datos de forma silenciosa
         if (creditsEarned > 0) {
             try {
-                const url = 'https://gateway-production-a1f6.up.railway.app/incidencias/usuarios/actualizar-creditos';
+                const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
                 const response = await fetch(url, {
                     method: 'PUT', // Asegúrate de que coincida con tu endpoint de Java (PUT o POST)
                     headers: {

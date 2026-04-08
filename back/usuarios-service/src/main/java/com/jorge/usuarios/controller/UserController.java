@@ -215,4 +215,34 @@ public class UserController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    /**
+     * Endpoint para que el juego (script.js) envíe los créditos ganados al acabar una contrarreloj o modo IA.
+     */
+    @Operation(summary = "Guardar recompensa de partida", description = "Suma los créditos ganados al terminar una partida. Extrae al usuario automáticamente del token JWT.")
+    @PostMapping("/actualizar-creditos")
+    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody java.util.Map<String, Integer> payload, Authentication authentication) {
+        try {
+            // 1. Spring Security ya sabe quién eres por el Token, sacamos el email/usuario
+            String emailUsuario = authentication.getName();
+
+            // 2. Extraemos los créditos que nos manda el JSON de JavaScript
+            Integer creditosExtra = payload.get("creditosExtra");
+
+            // Barrera de seguridad para evitar que manden trampas o nulls
+            if (creditosExtra == null || creditosExtra <= 0) {
+                return ResponseEntity.badRequest().body("Datos de telemetría inválidos");
+            }
+
+            // 3. Mandamos la orden al servicio para que guarde en la BBDD
+            userServiceImpl.sumarCreditosPartida(emailUsuario, creditosExtra);
+
+            System.out.println("🏁 RESULTADOS GUARDADOS: +" + creditosExtra + " créditos para " + emailUsuario);
+            return ResponseEntity.ok("Telemetría guardada en BBDD");
+
+        } catch (Exception e) {
+            System.err.println("Fallo en boxes al guardar partida: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Error interno en boxes");
+        }
+    }
 }

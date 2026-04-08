@@ -7,7 +7,6 @@ import com.jorge.usuarios.repository.RolRepository;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.dto.RolPostUser;
 import com.jorge.usuarios.dto.UserAddDTO;
-import com.jorge.usuarios.dto.UserIdDTo;
 import com.jorge.usuarios.dto.UsersAllDTO;
 import com.jorge.usuarios.repository.UserRepository;
 
@@ -359,5 +358,17 @@ public class UserServiceImpl implements UserService {
     public UsersAllDTO buscarPorEmail(String correo) {
         User usuario= userRep.findUserByEmailUsuario(correo);
         return userMap.mappingADTO(usuario);
+    }
+
+    public void sumarCreditosPartida(String email, Integer creditosGanados) {
+        // 1. Buscamos al piloto
+        User usuario = userRep.findUserByEmailUsuario(email);
+
+        // 2. Le sumamos el premio
+        int totalCreditos = usuario.getCreditos() + creditosGanados;
+        usuario.setCreditos(totalCreditos);
+
+        // 3. Apretamos los tornillos (Guardar en BBDD)
+        userRep.save(usuario);
     }
 }
