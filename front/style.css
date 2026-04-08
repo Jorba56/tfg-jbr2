@@ -502,6 +502,120 @@ body.tema-cyberpunk input:focus {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 75, 92, 0.3) !important;
 }
 
+/* ========================================== */
+/* ⚙️ ESTILOS DEL PANEL DE CONTROL (ADMIN)    */
+/* ========================================== */
+
+/* Contenedor principal centrado y con tope de ancho */
+.admin-dashboard {
+    width: 95%;
+    max-width: 1200px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Separación perfecta entre los 3 bloques */
+}
+
+/* --- BLOQUE 1: CABECERA --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap; /* En móviles se pondrá uno debajo del otro */
+    gap: 20px;
+}
+
+.admin-titles h1 {
+    font-size: 2.5rem;
+    margin: 0 0 5px 0;
+}
+
+.admin-titles p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* El interruptor de Usuarios/Roles (estilo cápsula) */
+.toggle-switch {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.toggle-switch button {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 10px 20px;
+    margin: 0;
+    transform: none; /* Quitamos la inclinación racing aquí para que sea más formal */
+}
+
+.toggle-switch button.active {
+    background: var(--card-bg);
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* --- BLOQUE 2: BARRA DE HERRAMIENTAS --- */
+.admin-toolbar {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-top: 3px solid var(--primary); /* El toque de luz superior */
+    padding: 15px 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: var(--glass-shadow);
+}
+
+.search-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.search-group input {
+    margin: 0 !important; /* Reseteamos márgenes del input global */
+    max-width: 200px;
+    padding: 10px 15px;
+    transform: none; /* Inputs rectos para el panel admin */
+    clip-path: none;
+}
+
+.search-group .btn-main {
+    padding: 10px 15px;
+}
+
+/* --- BLOQUE 3: CAJA DE LA TABLA --- */
+.admin-table-box {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-top: 3px solid var(--primary);
+    padding: 20px;
+    box-shadow: var(--glass-shadow);
+    overflow-x: auto; /* Para que no rompa el móvil si la tabla es muy ancha */
+}
+
+.pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-secondary);
+}
+
 /* Transición suave para todos los elementos internos */
 .shop-item * {
     transition: all 0.3s ease;
@@ -724,6 +838,43 @@ body.light-mode .link-inferior a {
 /* Brillo del enlace adaptado al día (sutil) */
 body.light-mode .link-inferior a:hover {
     text-shadow: 0 0 10px rgba(0, 92, 230, 0.3) !important;
+}
+
+/* Cajas principales del admin en modo claro */
+body.light-mode .admin-toolbar,
+body.light-mode .admin-table-box {
+    background: var(--card-bg); /* En light-mode usa tu blanco traslúcido */
+    border-color: var(--card-border);
+    box-shadow: var(--glass-shadow);
+}
+
+/* El interruptor de Usuarios/Roles en modo claro */
+body.light-mode .toggle-switch {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.05); /* Un gris muy sutil para el fondo inactivo */
+}
+
+body.light-mode .toggle-switch button {
+    color: var(--text-secondary);
+}
+
+body.light-mode .toggle-switch button.active {
+    background: var(--primary);
+    color: #ffffff; /* Contraste fuerte para el botón activo */
+}
+
+/* Ajuste para los textos secundarios de la cabecera y paginación */
+body.light-mode .admin-titles p,
+body.light-mode .pagination-bar {
+    color: var(--text-secondary);
+    border-top-color: rgba(0, 0, 0, 0.1); /* Línea separadora sutil */
+}
+
+/* Forzamos el color del texto de la tabla para que no se vea gris claro sobre blanco */
+body.light-mode .data-table th,
+body.light-mode .data-table td {
+    color: var(--text-highlight);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 /* Ajuste de fuentes para móviles */
