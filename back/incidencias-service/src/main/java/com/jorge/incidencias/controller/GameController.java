@@ -30,15 +30,25 @@ public class GameController {
 
     @GetMapping("/rosco-ia")
     public ResponseEntity<String> obtenerRoscoIA(@RequestParam(value = "tema", required = false) String tema) {
-        // Llamamos al servicio que acabamos de crear
-        String jsonRosco = geminiService.generarRosco(tema);
+        try {
+            System.out.println("\n--- 🧠 PIDIENDO ROSCO A GEMINI | TEMA: " + tema + " ---");
 
-        // Si falló y viene vacío, mandamos un error 400
-        if(jsonRosco.equals("[]")) {
-            return ResponseEntity.badRequest().body("Error al generar el rosco");
+            String jsonRosco = geminiService.generarRosco(tema);
+
+            // Si el servicio nos devuelve el array vacío, disparamos el 400
+            if (jsonRosco == null || jsonRosco.equals("[]")) {
+                System.out.println("❌ El servicio devolvió un rosco vacío. Abortando.");
+                return ResponseEntity.badRequest().body("Error al generar el rosco en la IA");
+            }
+
+            System.out.println("✅ Rosco enviado al jugador con éxito.\n");
+            return ResponseEntity.ok(jsonRosco);
+
+        } catch (Exception e) {
+            // SI HAY UN ERROR 500, ESTO LO CAPTURARÁ Y NOS DIRÁ POR QUÉ
+            System.err.println("💥 ERROR CRÍTICO 500 EN EL CONTROLADOR: " + e.getMessage());
+            e.printStackTrace(); // Esto imprime la línea exacta del fallo en Railway
+            return ResponseEntity.internalServerError().body("Fallo interno en el servidor");
         }
-
-        // Devolvemos el JSON tal cual a JavaScript
-        return ResponseEntity.ok(jsonRosco);
     }
 }
