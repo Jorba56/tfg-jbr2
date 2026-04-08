@@ -219,29 +219,31 @@ public class UserController {
     /**
      * Endpoint para que el juego (script.js) envíe los créditos ganados al acabar una contrarreloj o modo IA.
      */
-    @Operation(summary = "Guardar recompensa de partida", description = "Suma los créditos ganados al terminar una partida. Extrae al usuario automáticamente del token JWT.")
+    @Operation(summary = "Guardar recompensa de partida", description = "Suma créditos al terminar la partida.")
     @PostMapping("/actualizar-creditos")
     public ResponseEntity<String> actualizarCreditosGanados(@RequestBody java.util.Map<String, Integer> payload, Authentication authentication) {
+        System.out.println("\n--- 🚥 INICIANDO GUARDADO DE TELEMETRÍA ---");
         try {
-            // 1. Spring Security ya sabe quién eres por el Token, sacamos el email/usuario
             String emailUsuario = authentication.getName();
+            System.out.println("Paso 1: Piloto detectado en el Token: [" + emailUsuario + "]");
 
-            // 2. Extraemos los créditos que nos manda el JSON de JavaScript
             Integer creditosExtra = payload.get("creditosExtra");
+            System.out.println("Paso 2: Créditos recibidos desde JS: [" + creditosExtra + "]");
 
-            // Barrera de seguridad para evitar que manden trampas o nulls
             if (creditosExtra == null || creditosExtra <= 0) {
+                System.out.println("❌ ERROR: Los créditos llegaron vacíos o a cero.");
                 return ResponseEntity.badRequest().body("Datos de telemetría inválidos");
             }
 
-            // 3. Mandamos la orden al servicio para que guarde en la BBDD
+            System.out.println("Paso 3: Enviando datos al Servicio...");
             userServiceImpl.sumarCreditosPartida(emailUsuario, creditosExtra);
 
-            System.out.println("🏁 RESULTADOS GUARDADOS: +" + creditosExtra + " créditos para " + emailUsuario);
+            System.out.println("🏁 PASO FINAL: Telemetría guardada correctamente para " + emailUsuario + "\n");
             return ResponseEntity.ok("Telemetría guardada en BBDD");
 
         } catch (Exception e) {
-            System.err.println("Fallo en boxes al guardar partida: " + e.getMessage());
+            System.err.println("💥 ERROR FATAL EN EL CONTROLADOR: " + e.getMessage());
+            e.printStackTrace(); // Esto nos dirá la línea exacta del fallo
             return ResponseEntity.internalServerError().body("Error interno en boxes");
         }
     }

@@ -359,7 +359,7 @@ public class UserServiceImpl implements UserService {
         User usuario= userRep.findUserByEmailUsuario(correo);
         return userMap.mappingADTO(usuario);
     }
-
+    @Transactional
     public void sumarCreditosPartida(String email, Integer creditosGanados) {
         // 1. Buscamos al piloto
         User usuario = userRep.findUserByEmailUsuario(email);
