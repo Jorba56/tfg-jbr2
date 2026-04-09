@@ -80,6 +80,13 @@
 <section id="dashboard-screen" class="screen hidden">
     <div class="menu-grid items-grid" style="padding: 0 15px;">
 
+        <div class="shop-item playable group" id="card-tutorial">
+            <div class="card-icon">📖</div>
+            <h3>Tutorial</h3>
+            <span class="desc">Aprende a dominar la pista.</span>
+            <button class="btn-item-action btn-buy"><div>VER TUTORIAL</div></button>
+        </div>
+
         <div id="card-play" class="shop-item playable group">
             <div class="item-type-tag type-powerup">MODO IA</div>
             <h4>⚡ Contrarreloj</h4>
@@ -133,12 +140,16 @@
 
 <section id="game-screen" class="screen hidden">
     <div class="shop-container" style="max-width: 700px; text-align: center;">
+
         <div class="stats-bar">
             <div>⏳ <span id="timer">60</span>s</div>
+
+            <div id="container-pasivas"></div>
+
             <div>🏆 <span id="score">0</span></div>
         </div>
 
-        <div class="powerup-bar"></div>
+        <div id="powerup-bar" class="powerup-bar"></div>
         <div class="phrase-container">
             <p id="phrase-display">...</p>
         </div>
@@ -179,12 +190,8 @@
         </button>
 
         <div class="profile-tabs">
-            <button class="tab-btn active" onclick="switchProfileTab('inventory')">
-                <i class="fas fa-boxes"></i> INVENTARIO
-            </button>
-            <button class="tab-btn" onclick="switchProfileTab('settings')">
-                <i class="fas fa-user-cog"></i> AJUSTES
-            </button>
+            <button class="tab-btn active" onclick="switchProfileTab('inventory')">INVENTARIO</button>
+            <button class="tab-btn" onclick="switchProfileTab('settings')">AJUSTES</button>
         </div>
 
         <div id="tab-inventory" class="tab-content active">
@@ -290,6 +297,40 @@
 
             </div>
         </div>
+    </div>
+</section>
+
+<section id="tutorial-screen" class="screen hidden">
+    <div class="shop-container" style="max-width: 800px; text-align: left;">
+        <header class="shop-header" style="text-align: center; margin-bottom: 30px;">
+            <h2 style="margin: 0; font-size: 2.5rem;">🏎️ Manual del Piloto</h2>
+            <p>Domina el asfalto de FastFingers</p>
+        </header>
+
+        <div class="tutorial-grid" style="display: grid; gap: 20px;">
+            <div class="shop-item" style="transform: none; border-left: 4px solid var(--primary);">
+                <h3 style="color: var(--primary);">🏁 Objetivo</h3>
+                <p>Tu teclado es tu motor. Escribe las frases con precisión para ganar créditos. ¡La velocidad sin control no sirve de nada!</p>
+            </div>
+
+            <div class="shop-item" style="transform: none; border-left: 4px solid #9d4edd;">
+                <h3 style="color: #9d4edd;">🎮 Modos de Juego</h3>
+                <ul style="list-style: none; padding: 0; line-height: 1.6;">
+                    <li><strong>• Contrarreloj:</strong> Velocidad pura en 60 segundos.</li>
+                    <li><strong>• Partida a Medida:</strong> Tú eliges el tema de la pista.</li>
+                    <li><strong>• El Rosco:</strong> El desafío definitivo de la A a la Z.</li>
+                </ul>
+            </div>
+
+            <div class="shop-item" style="transform: none; border-left: 4px solid #ffd700;">
+                <h3 style="color: #ffd700;">⚡ Power-Ups</h3>
+                <p>Usa tus créditos en la tienda para comprar <strong>Nitrógeno (Freeze)</strong> o <strong>Multiplicadores</strong>. Recuerda equiparlos en tu Perfil antes de correr.</p>
+            </div>
+        </div>
+
+        <button id="tutorial_comp" class="btn-main" style="width: 100%; margin-top: 30px;" onclick="app.completarTutorial()">
+            <div>¡ENTENDIDO, A CORRER!</div>
+        </button>
     </div>
 </section>
 

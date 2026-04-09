@@ -518,7 +518,6 @@ const Rosco = {
                         throw new Error(`Mecánico dice: "${serverMessage}"`);
                     }
 
-                    console.log(`🏁 ¡Rosco finalizado! +${creditosGanados} créditos asegurados en la BBDD.`);
                 } catch (error) {
                     console.error("Fallo de conexión al guardar créditos del Rosco ->", error.message);
                 }
@@ -548,6 +547,39 @@ const app = {
     isFetchingPhrases: false,
     modoPersonalizado: false,
     temaElegido: "",
+
+    openTutorial: () => {
+        // En lugar de manipular el modal, usamos tu sistema de navegación de pantallas
+        app.showScreen('tutorial-screen');
+    },
+
+    closeTutorial: () => {
+        // Redirigimos al dashboard
+        app.showScreen('dashboard-screen');
+    },
+
+    completarTutorial: () => {
+        console.log("🏁 Tutorial completado. Guardando...");
+        // 1. Guardamos el booleano en el disco duro
+        localStorage.setItem('tutorial_completado', 'true');
+
+        // 2. Ejecutamos la verificación para que la tarjeta se oculte YA
+        app.verificarTutorial();
+
+        // 3. Volvemos al dashboard
+        app.showScreen('dashboard-screen');
+    },
+
+    verificarTutorial: () => {
+        const completado = localStorage.getItem('tutorial_completado');
+        const card = document.getElementById('card-tutorial');
+
+        // 🚨 AQUÍ ESTABA EL ERROR: Tenías body.classList.card = 'hidden' (Eso no existe)
+        if (completado === 'true' && card) {
+            card.style.display = 'none'; // Esto borra la tarjeta físicamente
+            console.log("🚫 Tarjeta de tutorial oculta por completado.");
+        }
+    },
 
     // --- NAVEGACIÓN Y TEMA (Igual) ---
     toggleTheme: () => {
@@ -586,53 +618,57 @@ const app = {
         }
     },
 
-        cargarPowerUps: () => {
-            if (!app.currentUser || !app.currentUser.inventario) return;
-            const inv = app.currentUser.inventario;
+    cargarPowerUps: () => {
+        if (!app.currentUser) return;
 
-            // 1. Detección de niveles (Items en la tabla 'items')
-            const tieneHielo1 = inv.some(i => i.nombre === 'Tanque de Nitrógeno');
-            const tieneHielo2 = inv.some(i => i.nombre === 'Nitrógeno Criogénico');
-            const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
-            const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
+        const inv = app.currentUser.inventario || [];
+        const equipadas = app.currentUser.habilidadesEquipadas || [];
 
-            // 2. Referencias a los contenedores
-            const containerPasivas = document.getElementById('container-pasivas');
-            const containerActivos = document.getElementById('powerup-bar');
+        // 1. Buscamos los objetos específicos en el inventario para obtener sus IDs
+        const itemHielo1 = inv.find(i => i.nombre === 'Tanque de Nitrógeno');
+        const itemHielo2 = inv.find(i => i.nombre === 'Nitrógeno Criogénico');
+        const itemMulti1 = inv.find(i => i.nombre === 'Contrato VIP');
+        const itemMulti2 = inv.some(i => i.nombre === 'Socio de Honor'); // Asumiendo que esta es pasiva también
 
-            if(!containerPasivas || !containerActivos) return;
+        // 2. COMPROBACIÓN REAL: ¿Está el ID en la lista de equipados?
+        const tieneHielo1 = itemHielo1 && equipadas.includes(itemHielo1.id_item || itemHielo1.idItem);
+        const tieneHielo2 = itemHielo2 && equipadas.includes(itemHielo2.id_item || itemHielo2.idItem);
 
-            // Limpiamos los contenedores antes de generar
-            containerPasivas.innerHTML = "";
-            containerActivos.innerHTML = "";
+        // El Multiplicador dijimos que era PASIVA automática,
+        // pero si quieres que ocupe slot, usa 'equipadas.includes(...)'.
+        // Si quieres que sea "comprar y tener", usa 'inv.some(...)'.
+        const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
+        const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
 
-            // --- LÓGICA DEL MULTIPLICADOR (PASIVA) ---
-            const multiVal = tieneMulti2 ? 3 : (tieneMulti1 ? 2 : 1);
-            window.estadoPartida.multiplicadorActivo = multiVal;
+        const containerPasivas = document.getElementById('container-pasivas');
+        const containerActivos = document.getElementById('powerup-bar');
+        if(!containerPasivas || !containerActivos) return;
 
-            if (multiVal > 1) {
-                containerPasivas.innerHTML = `
-                <div id="stat-multi" class="stat-badge">
-                    💰 x<span id="multi-val">${multiVal}</span>
-                </div>`;
-            }
+        containerPasivas.innerHTML = "";
+        containerActivos.innerHTML = "";
 
-            // --- LÓGICA DEL CONGELADOR (ACTIVO) ---
-            const usosHielo = tieneHielo2 ? 2 : (tieneHielo1 ? 1 : 0);
-            inventarioPowerUps.freeze = usosHielo;
+        // --- RENDER MULTIPLICADOR ---
+        const multiVal = tieneMulti2 ? 3 : (tieneMulti1 ? 2 : 1);
+        window.estadoPartida.multiplicadorActivo = multiVal;
+        if (multiVal > 1) {
+            containerPasivas.innerHTML = `<div class="stat-badge">💰 x${multiVal}</div>`;
+        }
 
-            if (usosHielo > 0) {
-                containerActivos.innerHTML = `
-                <button id="btn-pu-freeze" class="powerup-btn" title="Nitrógeno (Pulsar 1)">
+        // --- RENDER HIELO (Solo si está equipado) ---
+        let usosHielo = 0;
+        if (tieneHielo2) usosHielo = 2;
+        else if (tieneHielo1) usosHielo = 1;
+
+        inventarioPowerUps.freeze = usosHielo;
+
+        if (usosHielo > 0) {
+            containerActivos.innerHTML = `
+                <button id="btn-pu-freeze" class="powerup-btn">
                     ❄️ <span id="qty-freeze" class="pu-qty">${usosHielo}</span>
                 </button>`;
-
-                // Re-conectamos el evento de clic ya que el botón es nuevo
-                document.getElementById('btn-pu-freeze').addEventListener('click', () => {
-                    window.activarPowerUp('freeze');
-                });
-            }
-        },
+            document.getElementById('btn-pu-freeze').onclick = () => window.activarPowerUp('freeze');
+        }
+    },
 
     restoreSession: () => {
         if (localStorage.getItem('theme') === 'light') {
@@ -654,6 +690,7 @@ const app = {
 
             // Saltamos directamente al menú principal, esquivando el login
             app.showScreen('dashboard-screen');
+            app.verificarTutorial();
         } else {
             // Si no hay datos, mostramos la pantalla de login normal
             app.showScreen('login-screen');
@@ -665,6 +702,7 @@ const app = {
 
  // --- LOGIN (Conectado al Backend Real) ---
     login: async () => {
+
         const userVal = document.getElementById('username').value.trim();
         const passVal = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('error-msg');
@@ -729,6 +767,7 @@ const app = {
             // 5. Actualizamos la interfaz y cambiamos de pantalla
             app.updateUserUI();
             app.showScreen('dashboard-screen');
+            app.verificarTutorial();
             errorMsg.classList.add('hidden');
 
             // 6. Pre-cargamos las frases de la IA en la sombra
@@ -957,7 +996,6 @@ const app = {
             if (!app.phraseBuffer) app.phraseBuffer = [];
             app.phraseBuffer.push(...nuevasFrases);
 
-            console.log("Frases añadidas con éxito:", nuevasFrases);
 
         } catch (error) {
             console.error("Fallo al procesar frases de la IA:", error);
@@ -1021,8 +1059,11 @@ const app = {
             }
 
             // 🚨 AQUÍ APLICAMOS EL MULTIPLICADOR DE PODER
-            let creditosBase = Math.floor(app.score * 0.1);
-            const creditsEarned = creditosBase * window.estadoPartida.multiplicadorActivo;
+        let creditosBase = Math.floor(app.score * 0.1);
+
+        // 🚨 USA LA VARIABLE GLOBAL QUE HEMOS SETEADO EN cargarPowerUps
+            const multiplicador = window.estadoPartida.multiplicadorActivo || 1;
+            const creditsEarned = creditosBase * multiplicador;
 
             app.currentUser.creditos += creditsEarned;
             app.updateUserUI();
@@ -1099,8 +1140,9 @@ const app = {
         if(!app.currentUser.inventario || app.currentUser.inventario.length === 0) {
             inventoryList.innerHTML = '<p class="empty-msg">Tu inventario está vacío.</p>';
         } else {
-            app.currentUser.inventario.forEach(item => {
+            app.currentUser.inventario.forEach(item => {;
                 const idDelObjeto = item.id_item || item.idItem;
+                const desc = item.descripcion;
                 const nombre = item.nombre || 'Objeto Misterioso';
 
                 // Determinamos el tipo de objeto basándonos en su nombre
@@ -1121,7 +1163,7 @@ const app = {
                         <h4>${nombre}</h4>
                         <span class="desc" style="color: var(--text-secondary); font-size: 0.8rem; display:block; margin-bottom: 10px;">
                             ${esCosmetico ? '🎨 Estilo Visual (Máx 1)' : '⚡ Habilidad Pasiva (Máx 2)'}
-                        </span>
+                        </span> 
                         <button class="${isEquipped ? 'btn-equipped' : 'btn-equip'}" onclick="app.toggleEquip(${idDelObjeto}, ${esCosmetico})">
                             ${isEquipped ? (esCosmetico ? 'Equipado' : 'Desequipar') : 'Equipar'}
                         </button>
@@ -1177,17 +1219,20 @@ const app = {
     loadTienda: async () => {
         try {
             const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/tienda', {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+                headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
             });
             const items = await response.json();
             const shopList = document.getElementById('shop-list');
+            if (!shopList) return;
             shopList.innerHTML = "";
 
-            // 1. Detectamos qué tiene ya el usuario en su inventario
             const inv = app.currentUser.inventario || [];
+            const equipadas = app.currentUser.habilidadesEquipadas || [];
+
             const tieneHielo1 = inv.some(i => i.nombre === 'Tanque de Nitrógeno');
             const tieneHielo2 = inv.some(i => i.nombre === 'Nitrógeno Criogénico');
-            const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
+            const itemM1 = inv.find(i => i.nombre === 'Contrato VIP');
+            const tieneMulti1 = itemM1 && equipadas.includes(itemM1.id_item || itemM1.idItem);
             const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
 
             items.forEach(item => {
@@ -1215,7 +1260,7 @@ const app = {
                             <span class="desc">${item.descripcion}</span>
                             <div class="price">🪙 ${item.precio}</div>
                             <button class="btn-item-action btn-buy" 
-                                onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}')">
+                                onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}', ${item.descripcion})">
                                 <div>COMPRAR</div>
                             </button>
                         </div>
@@ -1232,7 +1277,7 @@ const app = {
         }
     },
 
-    comprarObjeto: async (idItemParam, precio, nombreItem) => {
+    comprarObjeto: async (idItemParam, precio, nombreItem, descItem) => {
         if (app.currentUser.creditos < precio) {
             alert("Créditos insuficientes 😔");
             return;
@@ -1250,7 +1295,7 @@ const app = {
                 app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo; // Por si el saldo también viene en snake_case
 
                 // CORRECCIÓN: Guardamos usando id_item para mantener coherencia
-                app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem });
+                app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
 
                 localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
 
@@ -1288,6 +1333,8 @@ window.onload = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Generales y Menú
+    document.getElementById('tutorial_comp').addEventListener('click', app.completarTutorial);
+    document.getElementById('card-tutorial').addEventListener('click', app.openTutorial);
     document.getElementById('theme-toggle').addEventListener('click', app.toggleTheme);
     document.getElementById('btn-login').addEventListener('click', app.login);
     document.getElementById('btn-logout').addEventListener('click', app.logout);
