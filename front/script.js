@@ -106,6 +106,118 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
     }
 };
 
+// ==========================================
+// ⚡ SISTEMA CENTRAL DE POWER-UPS (LIMPIO)
+// ==========================================
+
+window.estadoPartida = {
+    tiempoCongelado: false,
+    multiplicadorActivo: false
+};
+
+let inventarioPowerUps = { freeze: 0, multiplier: 0 };
+
+window.activarPowerUp = function(tipo) {
+    if (inventarioPowerUps[tipo] > 0) {
+
+        inventarioPowerUps[tipo]--;
+        const qtySpan = document.getElementById(`qty-${tipo}`);
+        if(qtySpan) qtySpan.innerText = inventarioPowerUps[tipo];
+
+        if (inventarioPowerUps[tipo] === 0) {
+            const btn = document.getElementById(`btn-pu-${tipo}`);
+            if(btn) {
+                btn.disabled = true;
+                btn.style.opacity = "0.3"; // Opcional: que se vea gastado
+            }
+        }
+
+        if (tipo === 'freeze' && !window.estadoPartida.tiempoCongelado) {
+            window.estadoPartida.tiempoCongelado = true;
+            const btn = document.getElementById('btn-pu-freeze');
+            if(btn) btn.style.boxShadow = "0 0 20px #00f2fe";
+
+            setTimeout(() => {
+                window.estadoPartida.tiempoCongelado = false;
+                if(btn) btn.style.boxShadow = "";
+            }, 5000);
+        }
+        else if (tipo === 'multiplier') {
+            // En lugar de poner un 2 fijo, usamos el valor que calculamos al cargar
+            window.estadoPartida.multiplicadorActivo = window.estadoPartida.multiplicadorValor || 2;
+
+            const btn = document.getElementById('btn-pu-multiplier');
+            if(btn) btn.style.boxShadow = "0 0 20px #ffd700";
+        }
+    }
+};
+
+document.addEventListener('click', (e) => {
+    const btnFreeze = e.target.closest('#btn-pu-freeze');
+    if (btnFreeze && !btnFreeze.disabled) window.activarPowerUp('freeze');
+
+    const btnMulti = e.target.closest('#btn-pu-multiplier');
+    if (btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
+});
+
+document.addEventListener('keydown', (e) => {
+    const gameScreen = document.getElementById('game-screen');
+    const roscoScreen = document.getElementById('ui-rosco');
+
+    if ((gameScreen && gameScreen.classList.contains('active')) ||
+        (roscoScreen && roscoScreen.classList.contains('active'))) {
+
+        if (e.key === '1') {
+            e.preventDefault();
+            const btnFreeze = document.getElementById('btn-pu-freeze');
+            if(btnFreeze && !btnFreeze.disabled) window.activarPowerUp('freeze');
+        }
+        if (e.key === '2') {
+            e.preventDefault();
+            const btnMulti = document.getElementById('btn-pu-multiplier');
+            if(btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
+        }
+    }
+});
+
+// ⌨️ ATAJOS DE TECLADO (1 y 2)
+document.addEventListener('keydown', (e) => {
+    const gameScreen = document.getElementById('game-screen');
+    const roscoScreen = document.getElementById('ui-rosco');
+
+    // Solo se activan si estás DENTRO de una partida
+    if ((gameScreen && gameScreen.classList.contains('active')) ||
+        (roscoScreen && roscoScreen.classList.contains('active'))) {
+
+        if (e.key === '1') {
+            e.preventDefault();
+            const btnFreeze = document.getElementById('btn-pu-freeze');
+            if(btnFreeze && !btnFreeze.disabled) window.activarPowerUp('freeze');
+        }
+        if (e.key === '2') {
+            e.preventDefault();
+            const btnMulti = document.getElementById('btn-pu-multiplier');
+            if(btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
+        }
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    // Solo permitimos activar power-ups si estamos en medio de la partida
+    const gameScreen = document.getElementById('game-screen');
+    if (gameScreen && gameScreen.classList.contains('active')) {
+
+        if (e.key === '1') {
+            e.preventDefault(); // Evita escribir el "1" en el input
+            activarPowerUp('freeze');
+        }
+        if (e.key === '2') {
+            e.preventDefault(); // Evita escribir el "2" en el input
+            activarPowerUp('multiplier');
+        }
+    }
+});
+
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('fc-sidebar');
     const overlay = document.getElementById('sidebar-overlay');
@@ -460,21 +572,67 @@ const app = {
         const target = document.getElementById(screenId);
         if (target) {
             target.classList.remove('hidden');
-            target.classList.add('active'); // ¡Ahora la de resultados sí recibe esto!
+            target.classList.add('active');
         }
 
-        // 🚨 3. NUEVO: Control inteligente de la barra global
+        // 🚨 3. NUEVO: Control inteligente de la barra global (Fíjate que ahora dice screenId)
         const topNav = document.getElementById('global-top-nav');
         if (topNav) {
-            // Si la pantalla de destino es Login o Registro, escondemos la barra
             if (screenId === 'login-screen' || screenId === 'registro-screen') {
                 topNav.classList.add('hidden');
             } else {
-                // Para cualquier otra pantalla (dashboard, juego, tienda...), la encendemos
                 topNav.classList.remove('hidden');
             }
         }
     },
+
+        cargarPowerUps: () => {
+            if (!app.currentUser || !app.currentUser.inventario) return;
+            const inv = app.currentUser.inventario;
+
+            // 1. Detección de niveles (Items en la tabla 'items')
+            const tieneHielo1 = inv.some(i => i.nombre === 'Tanque de Nitrógeno');
+            const tieneHielo2 = inv.some(i => i.nombre === 'Nitrógeno Criogénico');
+            const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
+            const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
+
+            // 2. Referencias a los contenedores
+            const containerPasivas = document.getElementById('container-pasivas');
+            const containerActivos = document.getElementById('powerup-bar');
+
+            if(!containerPasivas || !containerActivos) return;
+
+            // Limpiamos los contenedores antes de generar
+            containerPasivas.innerHTML = "";
+            containerActivos.innerHTML = "";
+
+            // --- LÓGICA DEL MULTIPLICADOR (PASIVA) ---
+            const multiVal = tieneMulti2 ? 3 : (tieneMulti1 ? 2 : 1);
+            window.estadoPartida.multiplicadorActivo = multiVal;
+
+            if (multiVal > 1) {
+                containerPasivas.innerHTML = `
+                <div id="stat-multi" class="stat-badge">
+                    💰 x<span id="multi-val">${multiVal}</span>
+                </div>`;
+            }
+
+            // --- LÓGICA DEL CONGELADOR (ACTIVO) ---
+            const usosHielo = tieneHielo2 ? 2 : (tieneHielo1 ? 1 : 0);
+            inventarioPowerUps.freeze = usosHielo;
+
+            if (usosHielo > 0) {
+                containerActivos.innerHTML = `
+                <button id="btn-pu-freeze" class="powerup-btn" title="Nitrógeno (Pulsar 1)">
+                    ❄️ <span id="qty-freeze" class="pu-qty">${usosHielo}</span>
+                </button>`;
+
+                // Re-conectamos el evento de clic ya que el botón es nuevo
+                document.getElementById('btn-pu-freeze').addEventListener('click', () => {
+                    window.activarPowerUp('freeze');
+                });
+            }
+        },
 
     restoreSession: () => {
         if (localStorage.getItem('theme') === 'light') {
@@ -510,15 +668,6 @@ const app = {
         const userVal = document.getElementById('username').value.trim();
         const passVal = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('error-msg');
-
-        const topNav = document.getElementById('global-top-nav');
-        if (topNav) {
-            if (idPantalla === 'login-screen' || idPantalla === 'registro-screen') {
-                topNav.classList.add('hidden'); // Se apaga si estamos fuera del juego
-            } else {
-                topNav.classList.remove('hidden'); // Se enciende en el resto de pantallas
-            }
-        }
 
         // 1. Pequeña validación antes de molestar al servidor
         if (!userVal || !passVal) {
@@ -637,6 +786,8 @@ const app = {
         app.modoPersonalizado = false;
         app.temaElegido = "";
         app.phraseBuffer = []; // Vaciamos frases viejas
+        window.estadoPartida.tiempoCongelado = false;
+        window.estadoPartida.multiplicadorActivo = 1;
 
         app.score = 0;
         app.gameHistory = [];
@@ -653,6 +804,8 @@ const app = {
 
         app.escudoActivo = escudoItem && habEquipadas.includes(escudoItem.id_item || escudoItem.idItem);
 
+        app.cargarPowerUps();
+
         // 3. Preparar Interfaz
         document.getElementById('score').innerText = "0";
         document.getElementById('timer').innerText = app.timeLeft;
@@ -667,6 +820,10 @@ const app = {
         // 4. Arrancar el Motor (Temporizador)
         if (app.timerInterval) clearInterval(app.timerInterval);
         app.timerInterval = setInterval(() => {
+
+            // 🚨 AQUÍ ESTÁ LA CLAVE: Si el tiempo está congelado, no hace nada
+            if (window.estadoPartida.tiempoCongelado) return;
+
             app.timeLeft--;
             document.getElementById('timer').innerText = app.timeLeft;
             if(app.timeLeft <= 0) app.endGame();
@@ -686,6 +843,8 @@ const app = {
         app.modoPersonalizado = true;
         app.temaElegido = inputTema;
         app.phraseBuffer = []; // Vaciamos frases viejas
+        window.estadoPartida.tiempoCongelado = false;
+        window.estadoPartida.multiplicadorActivo = 1;
 
         app.score = 0;
         app.gameHistory = [];
@@ -716,6 +875,10 @@ const app = {
         // 4. Arrancar el Motor (Temporizador)
         if (app.timerInterval) clearInterval(app.timerInterval);
         app.timerInterval = setInterval(() => {
+
+            // 🚨 AQUÍ ESTÁ LA CLAVE: Si el tiempo está congelado, no hace nada
+            if (window.estadoPartida.tiempoCongelado) return;
+
             app.timeLeft--;
             document.getElementById('timer').innerText = app.timeLeft;
             if(app.timeLeft <= 0) app.endGame();
@@ -847,57 +1010,58 @@ const app = {
     },
 
     endGame: async () => { // <-- 1. Añadimos 'async' aquí
-        clearInterval(app.timerInterval);
-        const inputVal = document.getElementById('game-input').value;
+            clearInterval(app.timerInterval);
+            const inputVal = document.getElementById('game-input').value;
 
-        // Sumar los puntos de la última frase a medias
-        if(inputVal.length > 0) {
-            const points = app.calculatePhraseScore(app.currentPhrase.texto, inputVal);
-            app.score += points;
-            app.gameHistory.push({ target: app.currentPhrase.texto, input: inputVal, points: points });
-        }
-
-        // Calcular créditos
-        const creditsEarned = Math.floor(app.score * 0.1);
-
-        app.currentUser.creditos += creditsEarned;
-        app.updateUserUI();
-        document.getElementById('earned-credits').innerText = creditsEarned;
-        app.renderResults();
-        app.showScreen('results-screen');
-        app.animateValue("final-score", 0, app.score, 1500);
-
-        // 🛑 EL FILTRO INTELIGENTE: Solo llamamos a Java si hemos ganado algo
-        if (creditsEarned > 0) {
-            // Forzamos a que sea un entero puro de JavaScript
-            const payloadJSON = JSON.stringify({ creditosExtra: parseInt(creditsEarned) });
-
-            try {
-                const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
-                const response = await fetch(url, {
-                    method: 'POST', // Aseguramos que es POST
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
-                    },
-                    body: payloadJSON
-                });
-
-                // 🚨 EL CHIVATO MÁXIMO: Leemos qué dice Java exactamente si nos rechaza
-                const serverMessage = await response.text();
-
-                if (!response.ok) {
-                    // Si hay error, imprimimos el mensaje devuelto por Spring Boot
-                    throw new Error(`Mecánico dice: "${serverMessage}"`);
-                }
-            } catch (error) {
-                // Esto nos dirá el motivo exacto del rechazo
-                console.error("Fallo de conexión ->", error.message);
+            // Sumar los puntos de la última frase a medias
+            if (inputVal.length > 0) {
+                const points = app.calculatePhraseScore(app.currentPhrase.texto, inputVal);
+                app.score += points;
+                app.gameHistory.push({target: app.currentPhrase.texto, input: inputVal, points: points});
             }
-        } else {
-            alert("Cero créditos ganados. ¡Puedes hacerlo mejor!");
-        }
-    },
+
+            // 🚨 AQUÍ APLICAMOS EL MULTIPLICADOR DE PODER
+            let creditosBase = Math.floor(app.score * 0.1);
+            const creditsEarned = creditosBase * window.estadoPartida.multiplicadorActivo;
+
+            app.currentUser.creditos += creditsEarned;
+            app.updateUserUI();
+            document.getElementById('earned-credits').innerText = creditsEarned;
+            app.renderResults();
+            app.showScreen('results-screen');
+            app.animateValue("final-score", 0, app.score, 1500);
+
+            // 🛑 EL FILTRO INTELIGENTE: Solo llamamos a Java si hemos ganado algo
+            if (creditsEarned > 0) {
+                // Forzamos a que sea un entero puro de JavaScript
+                const payloadJSON = JSON.stringify({creditosExtra: parseInt(creditsEarned)});
+
+                try {
+                    const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                    const response = await fetch(url, {
+                        method: 'POST', // Aseguramos que es POST
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
+                        },
+                        body: payloadJSON
+                    });
+
+                    // 🚨 EL CHIVATO MÁXIMO: Leemos qué dice Java exactamente si nos rechaza
+                    const serverMessage = await response.text();
+
+                    if (!response.ok) {
+                        // Si hay error, imprimimos el mensaje devuelto por Spring Boot
+                        throw new Error(`Mecánico dice: "${serverMessage}"`);
+                    }
+                } catch (error) {
+                    // Esto nos dirá el motivo exacto del rechazo
+                    console.error("Fallo de conexión ->", error.message);
+                }
+            } else {
+                alert("Cero créditos ganados. ¡Puedes hacerlo mejor!");
+            }
+        },
 
     renderResults: () => {
         const list = document.getElementById('history-list');
@@ -1016,38 +1180,55 @@ const app = {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
             });
             const items = await response.json();
-
             const shopList = document.getElementById('shop-list');
             shopList.innerHTML = "";
 
-            if(items.length === 0) {
-                shopList.innerHTML = '<p class="empty-msg">No hay productos en la tienda.</p>';
-                return;
-            }
+            // 1. Detectamos qué tiene ya el usuario en su inventario
+            const inv = app.currentUser.inventario || [];
+            const tieneHielo1 = inv.some(i => i.nombre === 'Tanque de Nitrógeno');
+            const tieneHielo2 = inv.some(i => i.nombre === 'Nitrógeno Criogénico');
+            const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
+            const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
 
             items.forEach(item => {
-                // CORRECCIÓN: Usamos id_item por culpa del SNAKE_CASE de Spring Boot
-                const idDelObjeto = item.id_item || item.id_item;
+                let mostrar = true;
 
-                // Comprobamos si ya lo tiene comprado
-                const yaComprado = app.currentUser.inventario.some(i => (i.id_item) === idDelObjeto);
+                // 🚨 LÓGICA DE DEPENDENCIAS (Niveles)
+                // No mostrar Nivel 2 si no tiene el Nivel 1
+                if (item.nombre === 'Nitrógeno Criogénico' && !tieneHielo1) mostrar = false;
+                if (item.nombre === 'Socio de Honor' && !tieneMulti1) mostrar = false;
 
-                shopList.innerHTML += `
-                    <div class="shop-item">
-                        <h4>${item.nombre}</h4>
-                        <span class="desc">${item.descripcion || item.tipo}</span>
-                        <div class="price">🪙 ${item.precio}</div>
-                        <button class="${yaComprado ? 'btn-equipped' : 'btn-buy'}" 
-                            onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}')"
-                            ${yaComprado ? 'disabled' : ''}>
-                            ${yaComprado ? 'Comprado' : 'Comprar'}
-                        </button>
-                    </div>
-                `;
+                // Opcional: No mostrar Nivel 1 si ya compró el Nivel 2 (para limpiar la tienda)
+                if (item.nombre === 'Tanque de Nitrógeno' && tieneHielo1) mostrar = false;
+                if (item.nombre === 'Contrato VIP' && tieneMulti1) mostrar = false;
+
+                // No mostrar nada que ya haya comprado (si es mejora única)
+                const yaLoTiene = inv.some(i => (i.id_item || i.idItem) === (item.id_item || item.idItem));
+                if (yaLoTiene) mostrar = false;
+
+                if (mostrar) {
+                    const idDelObjeto = item.id_item || item.idItem;
+                    shopList.innerHTML += `
+                        <div class="shop-item group">
+                            <div class="item-type-tag">MEJORA</div>
+                            <h4>${item.nombre}</h4>
+                            <span class="desc">${item.descripcion}</span>
+                            <div class="price">🪙 ${item.precio}</div>
+                            <button class="btn-item-action btn-buy" 
+                                onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}')">
+                                <div>COMPRAR</div>
+                            </button>
+                        </div>
+                    `;
+                }
             });
+
+            if (shopList.innerHTML === "") {
+                shopList.innerHTML = '<p class="empty-msg">¡Has comprado todas las mejoras disponibles!</p>';
+            }
+
         } catch (error) {
             console.error("Error cargando la tienda:", error);
-            document.getElementById('shop-list').innerHTML = '<p class="error-msg">Error de conexión con el servidor.</p>';
         }
     },
 
