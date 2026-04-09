@@ -23,6 +23,12 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
     if (!token) return alert("Falta el Token de acceso.");
 
+    // 🚨 EL TRUCO MAGICO: ¡Ya tenemos la ID en la memoria RAM! No hace falta pedírsela a Java.
+    if (!app.currentUser || !app.currentUser.id) {
+        return alert("Error en boxes: No se encuentra tu tarjeta de piloto. Vuelve a iniciar sesión.");
+    }
+    const idDelPiloto = app.currentUser.id;
+
     try {
         const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
@@ -32,48 +38,15 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         btnSubmit.disabled = true;
 
         // -----------------------------------------------------
-        // PASO 1: Desencriptar el Token JWT para leer el correo
-        // -----------------------------------------------------
-        // El token tiene 3 partes separadas por punto. La segunda (payload) tiene los datos.
-        const payloadBase64 = token.split('.')[1];
-        const decodedPayload = JSON.parse(atob(payloadBase64));
-
-        // Spring Security suele guardar el nombre/correo en 'sub' (subject).
-        // Si tu token usa otra palabra clave (como 'email'), cámbialo aquí:
-        const correoDelToken = decodedPayload.sub;
-
-        // -----------------------------------------------------
-        // PASO 2: Buscar al usuario por correo para obtener su ID
-        // -----------------------------------------------------
-        const resBusqueda = await fetch(`${API_URL}/usuarios/correo/${encodeURIComponent(correoDelToken)}`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!resBusqueda.ok) throw new Error("No se pudo localizar tu ID en la base de datos.");
-
-        const dataUsuario = await resBusqueda.json();
-
-        // Dependiendo de cómo devuelva tu backend (lista o un solo objeto), extraemos la ID
-        let usuarioEncontrado = Array.isArray(dataUsuario) ? dataUsuario[0] : (dataUsuario.content ? dataUsuario.content[0] : dataUsuario);
-
-        const idDelPiloto = usuarioEncontrado.id_usuario || usuarioEncontrado.idUser || usuarioEncontrado.id;
-
-        if (!idDelPiloto) throw new Error("Fallo al extraer el ID numérico.");
-
-        // -----------------------------------------------------
-        // PASO 3: Enviar el PUT al endpoint /usuarios/{id}
+        // ENVIAR EL PUT DIRECTAMENTE AL ENDPOINT /usuarios/{id}
         // -----------------------------------------------------
         const payloadPut = {
-            nombre_usuario: newUsername,
-            // A veces el backend exige que le devuelvas el correo y otros datos obligatorios
-            // aunque no los cambies. Descomenta si te da error 400:
-            // correo_usuario: correoDelToken,
-            // activo: usuarioEncontrado.activo
+            nombre_usuario: newUsername
         };
 
         if (newPassword.trim() !== '') {
-            payloadPut.password = newPassword;
+            // Asegúrate de que el backend espera este nombre exacto para la contraseña
+            payloadPut.contrasenha_usuario = newPassword;
         }
 
         const responsePut = await fetch(`${API_URL}/usuarios/${idDelPiloto}`, {
@@ -87,8 +60,8 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
         if (responsePut.ok) {
             alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
-            localStorage.removeItem('jwt_token');
-            window.location.href = 'login.html';
+            // Usamos tu función de logout para limpiar todo bien
+            app.logout();
         } else {
             const errData = await responsePut.json();
             throw new Error(errData.message || "La base de datos rechazó los cambios.");
@@ -160,7 +133,7 @@ document.addEventListener('click', (e) => {
     if (btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
 });
 
-document.addEventListener('keydown', (e) => {
+/*document.addEventListener('keydown', (e) => {
     const gameScreen = document.getElementById('game-screen');
     const roscoScreen = document.getElementById('ui-rosco');
 
@@ -178,45 +151,8 @@ document.addEventListener('keydown', (e) => {
             if(btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
         }
     }
-});
+});*/
 
-// ⌨️ ATAJOS DE TECLADO (1 y 2)
-document.addEventListener('keydown', (e) => {
-    const gameScreen = document.getElementById('game-screen');
-    const roscoScreen = document.getElementById('ui-rosco');
-
-    // Solo se activan si estás DENTRO de una partida
-    if ((gameScreen && gameScreen.classList.contains('active')) ||
-        (roscoScreen && roscoScreen.classList.contains('active'))) {
-
-        if (e.key === '1') {
-            e.preventDefault();
-            const btnFreeze = document.getElementById('btn-pu-freeze');
-            if(btnFreeze && !btnFreeze.disabled) window.activarPowerUp('freeze');
-        }
-        if (e.key === '2') {
-            e.preventDefault();
-            const btnMulti = document.getElementById('btn-pu-multiplier');
-            if(btnMulti && !btnMulti.disabled) window.activarPowerUp('multiplier');
-        }
-    }
-});
-
-document.addEventListener('keydown', (e) => {
-    // Solo permitimos activar power-ups si estamos en medio de la partida
-    const gameScreen = document.getElementById('game-screen');
-    if (gameScreen && gameScreen.classList.contains('active')) {
-
-        if (e.key === '1') {
-            e.preventDefault(); // Evita escribir el "1" en el input
-            activarPowerUp('freeze');
-        }
-        if (e.key === '2') {
-            e.preventDefault(); // Evita escribir el "2" en el input
-            activarPowerUp('multiplier');
-        }
-    }
-});
 
 window.toggleSidebar = function() {
     const sidebar = document.getElementById('fc-sidebar');
@@ -547,6 +483,11 @@ const app = {
     isFetchingPhrases: false,
     modoPersonalizado: false,
     temaElegido: "",
+    tieneRebufo: false,
+    tieneRadar: false,
+    tieneSegundaOportunidad: false,
+    comboAcertadas: 0,
+    chanceUsada: false,
 
     openTutorial: () => {
         // En lugar de manipular el modal, usamos tu sistema de navegación de pantallas
@@ -628,17 +569,15 @@ const app = {
         const itemHielo1 = inv.find(i => i.nombre === 'Tanque de Nitrógeno');
         const itemHielo2 = inv.find(i => i.nombre === 'Nitrógeno Criogénico');
         const itemMulti1 = inv.find(i => i.nombre === 'Contrato VIP');
-        const itemMulti2 = inv.some(i => i.nombre === 'Socio de Honor'); // Asumiendo que esta es pasiva también
 
         // 2. COMPROBACIÓN REAL: ¿Está el ID en la lista de equipados?
         const tieneHielo1 = itemHielo1 && equipadas.includes(itemHielo1.id_item || itemHielo1.idItem);
         const tieneHielo2 = itemHielo2 && equipadas.includes(itemHielo2.id_item || itemHielo2.idItem);
+        const tieneMulti1 = itemMulti1 && equipadas.includes(itemMulti1.id_item || itemMulti1.idItem);
 
         // El Multiplicador dijimos que era PASIVA automática,
         // pero si quieres que ocupe slot, usa 'equipadas.includes(...)'.
         // Si quieres que sea "comprar y tener", usa 'inv.some(...)'.
-        const tieneMulti1 = inv.some(i => i.nombre === 'Contrato VIP');
-        const tieneMulti2 = inv.some(i => i.nombre === 'Socio de Honor');
 
         const containerPasivas = document.getElementById('container-pasivas');
         const containerActivos = document.getElementById('powerup-bar');
@@ -648,7 +587,7 @@ const app = {
         containerActivos.innerHTML = "";
 
         // --- RENDER MULTIPLICADOR ---
-        const multiVal = tieneMulti2 ? 3 : (tieneMulti1 ? 2 : 1);
+        const multiVal =(tieneMulti1 ? 2 : 1);
         window.estadoPartida.multiplicadorActivo = multiVal;
         if (multiVal > 1) {
             containerPasivas.innerHTML = `<div class="stat-badge">💰 x${multiVal}</div>`;
@@ -668,6 +607,16 @@ const app = {
                 </button>`;
             document.getElementById('btn-pu-freeze').onclick = () => window.activarPowerUp('freeze');
         }
+
+        // --- DETECCIÓN DE NUEVAS PASIVAS ---
+        const itemRebufo = inv.find(i => i.nombre === 'Rebufo');
+        const itemRadar = inv.find(i => i.nombre === 'Radar');
+        const itemSegundaOp = inv.find(i => i.nombre === 'Segunda Oportunidad');
+
+        app.tieneRebufo = itemRebufo && equipadas.includes(itemRebufo.id_item || itemRebufo.idItem);
+        app.tieneRadar = itemRadar && equipadas.includes(itemRadar.id_item || itemRadar.idItem);
+        app.tieneSegundaOportunidad = itemSegundaOp && equipadas.includes(itemSegundaOp.id_item || itemSegundaOp.idItem);
+
     },
 
     restoreSession: () => {
@@ -803,17 +752,31 @@ const app = {
     },
 
     applyCosmetics: () => {
-
+        // 1. Limpiamos la pintura anterior
         document.body.classList.remove('tema-cyberpunk', 'teclado-neon');
         if (!app.currentUser) return;
 
+        // 🔍 TELEMETRÍA: Muestra en consola (F12) qué ID intentamos buscar
+        console.log("🎨 ID del cosmético equipado (colorTema):", app.currentUser.colorTema);
 
-        const equipado = app.currentUser.inventario.find(i => (i.id_item || i.idItem) === app.currentUser.colorTema);
+        // 🚨 LA SOLUCIÓN: Usamos == (doble igual) en lugar de === para que "5" y 5 sean lo mismo.
+        const equipado = app.currentUser.inventario.find(i => (i.id_item || i.idItem) == app.currentUser.colorTema);
 
+        // 🔍 TELEMETRÍA: Muestra si ha encontrado el objeto en el inventario
+        console.log("🎨 Objeto encontrado en el inventario:", equipado);
 
         if (equipado) {
-            if (equipado.nombre === 'Tema Cyberpunk') document.body.classList.add('tema-cyberpunk');
-            if (equipado.nombre === 'Teclado Neón') document.body.classList.add('teclado-neon');
+            // Usamos .trim() por si en la base de datos se guardó con un espacio final (ej: "Teclado Neón ")
+            const nombreNormal = equipado.nombre.trim();
+
+            if (nombreNormal === 'Tema Cyberpunk') {
+                document.body.classList.add('tema-cyberpunk');
+                console.log("✅ Tema Cyberpunk aplicado.");
+            }
+            if (nombreNormal === 'Teclado Neón') {
+                document.body.classList.add('teclado-neon');
+                console.log("✅ Teclado Neón aplicado.");
+            }
         }
     },
 
@@ -822,6 +785,8 @@ const app = {
     // --- LÓGICA DE JUEGO ---
     startGame: () => {
         // 1. Ajustes del Modo y Limpieza TOTAL
+        app.comboAcertadas = 0;
+        app.chanceUsada = false;
         app.modoPersonalizado = false;
         app.temaElegido = "";
         app.phraseBuffer = []; // Vaciamos frases viejas
@@ -956,6 +921,19 @@ const app = {
         input.value = "";
         input.focus();
 
+        app.chanceUsada = false;
+
+        // 📡 LÓGICA DEL RADAR
+        const previewEl = document.getElementById('next-phrase-preview');
+        if (app.tieneRadar && previewEl) {
+            previewEl.classList.remove('hidden');
+            previewEl.innerText = app.phraseBuffer.length > 0
+                ? "Siguiente: " + app.phraseBuffer[0]
+                : "Siguiente: (Cargando...)";
+        } else if (previewEl) {
+            previewEl.classList.add('hidden');
+        }
+
         // 3. Si quedan pocas frases, pedimos más para el futuro
         if (app.phraseBuffer.length <= 2 && !app.isFetchingPhrases) {
             app.fetchMorePhrases();
@@ -1012,11 +990,23 @@ const app = {
         if(val === target) {
             input.style.borderColor = 'var(--success)';
         } else if(!target.startsWith(val)) {
-            // --- LÓGICA DEL ESCUDO DE ERROR ---
+
+            // 🔄 LÓGICA: SEGUNDA OPORTUNIDAD
+            if (app.tieneSegundaOportunidad && !app.chanceUsada && val.length > 0) {
+                // Borramos la última letra que provocó el fallo
+                input.value = val.slice(0, -1);
+                app.chanceUsada = true; // Se gasta la oportunidad de esta frase
+
+                // Efecto visual de "salvación" (brillo morado momentáneo)
+                input.style.boxShadow = "0 0 15px rgba(157, 78, 221, 0.8)";
+                setTimeout(() => input.style.boxShadow = "", 500);
+                return; // Salimos para que no marque el error visualmente
+            }
+
+            // --- LÓGICA DEL ESCUDO DE ERROR ORIGINAL ---
             if (app.escudoActivo) {
-                // El borde se pone amarillo dorado advirtiendo del fallo, pero absorbe el golpe
                 input.style.borderColor = '#ffd700';
-                app.escudoActivo = false; // Se gasta el escudo en este fallo
+                app.escudoActivo = false;
             } else {
                 input.style.borderColor = 'var(--error)';
             }
@@ -1029,6 +1019,29 @@ const app = {
         if (e.key === "Enter") {
             const inputVal = document.getElementById('game-input').value.trim();
             const targetText = app.currentPhrase.texto;
+
+            // 🏎️ LÓGICA: REBUFO (Combos)
+            if (inputVal === targetText) { // Frase perfecta
+                if (app.tieneRebufo) {
+                    app.comboAcertadas++;
+                    if (app.comboAcertadas >= 3) {
+                        app.timeLeft += 2; // Ganas 2 segundos
+                        app.comboAcertadas = 0; // Reinicia el combo
+
+                        // Efecto visual en el cronómetro
+                        const timerEl = document.getElementById('timer');
+                        timerEl.style.textShadow = "0 0 15px #00f2fe";
+                        timerEl.style.color = "#00f2fe";
+                        setTimeout(() => {
+                            timerEl.style.textShadow = "";
+                            timerEl.style.color = "";
+                        }, 500);
+                    }
+                }
+            } else {
+                app.comboAcertadas = 0; // Si hay fallos o está incompleta, pierdes el combo
+            }
+
             const pointsEarned = app.calculatePhraseScore(targetText, inputVal);
             app.score += pointsEarned;
             document.getElementById('score').innerText = app.score;
@@ -1259,8 +1272,7 @@ const app = {
                             <h4>${item.nombre}</h4>
                             <span class="desc">${item.descripcion}</span>
                             <div class="price">🪙 ${item.precio}</div>
-                            <button class="btn-item-action btn-buy" 
-                                onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}', ${item.descripcion})">
+                            <button class="btn-item-action btn-buy"onclick="app.comprarObjeto(${idDelObjeto}, ${item.precio}, '${item.nombre}', '${item.descripcion}')">
                                 <div>COMPRAR</div>
                             </button>
                         </div>

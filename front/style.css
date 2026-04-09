@@ -293,6 +293,18 @@ input:focus {
     opacity: 0.4;
     cursor: not-allowed;
 }
+#next-phrase-preview {
+    font-size: 0.9rem;
+    color: rgba(0, 242, 254, 0.5); /* Cian medio transparente */
+    margin-top: 10px;
+    font-style: italic;
+    transition: opacity 0.3s ease;
+}
+
+#next-phrase-preview.hidden {
+    display: none;
+}
+
 
 /* El circulito rojo con la cantidad restante */
 .pu-qty {
@@ -1131,6 +1143,23 @@ body.tema-cyberpunk input:focus {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   COSMÉTICO: TECLADO NEÓN
+   ========================================= */
+body.teclado-neon #game-input {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: #00ffcc !important; /* Texto color cyan/menta */
+    border: 2px solid #ff00ff !important; /* Borde rosa neón */
+    box-shadow: 0 0 15px #ff00ff, inset 0 0 10px #ff00ff !important; /* Brillo exterior e interior */
+    text-shadow: 0 0 8px #00ffcc !important;
+    font-family: 'Courier New', Courier, monospace !important; /* Letra de hacker */
+}
+
+body.teclado-neon #game-input:focus {
+    box-shadow: 0 0 25px #ff00ff, inset 0 0 15px #ff00ff !important;
+    outline: none;
 }
 /* ========================================== */
 /* TEMA CLARO (ESTILO PIT LANE / DAYTONA)     */
