@@ -1,0 +1,255 @@
+/* ========================================== */
+/* 🎮 TOP NAV ESTILO EA FC                    */
+/* ========================================== */
+/* ========================================== */
+/* 🍔 MENÚ LATERAL (SIDEBAR) Y OVERLAY        */
+/* ========================================== */
+
+/* La cortina oscura que tapa el juego */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none; /* Para que no moleste cuando está invisible */
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* El panel del menú */
+.fc-sidebar {
+    position: fixed;
+    top: 0;
+    left: -300px; /* Escondido a la izquierda */
+    width: 280px;
+    height: 100vh;
+    background: #0f172a;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.fc-sidebar.active {
+    left: 0; /* Aparece en pantalla */
+}
+
+/* Cabecera del menú lateral */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.close-btn { color: #94a3b8; }
+.close-btn:hover { color: white; transform: rotate(90deg); } /* Gira al pasar el ratón */
+
+/* Lista de enlaces */
+.sidebar-links {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.sidebar-links li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.sidebar-links li a i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #00f2fe; /* Azul neón */
+}
+
+/* Efecto al pasar el ratón por las opciones */
+.sidebar-links li a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    padding-left: 30px; /* Se desplaza un poquito a la derecha */
+    border-left: 4px solid #00f2fe;
+}
+
+.sidebar-divider {
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 15px 25px;
+}
+
+/* Botón de peligro (Cerrar sesión) */
+.text-danger i { color: #ef4444 !important; }
+.text-danger:hover { border-left-color: #ef4444 !important; }
+
+.fc-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    background: rgba(10, 15, 25, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.icon-btn:hover { transform: scale(1.1); }
+
+.nav-logo {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.nav-currency {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.coin-amount {
+    color: #ffd700;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.profile-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ========================================== */
+/* 🃏 CARRUSEL DE TARJETAS HORIZONTAL         */
+/* ========================================== */
+.fc-carousel-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 20px;
+    padding: 40px 25px;
+    /* Esto hace que al hacer scroll en móvil, se frene suavemente en cada tarjeta */
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ocultar barra de scroll en navegadores basados en Webkit */
+.fc-carousel-container::-webkit-scrollbar { display: none; }
+
+.fc-card {
+    min-width: 280px;
+    max-width: 280px;
+    height: 420px;
+    background: #11141a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    scroll-snap-align: center; /* Alinea la tarjeta al frenar el scroll */
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    overflow: hidden;
+}
+
+.fc-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* Cabeceras de las tarjetas */
+.fc-card-header {
+    height: 120px;
+    padding: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+.bg-green { background: linear-gradient(135deg, #004d26, #00b359); }
+.bg-purple { background: linear-gradient(135deg, #4a00e0, #8e2de2); }
+.bg-blue { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
+
+.fc-tag {
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    height: fit-content;
+}
+
+/* Cuerpo de la tarjeta */
+.fc-card-body {
+    padding: 20px;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.fc-icon-large {
+    font-size: 3rem;
+    margin: 15px 0;
+}
+
+.fc-input {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 5px;
+    color: white;
+    text-align: center;
+}
+
+/* Pie de la tarjeta */
+.fc-card-footer {
+    padding: 15px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    text-align: center;
+}
+
+.fc-status {
+    color: #888;
+    font-size: 0.8rem;
+    font-weight: 600;
+}

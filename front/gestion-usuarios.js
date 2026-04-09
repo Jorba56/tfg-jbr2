@@ -15,7 +15,6 @@ function toggleTheme () {
     // ¡ESTA LÍNEA ES LA CLAVE! Guarda tu elección para que el panel Admin la pueda leer
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
 }
-
 window.anadirCreditos = function (idUsuario) {
     usuarioSeleccionadoParaCreditos = idUsuario;
     document.getElementById('modal-nombre-usuario').innerText = "ID #" + idUsuario;

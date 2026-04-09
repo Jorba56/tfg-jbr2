@@ -11,7 +11,131 @@ function navegarA(idPantalla) {
     const destino = document.getElementById(idPantalla);
     destino.classList.remove('hidden');
     destino.classList.add('active');
+
 }
+
+document.getElementById('update-profile-form').onsubmit = async (e) => {
+    e.preventDefault();
+
+    const newUsername = document.getElementById('upd-username').value;
+    const newPassword = document.getElementById('upd-password').value;
+    const token = localStorage.getItem('jwt_token');
+
+    if (!token) return alert("Falta el Token de acceso.");
+
+    try {
+        const API_URL = 'https://gateway-production-a1f6.up.railway.app';
+
+        // Botón en modo carga
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
+        btnSubmit.disabled = true;
+
+        // -----------------------------------------------------
+        // PASO 1: Desencriptar el Token JWT para leer el correo
+        // -----------------------------------------------------
+        // El token tiene 3 partes separadas por punto. La segunda (payload) tiene los datos.
+        const payloadBase64 = token.split('.')[1];
+        const decodedPayload = JSON.parse(atob(payloadBase64));
+
+        // Spring Security suele guardar el nombre/correo en 'sub' (subject).
+        // Si tu token usa otra palabra clave (como 'email'), cámbialo aquí:
+        const correoDelToken = decodedPayload.sub;
+
+        // -----------------------------------------------------
+        // PASO 2: Buscar al usuario por correo para obtener su ID
+        // -----------------------------------------------------
+        const resBusqueda = await fetch(`${API_URL}/usuarios/correo/${encodeURIComponent(correoDelToken)}`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!resBusqueda.ok) throw new Error("No se pudo localizar tu ID en la base de datos.");
+
+        const dataUsuario = await resBusqueda.json();
+
+        // Dependiendo de cómo devuelva tu backend (lista o un solo objeto), extraemos la ID
+        let usuarioEncontrado = Array.isArray(dataUsuario) ? dataUsuario[0] : (dataUsuario.content ? dataUsuario.content[0] : dataUsuario);
+
+        const idDelPiloto = usuarioEncontrado.id_usuario || usuarioEncontrado.idUser || usuarioEncontrado.id;
+
+        if (!idDelPiloto) throw new Error("Fallo al extraer el ID numérico.");
+
+        // -----------------------------------------------------
+        // PASO 3: Enviar el PUT al endpoint /usuarios/{id}
+        // -----------------------------------------------------
+        const payloadPut = {
+            nombre_usuario: newUsername,
+            // A veces el backend exige que le devuelvas el correo y otros datos obligatorios
+            // aunque no los cambies. Descomenta si te da error 400:
+            // correo_usuario: correoDelToken,
+            // activo: usuarioEncontrado.activo
+        };
+
+        if (newPassword.trim() !== '') {
+            payloadPut.password = newPassword;
+        }
+
+        const responsePut = await fetch(`${API_URL}/usuarios/${idDelPiloto}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payloadPut)
+        });
+
+        if (responsePut.ok) {
+            alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
+            localStorage.removeItem('jwt_token');
+            window.location.href = 'login.html';
+        } else {
+            const errData = await responsePut.json();
+            throw new Error(errData.message || "La base de datos rechazó los cambios.");
+        }
+
+    } catch (error) {
+        alert("Fallo en boxes: " + error.message);
+        console.error(error);
+    } finally {
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        if(btnSubmit) {
+            btnSubmit.innerHTML = '<div>GUARDAR CAMBIOS</div>';
+            btnSubmit.disabled = false;
+        }
+    }
+};
+
+window.toggleSidebar = function() {
+    const sidebar = document.getElementById('fc-sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+};
+
+window.switchProfileTab = function(tabName) {
+    // 1. Gestionar botones
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+
+    // 2. Gestionar contenido
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+
+    if(tabName === 'settings') {
+        document.getElementById('upd-username').value = app.currentUser.username;
+        document.getElementById('upd-email').value = app.currentUser.email || "No disponible";
+    }
+};
+
+window.cerrarPerfil = function() {
+    app.showScreen('dashboard-screen');
+};
 
 // ==========================================
 // MOTOR DEL JUEGO: EL ROSCO (Clásico + IA)
@@ -324,19 +448,34 @@ const app = {
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
     },
 
-        showScreen: (screenId) => {
-            // 1. Apagamos todas las pantallas y limpiamos estilos basura
-            document.querySelectorAll('.screen').forEach(s => {
-                s.classList.remove('active');
-                s.classList.add('hidden');
-                s.style.display = '';
-            });
+    showScreen: (screenId) => {
+        // 1. Apagamos todas las pantallas y limpiamos estilos basura
+        document.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+            s.classList.add('hidden');
+            s.style.display = '';
+        });
 
-            // 2. Encendemos únicamente la pantalla de destino
-            const target = document.getElementById(screenId);
+        // 2. Encendemos únicamente la pantalla de destino
+        const target = document.getElementById(screenId);
+        if (target) {
             target.classList.remove('hidden');
             target.classList.add('active'); // ¡Ahora la de resultados sí recibe esto!
+        }
+
+        // 🚨 3. NUEVO: Control inteligente de la barra global
+        const topNav = document.getElementById('global-top-nav');
+        if (topNav) {
+            // Si la pantalla de destino es Login o Registro, escondemos la barra
+            if (screenId === 'login-screen' || screenId === 'registro-screen') {
+                topNav.classList.add('hidden');
+            } else {
+                // Para cualquier otra pantalla (dashboard, juego, tienda...), la encendemos
+                topNav.classList.remove('hidden');
+            }
+        }
     },
+
     restoreSession: () => {
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
@@ -371,6 +510,15 @@ const app = {
         const userVal = document.getElementById('username').value.trim();
         const passVal = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('error-msg');
+
+        const topNav = document.getElementById('global-top-nav');
+        if (topNav) {
+            if (idPantalla === 'login-screen' || idPantalla === 'registro-screen') {
+                topNav.classList.add('hidden'); // Se apaga si estamos fuera del juego
+            } else {
+                topNav.classList.remove('hidden'); // Se enciende en el resto de pantallas
+            }
+        }
 
         // 1. Pequeña validación antes de molestar al servidor
         if (!userVal || !passVal) {
@@ -455,8 +603,6 @@ const app = {
         if(!app.currentUser) return;
         document.getElementById('user-display').innerText = app.currentUser.username;
         document.getElementById('user-credits').innerText = app.currentUser.creditos;
-        document.getElementById('profile-credits').innerText = app.currentUser.creditos;
-        document.getElementById('shop-credits').innerText = app.currentUser.creditos;
 
         const adminCard = document.getElementById('card-admin');
         if (app.currentUser.isAdmin === true) {
@@ -780,7 +926,6 @@ const app = {
 
 
     // --- NUEVO: PERFIL (Inventario + Admin) ---
-
     openProfile: () => {
         app.updateUserUI();
 

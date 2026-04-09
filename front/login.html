@@ -5,15 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FastFingers</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="static/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="static/images/favicon-16x16.png">
-    <link rel="manifest" href="static/images/site.webmanifest">
 </head>
 <body>
 
-<button id="theme-toggle" class="theme-toggle" title="Cambiar tema">🌙</button>
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav id="fc-sidebar" class="fc-sidebar">
+    <div class="sidebar-header">
+        <span class="nav-logo" style="color: #00f2fe; font-style: italic;">FASTFINGERS</span>
+        <button class="icon-btn close-btn" onclick="toggleSidebar()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <ul class="sidebar-links">
+        <li><a href="#" onclick="toggleSidebar(); app.showScreen('dashboard-screen');"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="#" onclick="toggleSidebar(); app.openProfile();"><i class="fas fa-user"></i> Mi Perfil</a></li>
+        <li><a href="#" onclick="toggleSidebar(); app.openShop();"><i class="fas fa-shopping-cart"></i> Boxes & Tienda</a></li>
+        <hr class="sidebar-divider">
+        <li><a href="#" id="btn-logout" class="text-danger" onclick="toggleSidebar();"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <button id="theme-toggle" class="sidebar-theme-btn" title="Cambiar tema">
+            <i class="fas fa-moon"></i> <span>Modo Oscuro</span>
+        </button>
+    </div>
+</nav>
+
+<nav id="global-top-nav" class="fc-top-nav hidden">
+    <div class="nav-left">
+        <button id="btn-sidebar-toggle" class="icon-btn" onclick="toggleSidebar()" title="Abrir Menú">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="nav-logo" style="font-style: italic; color: #00f2fe;">
+            <img src="static/images/favicon.png" style="width: 40px; height: 40px" alt="20"/>
+        </span>
+    </div>
+
+    <div class="nav-right">
+        <div class="nav-currency">
+            <span class="coin-icon">🪙</span>
+            <span id="user-credits" class="coin-amount">0</span>
+        </div>
+        <button id="btn-nav-profile" class="icon-btn profile-btn" onclick="app.openProfile()" title="Mi Perfil" style="width: auto; padding: 0 15px; border-radius: 20px; gap: 10px;">
+            <i class="fas fa-user"></i>
+            <span id="user-display" style="font-size: 0.9rem; font-weight: bold; font-style: normal; color: white;">Piloto</span>
+        </button>
+    </div>
+</nav>
 
 <section id="login-screen" class="screen active">
     <div class="login-container">
@@ -34,42 +78,31 @@
 </section>
 
 <section id="dashboard-screen" class="screen hidden">
-    <img src="static/images/favicon.png" alt="Logo" class="logo-esquina"/>
-    <div class="user-info">
-        <h2 style="margin: 0;">Hola, <span id="user-display">Jugador</span></h2>
-        <div class="credits-badge">🪙 <span id="user-credits">0</span></div>
-    </div>
+    <div class="menu-grid items-grid" style="padding: 0 15px;">
 
-    <button id="btn-logout" class="logout-btn">
-        <div><i class="fas fa-sign-out-alt mr-2"></i> SALIR DEL BOX</div>
-    </button>
-    <div class="menu-grid items-grid"> <div id="card-play" class="shop-item playable group">
-        <div class="item-type-tag type-powerup">MODO IA</div>
-        <h4>⚡ Contrarreloj</h4>
-        <span class="desc">Demuestra tu velocidad punta en la arena de tecleo. Gana créditos por cada acierto.</span>
-        <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
-    </div>
+        <div id="card-play" class="shop-item playable group">
+            <div class="item-type-tag type-powerup">MODO IA</div>
+            <h4>⚡ Contrarreloj</h4>
+            <span class="desc">Demuestra tu velocidad punta en la arena de tecleo en el modo clásico. El tema de las frases es aleatorio, decidido por la IA. Gana créditos por cada acierto.</span>
+            <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
+        </div>
 
         <div id="card-custom" class="shop-item playable group">
             <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">MODO IA PERSONALIZADO</div>
             <h4>🧠 Partida a Medida</h4>
             <span class="desc">Dile a la IA sobre qué quieres teclear (ciencia, cine, motor...) y creará la pista.</span>
-
             <input type="text" id="input-tema" placeholder="Ej: Fórmula 1 en los 90..."
-                   style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
-
+                   style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
             <button class="btn-item-action btn-buy" onclick="app.iniciarPartidaPersonalizada()">
                 <div>GENERAR Y JUGAR</div>
             </button>
         </div>
 
         <div id="card-rosco" class="shop-item playable group">
-            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">MODO IA PERSONALIZADO</div>
+            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">EVENTO ESPECIAL</div>
             <h4>El Rosco IA</h4>
             <span class="desc">Elige cualquier tema del universo y la IA creará un rosco personalizado.</span>
-
-            <input type="text" id="input-tema-rosco" placeholder="Ej: Universo Marvel..." style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
-
+            <input type="text" id="input-tema-rosco" placeholder="Ej: Universo Marvel..." style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
             <button class="btn-item-action btn-buy" onclick="Rosco.init()">
                 <div>GENERAR Y JUGAR 🧠</div>
             </button>
@@ -79,23 +112,22 @@
             <div class="item-type-tag">GARAJE</div>
             <h4>👤 Mi Perfil</h4>
             <span class="desc">Gestiona tu inventario, equipa tus cosméticos y revisa tus estadísticas de carrera.</span>
-            <button class="btn-item-action btn-buy"><div>VER EQUIPO</div></button>
+            <button class="btn-item-action btn-buy" onclick="app.openProfile()"><div>VER EQUIPO</div></button>
         </div>
 
         <div id="card-shop" class="shop-item playable group">
             <div class="item-type-tag type-cosmetico">OFICIAL</div>
             <h4>🛒 Tienda</h4>
             <span class="desc">Adquiere mejoras de rendimiento y temas visuales exclusivos para tu interfaz.</span>
-            <button class="btn-item-action btn-buy"><div>IR A COMPRAR</div></button>
+            <button class="btn-item-action btn-buy" onclick="app.openShop()"><div>IR A COMPRAR</div></button>
         </div>
 
         <div id="card-admin" class="shop-item playable admin-card hidden group">
             <div class="item-type-tag" style="background:#ff4b5c;">SISTEMA</div>
             <h4>⚙️ Panel Admin</h4>
-            <span class="desc">Acceso restringido a la telemetría global y gestión de usuarios del sistema.</span>
+            <span class="desc">Acceso restringido a la telemetría global y gestión de usuarios y roles del sistema.</span>
             <button class="btn-item-action" style="background: #ff4b5c; color: white;"><div>CONFIGURAR</div></button>
         </div>
-
     </div>
 </section>
 
@@ -135,17 +167,56 @@
 </section>
 
 <section id="profile-screen" class="screen hidden">
-    <div class="shop-container">
-        <header class="shop-header">
-            <h2 style="margin: 0;">👤 Tu Perfil</h2>
-            <div class="credits-display">Saldo: 🪙 <span id="profile-credits">0</span></div>
+    <div class="shop-container profile-container theme-card" style="margin-top:5%; max-width: 800px; padding: 20px; border-radius: 10px;">
+
+        <header class="shop-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;" class="theme-strong">👤 Tu Perfil</h2>
         </header>
 
-        <h3>🎒 Tu Inventario (Equipar)</h3>
-        <div id="inventory-list" class="items-grid">
+        <button id="btn-back-profile" class="back-btn" style="margin-bottom: 20px;">
+            ⬅ Volver al Menú
+        </button>
+
+        <div class="profile-tabs">
+            <button class="tab-btn active" onclick="switchProfileTab('inventory')">
+                <i class="fas fa-boxes"></i> INVENTARIO
+            </button>
+            <button class="tab-btn" onclick="switchProfileTab('settings')">
+                <i class="fas fa-user-cog"></i> AJUSTES
+            </button>
         </div>
 
-        <button id="btn-back-profile" class="back-btn">Volver al Menú</button>
+        <div id="tab-inventory" class="tab-content active">
+            <h3 class="theme-strong mb-4" style="text-transform: uppercase; font-style: italic;">Garaje de Equipamiento</h3>
+            <div id="inventory-list" class="items-grid inventory-grid"></div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <h3 class="theme-strong mb-4" style="text-transform: uppercase; font-style: italic;">Configuración del Piloto</h3>
+            <form id="update-profile-form" class="profile-form">
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Nombre de Usuario</label>
+                    <input type="text" id="upd-username" class="theme-input" style="width: 100%; padding: 10px; border-radius: 5px;" placeholder="Nombre de piloto...">
+                </div>
+
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Correo Electrónico</label>
+                    <input type="email" id="upd-email" class="theme-input" readonly style="width: 100%; padding: 10px; border-radius: 5px; opacity: 0.6; cursor: not-allowed;">
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 25px 0;">
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Nueva Contraseña</label>
+                    <input type="password" id="upd-password" class="theme-input" style="width: 100%; padding: 10px; border-radius: 5px;" placeholder="Dejar en blanco para no cambiar">
+                </div>
+
+                <button type="submit" class="btn-main" style="width: 100%;">
+                    <div>GUARDAR CAMBIOS</div>
+                </button>
+            </form>
+        </div>
+
     </div>
 </section>
 
@@ -153,7 +224,6 @@
     <div class="shop-container">
         <header class="shop-header">
             <h2 style="margin: 0;">🛒 Tienda de Objetos</h2>
-            <div class="credits-display">Saldo: 🪙 <span id="shop-credits">0</span></div>
         </header>
 
         <div class="search-box">
