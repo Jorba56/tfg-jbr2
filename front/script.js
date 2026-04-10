@@ -31,7 +31,6 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         // 📦 EL PAQUETE COMPLETO: Enviamos todos los datos (SIN ID)
         const payloadPut = {
             nombreUsuario: document.getElementById('upd-username').value,
-            apellidoUsuario: document.getElementById('upd-apellidos').value,
             emailUsuario: document.getElementById('upd-email').value
         };
 
@@ -41,7 +40,7 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         }
 
         // 🚀 Disparamos a la nueva ruta /mi-perfil
-        const responsePut = await fetch(`${API_URL}/usuarios/mi-perfil`, {
+        const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

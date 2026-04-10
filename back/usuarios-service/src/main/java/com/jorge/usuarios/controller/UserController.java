@@ -67,7 +67,7 @@ public class UserController {
     }
 
     @Operation(summary = "Actualizar propio perfil", description = "El usuario actualiza sus datos con su Token, sin enviar ID.")
-    @PutMapping("/mi-perfil") // Usamos "mi-perfil" para evitar conflictos con la ruta "/{id}"
+    @PutMapping("/perfil") // Usamos "mi-perfil" para evitar conflictos con la ruta "/{id}"
     public ResponseEntity<?> updatePropioPerfil(@RequestBody User usuario, Authentication authentication) {
         try {
             // 1. La aduana saca tu email del Token automáticamente
