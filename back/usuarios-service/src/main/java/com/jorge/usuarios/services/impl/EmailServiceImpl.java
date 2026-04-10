@@ -46,7 +46,7 @@ public class EmailServiceImpl implements EmailService {
             System.err.println("💥 [BREVO API] El envío falló: " + e.getMessage());
         }
     }
-
+    @Override
     public String generarPlantillaHtml(String nombre) {
         return "<div style='font-family: Arial, sans-serif; background-color: #050b14; color: #c5c6c7; padding: 40px; text-align: center; border-radius: 10px;'>"
                 + "<h1 style='color: #00f2fe;'>🏁 FASTFINGERS 🏁</h1>"
