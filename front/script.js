@@ -23,23 +23,24 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
     try {
         const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
-        // Botón en modo carga
+        // Ponemos el botón en modo "Carga" para que el usuario no haga doble clic
         const btnSubmit = e.target.querySelector('button[type="submit"]');
         btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
         btnSubmit.disabled = true;
 
-        // 📦 EL PAQUETE COMPLETO: Enviamos todos los datos (SIN ID)
+        // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre.
+        // (El backend dejará el correo y el apellido intactos)
         const payloadPut = {
-            nombreUsuario: document.getElementById('upd-username').value,
-            emailUsuario: document.getElementById('upd-email').value
+            nombreUsuario: document.getElementById('upd-username').value
         };
 
+        // Si el piloto ha escrito algo en la contraseña, la metemos en el paquete
         const newPassword = document.getElementById('upd-password').value;
         if (newPassword.trim() !== '') {
             payloadPut.contrasenhaUsuario = newPassword;
         }
 
-        // 🚀 Disparamos a la nueva ruta /mi-perfil
+        // 🚀 Disparamos el coche al carril VIP: /mi-perfil
         const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
             method: 'PUT',
             headers: {
@@ -51,8 +52,10 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
         if (responsePut.ok) {
             alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
+            // Usamos tu función de logout para limpiar la sesión y mandarlo al inicio
             app.logout();
         } else {
+            // Si el servidor se queja, leemos el mensaje de error exacto
             const errText = await responsePut.text();
             throw new Error(errText || "La base de datos rechazó los cambios.");
         }
@@ -61,6 +64,7 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         alert("Fallo en boxes: " + error.message);
         console.error("Detalle del error:", error);
     } finally {
+        // Restauramos el botón a la normalidad pase lo que pase
         const btnSubmit = e.target.querySelector('button[type="submit"]');
         if(btnSubmit) {
             btnSubmit.innerHTML = '<div>GUARDAR CAMBIOS</div>';

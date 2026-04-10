@@ -73,7 +73,6 @@ public class UserController {
             // 1. La aduana saca tu email del Token automáticamente
             String emailLogueado = authentication.getName();
 
-            // 2. Buscamos tu ficha en boxes para sacar tu ID real
             UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailLogueado);
 
             // 🚨 ATENCIÓN MECÁNICO: Revisa tu DTO. Puede que el getter sea getIdUsuario() o getId_user()

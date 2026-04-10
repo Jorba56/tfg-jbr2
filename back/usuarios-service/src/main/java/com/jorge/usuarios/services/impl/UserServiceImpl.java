@@ -143,9 +143,15 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("No tienes permisos para modificar el perfil de otro usuario.");
         }
 
-        userUpdate.setNombreUsuario(usuario.getNombreUsuario());
-        userUpdate.setApellidoUsuario(usuario.getApellidoUsuario());
-        userUpdate.setEmailUsuario(usuario.getEmailUsuario());
+        // 1. Solo actualizamos el nombre si nos envían uno nuevo
+        if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().trim().isEmpty()) {
+            userUpdate.setNombreUsuario(usuario.getNombreUsuario());
+        }
+
+        // 2. Solo actualizamos el apellido si nos envían uno
+        if (usuario.getApellidoUsuario() != null && !usuario.getApellidoUsuario().trim().isEmpty()) {
+            userUpdate.setApellidoUsuario(usuario.getApellidoUsuario());
+        }
 
         //simplificamos las condiciones para reducir complejidad
         boolean intentaCambiarPassword = usuario.getContrasenhaUsuario() != null && !usuario.getContrasenhaUsuario().trim().isEmpty();
