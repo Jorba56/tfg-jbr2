@@ -67,11 +67,11 @@ public class EmailServiceImpl implements EmailService {
 
                 // --- RESUMEN MODOS ---
                 + "      <div style='background: #0d1117; padding: 20px; border-radius: 10px; margin: 20px 0;'>"
-                + "        <h3 style='margin-top: 0; color: #00f2fe; font-size: 16px;'>🏎️ MODOS DE ENTRENAMIENTO:</h3>"
+                + "        <h3 style='margin-top: 0; color: #00f2fe; font-size: 16px;'>🏎️ MODOS DE JUEGO:</h3>"
                 + "        <ul style='list-style: none; padding: 0; color: #c9d1d9; font-size: 14px;'>"
-                + "          <li style='margin-bottom: 8px;'>⏱️ <b>Contrarreloj:</b> ¿Cuántas palabras puedes escribir en 60 segundos?</li>"
-                + "          <li style='margin-bottom: 8px;'>🎯 <b>Precisión Total:</b> Un solo fallo y la carrera termina.</li>"
-                + "          <li style='margin-bottom: 8px;'>🏁 <b>Multiplayer:</b> Compite en tiempo real contra otros pilotos.</li>"
+                + "          <li style='margin-bottom: 8px;'>⏱️ <b>Contrarreloj:</b> ¿Cuántas frases puedes escribir en 60 segundos?</li>"
+                + "          <li style='margin-bottom: 8px;'>🎯 <b>El Rosco:</b> Escribe un tema, la IA generará un rosco temático exclusivo para tí.</li>"
+                + "          <li style='margin-bottom: 8px;'>\uD83E\uDDE0 <b>Contrarreloj a medida:</b> Escribe un tema, la IA generará frases sobre ese tema para tí.</li>"
                 + "        </ul>"
                 + "      </div>"
 

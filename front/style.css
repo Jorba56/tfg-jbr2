@@ -166,10 +166,17 @@ input:focus {
     display: block;
 }
 
+
 .btn-main:hover, button:hover {
     filter: brightness(1.1);
     transform: skewX(-12deg) scale(1.02);
     box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+.btn-index {
+    grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+    width: 90%;
+    margin-top: 10px; !important
 }
 
 /* --- CARTAS DEL DASHBOARD --- */
@@ -764,6 +771,8 @@ body.tema-cyberpunk input:focus {
 /* --- BOTÓN DE REGISTRO ESTILO OUTLINE RACING --- */
 
 .btn-main.btn-registro {
+    text-align: center;
+    width: 85%;
     background: transparent !important; /* Aquí SÍ lo queremos transparente */
     border: 0.5px solid var(--primary) !important; /* Borde cian eléctrico */
     color: var(--primary) !important; /* Texto cian */
@@ -808,11 +817,10 @@ body.tema-cyberpunk input:focus {
 }
 
 .button-group {
-    display: flex;
-    flex-direction: row;
-    gap: 15px; /* El espacio de separación entre ambos botones */
-    width: 100%; /* La caja ocupa el ancho de los inputs */
-    margin-top: 15px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas exactamente iguales */
+    gap: 15px; /* El espacio entre los botones */
+    margin-top: 10px;
 }
 
 .profile-tabs {
@@ -1446,7 +1454,11 @@ body.light-mode .data-table td {
         padding: 10px !important;
         font-size: 0.8rem !important;
     }
-
+    .btn-index {
+        grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+        width: 90%;
+        margin-top: 10px; !important
+    }
     .rosco-layout {
         transform: scale(0.8);
         transform-origin: top center; /* Encogemos desde arriba */
