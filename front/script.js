@@ -31,13 +31,13 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre.
         // (El backend dejará el correo y el apellido intactos)
         const payloadPut = {
-            nombreUsuario: document.getElementById('upd-username').value
+            nombre_usuario: document.getElementById('upd-username').value
         };
 
-        // Si el piloto ha escrito algo en la contraseña, la metemos en el paquete
         const newPassword = document.getElementById('upd-password').value;
         if (newPassword.trim() !== '') {
-            payloadPut.contrasenhaUsuario = newPassword;
+            // ¡OJO AQUÍ! Asegúrate de que coincida con tu User.java
+            payloadPut.contrasenha_usuario = newPassword;
         }
 
         // 🚀 Disparamos el coche al carril VIP: /mi-perfil
