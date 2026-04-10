@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @OpenAPIDefinition(
         info = @Info(title = "API del Sprint 2", version = "1.0", description = "Generador de Exámenes"),
@@ -24,6 +25,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 )
 
 @SpringBootApplication
+@EnableAsync
 public class UsuariosApplication {
 
     public static void main(String[] args) {

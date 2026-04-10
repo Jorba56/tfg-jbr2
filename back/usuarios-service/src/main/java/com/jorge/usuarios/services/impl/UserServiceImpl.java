@@ -117,7 +117,16 @@ public class UserServiceImpl implements UserService {
         roles.add(rolN);
         usuario2.setRoles(roles);
         userRep.save(usuario2);
-        emailService.enviarCorreoBienvenida(usuario.getEmailUsuario(), usuario.getNombreUsuario());
+        System.out.println("DEBUG: Intentando enviar correo a: " + usuario.getEmailUsuario());
+        System.out.println("DEBUG: Nombre del piloto: " + usuario.getNombreUsuario());
+
+        try {
+            emailService.enviarCorreoBienvenida(usuario.getEmailUsuario(), usuario.getNombreUsuario());
+            System.out.println("DEBUG: Llamada al servicio de email completada.");
+        } catch (Exception e) {
+            System.out.println("DEBUG: EXPLOTÓ EL ENVÍO: " + e.getMessage());
+            e.printStackTrace();
+        }
         return(userMap.mappingADTO(usuario2));
     }
 
