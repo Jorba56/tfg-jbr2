@@ -23,12 +23,6 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
     if (!token) return alert("Falta el Token de acceso.");
 
-    // 🚨 EL TRUCO MAGICO: ¡Ya tenemos la ID en la memoria RAM! No hace falta pedírsela a Java.
-    if (!app.currentUser || !app.currentUser.id) {
-        return alert("Error en boxes: No se encuentra tu tarjeta de piloto. Vuelve a iniciar sesión.");
-    }
-    const idDelPiloto = app.currentUser.id;
-
     try {
         const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
@@ -37,19 +31,17 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
         btnSubmit.disabled = true;
 
-        // -----------------------------------------------------
-        // ENVIAR EL PUT DIRECTAMENTE AL ENDPOINT /usuarios/{id}
-        // -----------------------------------------------------
+        // 1. Preparamos el paquete de datos (sin ID, el servidor ya lo sabe)
         const payloadPut = {
             nombre_usuario: newUsername
         };
 
         if (newPassword.trim() !== '') {
-            // Asegúrate de que el backend espera este nombre exacto para la contraseña
-            payloadPut.contrasenha_usuario = newPassword;
+            payloadPut.contrasenha_usuario = newPassword; // Asegúrate de que coincide con el nombre en tu entidad User
         }
 
-        const responsePut = await fetch(`${API_URL}/usuarios/${idDelPiloto}`, {
+        // 2. 🚀 Disparamos directamente al nuevo endpoint inteligente
+        const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -60,11 +52,10 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
         if (responsePut.ok) {
             alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
-            // Usamos tu función de logout para limpiar todo bien
-            app.logout();
+            app.logout(); // Usamos tu función para limpiar la sesión y mandarlo al login
         } else {
-            const errData = await responsePut.json();
-            throw new Error(errData.message || "La base de datos rechazó los cambios.");
+            const errText = await responsePut.text(); // Usamos .text() por si el servidor devuelve un String de error
+            throw new Error(errText || "La base de datos rechazó los cambios.");
         }
 
     } catch (error) {

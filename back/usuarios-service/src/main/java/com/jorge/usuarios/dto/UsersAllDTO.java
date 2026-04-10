@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotNull;
  */
 public class UsersAllDTO {
 
+
+
     @NotNull
     @JsonProperty("id_usuario")
     private Long idUser;
@@ -22,6 +24,9 @@ public class UsersAllDTO {
     private String emailUsuario;
 
     // Getters y setters
+    public @NotNull Long getIdUser() {
+        return idUser;
+    }
     public void setIdUser(Long idUser) { this.idUser = idUser; }
 
     public String getNombreUsuario() { return nombreUsuario; }

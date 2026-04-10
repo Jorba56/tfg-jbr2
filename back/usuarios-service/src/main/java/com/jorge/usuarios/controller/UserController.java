@@ -66,6 +66,32 @@ public class UserController {
         return userServiceImpl.buscarPorId(id);
     }
 
+    @Operation(summary = "Actualizar propio perfil", description = "El usuario actualiza sus datos usando solo su Token, sin necesidad de enviar su ID.")
+    @PutMapping("/perfil")
+    public ResponseEntity<String> updatePropioPerfil(@RequestBody User usuario, Authentication authentication) {
+        try {
+            // 1. La aduana lee tu Token y saca tu email automáticamente
+            String emailUsuario = authentication.getName();
+
+            // 2. Buscamos tu ficha en boxes para sacar tu ID real
+            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailUsuario);
+
+            // 🚨 ¡ATENCIÓN MECÁNICO! Asegúrate de que este "getter" es el correcto según tu DTO.
+            // Puede ser .getId(), .getIdUsuario(), .getId_usuario()... cámbialo si tu IDE te da error.
+            Long idDelPiloto = pilotoActual.getIdUser();
+
+            // 3. Reutilizamos tu motor de actualización original
+            String resultado = userServiceImpl.actualizarUsuario(idDelPiloto, usuario, authentication);
+
+            return ResponseEntity.ok(resultado);
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Fallo interno en boxes al actualizar: " + e.getMessage());
+        }
+    }
+
     /**
      * Busca y devuelve los datos de un usuario específico mediante su correo.
      * Exclusivo para el administrador.
