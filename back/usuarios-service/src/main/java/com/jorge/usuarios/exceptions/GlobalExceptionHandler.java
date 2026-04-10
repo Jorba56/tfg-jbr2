@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     String badR = "Bad Request";
     String unauthorized = "Unauthorized";
 
-    @Value("${URI_INCIDENCIAS:http://localhost:8082}")
+    @Value("${URI_INCIDENCIAS:https://incidencias.railway.internal:8082}")
     private String uriIncidencias;
 
     public GlobalExceptionHandler(UserRepository userRepository) {
