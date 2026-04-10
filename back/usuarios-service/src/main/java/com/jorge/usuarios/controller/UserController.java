@@ -66,22 +66,21 @@ public class UserController {
         return userServiceImpl.buscarPorId(id);
     }
 
-    @Operation(summary = "Actualizar propio perfil", description = "El usuario actualiza sus datos usando solo su Token, sin necesidad de enviar su ID.")
-    @PutMapping("/perfil")
-    public ResponseEntity<String> updatePropioPerfil(@RequestBody User usuario, Authentication authentication) {
+    @Operation(summary = "Actualizar propio perfil", description = "El usuario actualiza sus datos con su Token, sin enviar ID.")
+    @PutMapping("/mi-perfil") // Usamos "mi-perfil" para evitar conflictos con la ruta "/{id}"
+    public ResponseEntity<?> updatePropioPerfil(@RequestBody User usuario, Authentication authentication) {
         try {
-            // 1. La aduana lee tu Token y saca tu email automáticamente
-            String emailUsuario = authentication.getName();
+            // 1. La aduana saca tu email del Token automáticamente
+            String emailLogueado = authentication.getName();
 
             // 2. Buscamos tu ficha en boxes para sacar tu ID real
-            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailUsuario);
+            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailLogueado);
 
-            // 🚨 ¡ATENCIÓN MECÁNICO! Asegúrate de que este "getter" es el correcto según tu DTO.
-            // Puede ser .getId(), .getIdUsuario(), .getId_usuario()... cámbialo si tu IDE te da error.
-            Long idDelPiloto = pilotoActual.getIdUser();
+            // 🚨 ATENCIÓN MECÁNICO: Revisa tu DTO. Puede que el getter sea getIdUsuario() o getId_user()
+            Long idReal = pilotoActual.getIdUser();
 
-            // 3. Reutilizamos tu motor de actualización original
-            String resultado = userServiceImpl.actualizarUsuario(idDelPiloto, usuario, authentication);
+            // 3. Reutilizamos tu motor de actualización (que ahora sí pedirá todos los datos)
+            String resultado = userServiceImpl.actualizarUsuario(idReal, usuario, authentication);
 
             return ResponseEntity.ok(resultado);
 

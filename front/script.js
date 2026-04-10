@@ -17,11 +17,8 @@ function navegarA(idPantalla) {
 document.getElementById('update-profile-form').onsubmit = async (e) => {
     e.preventDefault();
 
-    const newUsername = document.getElementById('upd-username').value;
-    const newPassword = document.getElementById('upd-password').value;
     const token = localStorage.getItem('jwt_token');
-
-    if (!token) return alert("Falta el Token de acceso.");
+    if (!token) return alert("Falta el Token de acceso. Pasa por boxes.");
 
     try {
         const API_URL = 'https://gateway-production-a1f6.up.railway.app';
@@ -31,17 +28,20 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
         btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
         btnSubmit.disabled = true;
 
-        // 1. Preparamos el paquete de datos (sin ID, el servidor ya lo sabe)
+        // 📦 EL PAQUETE COMPLETO: Enviamos todos los datos (SIN ID)
         const payloadPut = {
-            nombre_usuario: newUsername
+            nombreUsuario: document.getElementById('upd-username').value,
+            apellidoUsuario: document.getElementById('upd-apellidos').value,
+            emailUsuario: document.getElementById('upd-email').value
         };
 
+        const newPassword = document.getElementById('upd-password').value;
         if (newPassword.trim() !== '') {
-            payloadPut.contrasenha_usuario = newPassword; // Asegúrate de que coincide con el nombre en tu entidad User
+            payloadPut.contrasenhaUsuario = newPassword;
         }
 
-        // 2. 🚀 Disparamos directamente al nuevo endpoint inteligente
-        const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
+        // 🚀 Disparamos a la nueva ruta /mi-perfil
+        const responsePut = await fetch(`${API_URL}/usuarios/mi-perfil`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,15 +52,15 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 
         if (responsePut.ok) {
             alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
-            app.logout(); // Usamos tu función para limpiar la sesión y mandarlo al login
+            app.logout();
         } else {
-            const errText = await responsePut.text(); // Usamos .text() por si el servidor devuelve un String de error
+            const errText = await responsePut.text();
             throw new Error(errText || "La base de datos rechazó los cambios.");
         }
 
     } catch (error) {
         alert("Fallo en boxes: " + error.message);
-        console.error(error);
+        console.error("Detalle del error:", error);
     } finally {
         const btnSubmit = e.target.querySelector('button[type="submit"]');
         if(btnSubmit) {
