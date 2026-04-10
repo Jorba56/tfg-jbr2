@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMap;
     private final PasswordEncoder passwordEncoder;
     private final ItemRepository itemRepository;
+    private final EmailServiceImpl emailService;
 
 
     /**
@@ -50,8 +51,9 @@ public class UserServiceImpl implements UserService {
      * @param userMap mapper encargado de transformar entidades de usuario y sus DTOs
      * @param rolRep repositorio para la gestión de la persistencia de roles asociados a usuarios
      */
-    public UserServiceImpl(UserRepository userRep, UserMapper userMap, RolRepository rolRep, PasswordEncoder passwordEncoder, com.jorge.usuarios.repository.ItemRepository itemRepository) {
+    public UserServiceImpl(UserRepository userRep,EmailServiceImpl emailService, UserMapper userMap, RolRepository rolRep, PasswordEncoder passwordEncoder, com.jorge.usuarios.repository.ItemRepository itemRepository) {
         this.userRep = userRep;
+        this.emailService=emailService;
         this.userMap = userMap;
         this.rolRep = rolRep;
         this.passwordEncoder = passwordEncoder;
@@ -115,6 +117,7 @@ public class UserServiceImpl implements UserService {
         roles.add(rolN);
         usuario2.setRoles(roles);
         userRep.save(usuario2);
+        emailService.enviarCorreoBienvenida(usuario.getEmailUsuario(), usuario.getNombreUsuario());
         return(userMap.mappingADTO(usuario2));
     }
 
