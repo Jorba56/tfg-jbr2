@@ -48,7 +48,7 @@ public class EmailServiceImpl implements EmailService {
     }
     @Override
     public String generarPlantillaHtml(String nombre) {
-        String logoUrl = "https://tu-repositorio.com/logo-fastfingers.png"; // Sustituye por la URL real de tu logo
+        String logoUrl = "https://tfg-jbr2.onrender.com/static/images/favicon.png"; // Sustituye por la URL real de tu logo
         String webUrl = "https://fastfingers-tfg.railway.app"; // La URL de tu frontend en Railway
 
         return "<div style='background-color: #0d1117; color: #ffffff; font-family: \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif; padding: 20px;'>"
