@@ -969,6 +969,137 @@ body.tema-cyberpunk input:focus {
     box-sizing: border-box;
 }
 
+.nav-profile-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* El avatar en la barra */
+.nav-avatar-trigger img {
+    border-radius: 50%;
+    border: 2px solid #4CAF50; /* Tu color principal */
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease;
+    object-fit: cover;
+}
+
+.nav-profile-container:hover .nav-avatar-trigger img {
+    transform: scale(1.1);
+}
+
+/* La tarjeta desplegable */
+.nav-profile-dropdown {
+    position: absolute;
+    top: 120%; /* Se coloca justo debajo */
+    right: 0;
+    width: 200px;
+    background-color: #1a1a1a; /* Color de fondo de tu barra/cartas */
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+
+    /* Magia de la animación: Oculto por defecto */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efecto Hover: Mostrar la tarjeta */
+.nav-profile-container:hover .nav-profile-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Estilos de los textos internos */
+#dropdown-large-avatar {
+    border-radius: 50%;
+    border: 3px solid #4CAF50;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin-bottom: 10px;
+}
+
+#dropdown-fullname {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+#dropdown-username {
+    margin: 5px 0 15px 0;
+    font-size: 0.9rem;
+    color: #888888;
+}
+
+.dropdown-stats {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #ffd700; /* Dorado para los créditos */
+}
+
+.avatar-workshop select {
+    appearance: none; /* Eliminamos el estilo feo del sistema */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-color: rgba(0, 0, 0, 0.4);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300f2fe' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center; /* Coloca la flecha cian a la derecha */
+
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    color: var(--primary);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 35px 10px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 220px; /* Ancho fijo para que no bailen al cambiar de opción */
+    outline: none;
+    margin-left: 10px;
+}
+
+/* Efecto al pasar el ratón */
+.avatar-workshop select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+/* Efecto al abrir/enfocar */
+.avatar-workshop select:focus {
+    border-color: var(--primary);
+    background-color: rgba(0, 242, 254, 0.05);
+}
+
+/* Estilo para las opciones (la lista que baja) */
+.avatar-workshop select option {
+    background-color: #0b0c10; /* Color oscuro de tu fondo */
+    color: white;
+    padding: 10px;
+}
+
+/* Ajuste para las etiquetas de los select */
+.avatar-workshop label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
 .sidebar-footer {
     margin-top: auto; /* Empuja esta caja hasta el fondo del menú */
     padding: 20px 25px;
@@ -1259,6 +1390,22 @@ body.light-mode #avatar-preview{
     background: #2b5cb3;
     linear-gradient(90deg, rgba(0, 92, 230, 0.04) 1px, transparent 1px);
 }
+
+body.light-mode .avatar-workshop select{
+    background-color: white;
+}
+
+body.light-mode .avatar-workshop select:focus {
+    border-color: var(--primary);
+    background-color: rgb(253, 255, 255);
+}
+
+body.light-mode .avatar-workshop select option {
+    background-color: white; /* Color claro del fondo */
+    color: #0b0c10;
+    padding: 10px;
+}
+
 body.light-mode td .text-yellow-500 { color: #d97706 !important; } /* Monedas */
 body.light-mode td .text-blue-500 { color: #2563eb !important; } /* Editar */
 body.light-mode td .text-purple-500 { color: #7e22ce !important; } /* Roles */

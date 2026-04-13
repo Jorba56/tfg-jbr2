@@ -645,6 +645,7 @@ const app = {
                 // 3. Montar el currentUser a prueba de balas
                 app.currentUser = {
                     username: data.nombreUsuario || data.username || data.nombre_usuario || 'Piloto',
+                    apellido: data.apellido_usuario || data.apellidoUsuario || data.apellido,
                     creditos: data.creditos || 0,
                     inventario: inventarioSeguro,
                     isAdmin: esAdmin,
@@ -707,6 +708,7 @@ const app = {
             // Guardamos SOLO en RAM
             app.currentUser = {
                 username: data.username,
+                apellido: data.apellido_usuario || data.apellidoUsuario || data.apellido,
                 creditos: data.creditos || 0,
                 inventario: inventarioSeguro,
                 isAdmin: data.isAdmin === true,
@@ -752,16 +754,43 @@ const app = {
 
     updateUserUI: () => {
         if(!app.currentUser) return;
-        document.getElementById('user-display').innerText = app.currentUser.username;
-        document.getElementById('user-credits').innerText = app.currentUser.creditos;
 
-        const adminCard = document.getElementById('card-admin');
-        if (app.currentUser.isAdmin === true) {
-            adminCard.classList.remove('hidden');
-        } else {
-            adminCard.classList.add('hidden');
+        // 1. Pintamos los Avatares (El pequeño y el grande)
+        const DICEBEAR_API = 'https://api.dicebear.com/9.x/avataaars/svg';
+        const urlAvatar = `${DICEBEAR_API}?seed=${app.currentUser.avatar}`;
+
+        const miniAvatar = document.getElementById('nav-mini-avatar');
+        if (miniAvatar) miniAvatar.src = urlAvatar;
+
+        const largeAvatar = document.getElementById('dropdown-large-avatar');
+        if (largeAvatar) largeAvatar.src = urlAvatar;
+
+        // 2. Pintamos los Textos del Desplegable
+        const elFullName = document.getElementById('dropdown-fullname');
+        if (elFullName) {
+            // Unimos nombre y apellido. Si están vacíos, ponemos el username.
+            const nombreCompleto = `${app.currentUser.username} ${app.currentUser.apellido}`.trim();
+            elFullName.innerText = nombreCompleto !== '' ? nombreCompleto : app.currentUser.username;
         }
 
+        const elUsername = document.getElementById('dropdown-username');
+        if (elUsername) elUsername.innerText = `Tu perfil`;
+
+        // 3. Pintamos los Créditos
+        const elCredits = document.getElementById('user-credits');
+        if (elCredits) elCredits.innerText = app.currentUser.creditos;
+
+        // 4. Lógica de la Tarjeta de Admin
+        const adminCard = document.getElementById('card-admin');
+        if (adminCard) {
+            if (app.currentUser.isAdmin === true) {
+                adminCard.classList.remove('hidden');
+            } else {
+                adminCard.classList.add('hidden');
+            }
+        }
+        console.log(app.currentUser);
+        // Aplicamos los cosméticos guardados
         app.applyCosmetics();
     },
 

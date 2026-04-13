@@ -52,10 +52,18 @@
             <span class="coin-icon">🪙</span>
             <span id="user-credits" class="coin-amount">0</span>
         </div>
-        <button id="btn-nav-profile" class="icon-btn profile-btn" onclick="app.openProfile()" title="Mi Perfil" style="width: auto; padding: 0 15px; border-radius: 20px; gap: 10px;">
-            <i class="fas fa-user"></i>
-            <span id="user-display" style="font-size: 0.9rem; font-weight: bold; font-style: normal; color: white;">Piloto</span>
-        </button>
+        <div class="nav-profile-container">
+
+            <div class="nav-avatar-trigger">
+                <img id="nav-mini-avatar" src="" alt="Avatar" width="45" height="45">
+            </div>
+
+            <div class="nav-profile-dropdown">
+                <img id="dropdown-large-avatar" src="" alt="Avatar Grande" width="80" height="80">
+                <h4 id="dropdown-fullname">Cargando...</h4>
+                <p id="dropdown-username">@piloto</p>
+            </div>
+        </div>
     </div>
 </nav>
 
@@ -226,32 +234,35 @@
                 <div class="avatar-workshop" style="text-align: center; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
                     <img id="avatar-preview" src="" width="150" height="150" style="border: 3px solid #1e293b; border-radius: 50%;">
 
-                    <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                        <label>🎩 Pelo / Sombrero:
-                            <select id="av-top">
-                                <option value="shortRound">Pelo Corto Clásico</option>
-                                <option value="shortWaved">Pelo Ondulado</option>
-                                <option value="longButNotTooLong">Pelo Medio/Largo</option>
-                                <option value="dreads01">Rastas</option>
-                                <option value="hat">Sombrero</option>
-                                <option value="winterHat1">Gorro de Invierno</option>
-                            </select>
+                    <div class="input-group-avatar" style="margin-bottom: 15px;">
+                        <label for="av-top">
+                            <span style="margin-right: 8px;">🎩</span> Pelo / Sombrero
                         </label>
+                        <select id="av-top">
+                            <option value="shortRound">Pelo Corto Clásico</option>
+                            <option value="shortWaved">Pelo Ondulado</option>
+                            <option value="longButNotTooLong">Pelo Medio/Largo</option>
+                            <option value="dreads01">Rastas</option>
+                            <option value="hat">Sombrero</option>
+                            <option value="winterHat1">Gorro de Invierno</option>
+                        </select>
+                    </div>
 
-                        <label>🕶️ Accesorios:
-                            <select id="av-acc">
-                                <option value="none">Ninguno</option>
-                                <option value="sunglasses">Gafas de sol</option>
-                                <option value="prescription02">Gafas de ver</option>
-                                <option value="kurt">Gafas Modernas</option>
-                                <option value="round">Gafas Redondas</option>
-                            </select>
+                    <div class="input-group-avatar" style="margin-bottom: 20px;">
+                        <label for="av-acc">
+                            <span style="margin-right: 8px;">🕶️</span> Accesorios
                         </label>
+                        <select id="av-acc">
+                            <option value="none">Ninguno</option>
+                            <option value="sunglasses">Gafas de sol</option>
+                            <option value="prescription02">Gafas de ver</option>
+                            <option value="kurt">Gafas Modernas</option>
+                            <option value="round">Gafas Redondas</option>
+                        </select>
+                    </div>
 
                         <button id="btn-save-avatar" class="btn-primary">💾 Guardar Look</button>
-                    </div>
                 </div>
-
                 <button type="submit" class="btn-main" style="width: 100%;">
                     <div>GUARDAR CAMBIOS</div>
                 </button>
