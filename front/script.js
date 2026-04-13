@@ -620,7 +620,7 @@ const app = {
                     'Content-Type': 'application/json',
                     'Cache-Control': 'no-cache' // Forzamos a no usar memoria antigua
                 },
-                credentials: 'include' // 🔑
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -664,7 +664,6 @@ const app = {
                 app.showScreen('login-screen');
             }
         } catch (error) {
-            console.error("Fallo al restaurar sesión:", error);
             app.showScreen('login-screen');
         }
     },
@@ -720,6 +719,8 @@ const app = {
                 colorTema: data.colorTema || null,
                 avatar: data.avatar || data.avatarConfig || (data.username || data.nombreUsuario)
             };
+
+            localStorage.setItem('isLogged', 'true');
             inicializarTaller();
             app.restoreSession();
             app.updateUserUI();
@@ -1392,7 +1393,12 @@ window.app = app;
 window.Rosco= Rosco;
 
 window.onload = () => {
-    app.restoreSession();
+    if (localStorage.getItem('isLogged') === 'true') {
+        app.restoreSession();
+    } else {
+        // Si no hay nota, ni lo intentamos. Mostramos el login directamente y evitamos el error 401.
+        app.showScreen('login-screen');
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {

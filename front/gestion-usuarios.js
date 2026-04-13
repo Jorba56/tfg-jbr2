@@ -1,7 +1,21 @@
-const token = localStorage.getItem('jwt_token');
-if (!token) window.top.location.href = 'login.html';
-
+// 🛑 ELIMINAMOS LA BÚSQUEDA DEL TOKEN EN LOCALSTORAGE
 const API_URL = 'https://gateway-production-a1f6.up.railway.app';
+
+// 🛡️ BARRERA DE SEGURIDAD INICIAL: Verificamos si la cookie es válida
+async function verificarAcceso() {
+    try {
+        const res = await fetch(`${API_URL}/usuarios/perfil?t=${new Date().getTime()}`, {
+            method: 'GET',
+            credentials: 'include' // 🔑 Usamos la cookie
+        });
+        if (!res.ok) {
+            window.location.href = 'index.html'; // Si el servidor rechaza la cookie, a la calle
+        }
+    } catch(e) {
+        window.location.href = 'index.html';
+    }
+}
+verificarAcceso();
 
 let usuarioSeleccionadoParaCreditos = null;
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
@@ -25,10 +39,9 @@ function toggleTheme () {
     body.classList.toggle('light-mode');
     const isLight = body.classList.contains('light-mode');
     document.getElementById('theme-toggle').innerText = isLight ? "☀️" : "🌙";
-
-    // ¡ESTA LÍNEA ES LA CLAVE! Guarda tu elección para que el panel Admin la pueda leer
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
 }
+
 window.anadirCreditos = function (idUsuario) {
     usuarioSeleccionadoParaCreditos = idUsuario;
     document.getElementById('modal-nombre-usuario').innerText = "ID #" + idUsuario;
@@ -41,7 +54,7 @@ window.cerrarModalCreditos = function () {
     usuarioSeleccionadoParaCreditos = null;
     document.getElementById('modal-creditos').classList.add('hidden');
 };
-//dinero
+
 const btnCreditos = document.getElementById('btn-confirmar-creditos');
 if (btnCreditos) {
     btnCreditos.addEventListener('click', async () => {
@@ -55,7 +68,7 @@ if (btnCreditos) {
 
             const response = await fetch(`${API_URL}/usuarios/${usuarioSeleccionadoParaCreditos}/creditos?cantidad=${cantidad}`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                credentials: 'include' // 🔑 MAGIA DE COOKIES
             });
 
             if (response.ok) {
@@ -77,31 +90,22 @@ if (btnCreditos) {
 let pagUsuarios = 0;
 
 window.cambiarPestana = function(pestana) {
-    // 1. Enganchamos las pantallas y los botones
     const secUsu = document.getElementById('seccion-usuarios');
     const secRol = document.getElementById('seccion-roles');
     const tabUsu = document.getElementById('tab-usuarios');
     const tabRol = document.getElementById('tab-roles');
 
     if (pestana === 'usuarios') {
-        // 2. Mostramos Usuarios, Ocultamos Roles
         secUsu.classList.remove('hidden');
         secRol.classList.add('hidden');
-
-        // 3. Encendemos el botón de Usuarios (Diseño Racing)
         tabUsu.classList.add('active');
         tabRol.classList.remove('active');
-
         cargarUsuarios();
     } else {
-        // 2. Mostramos Roles, Ocultamos Usuarios
         secUsu.classList.add('hidden');
         secRol.classList.remove('hidden');
-
-        // 3. Encendemos el botón de Roles (Diseño Racing)
         tabRol.classList.add('active');
         tabUsu.classList.remove('active');
-
         cargarRoles();
     }
 }
@@ -117,9 +121,9 @@ async function cargarUsuarios() {
 
     try {
         const [resUsu, resRoles, resMapa] = await Promise.all([
-            fetch(`${API_URL}/usuarios/paginados?page=${pagUsuarios}&size=10&sortBy=idUser&sortDir=asc`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/usuarios/paginados?page=${pagUsuarios}&size=10&sortBy=idUser&sortDir=asc`, { credentials: 'include' }),
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resUsu.ok && resRoles.ok && resMapa.ok) {
@@ -153,7 +157,6 @@ async function cargarUsuarios() {
                     }).join('');
                 }
 
-                // APLICAMOS LAS CLASES DINÁMICAS theme-row, theme-strong y theme-text
                 tabla.innerHTML += `
                     <tr class="theme-row">
                     <td class="px-5 py-4 text-sm theme-text">#${idUser}</td>
@@ -180,7 +183,7 @@ window.exportarExcelUsuarios = async function() {
     try {
         const response = await fetch(`${API_URL}/usuarios/exportar/excel`, {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         if (response.status === 401) return alert("Sesión expirada.");
         if (!response.ok) throw new Error();
@@ -206,8 +209,6 @@ window.buscarUsuarioPorId = function() {
 window.buscarUsuarioPorCorreo = function() {
     const correo = document.getElementById('search-email').value.trim();
     if (!correo) { pagUsuarios = 0; return cargarUsuarios(); }
-
-    // 1. Codificamos el correo para que el @ y otros caracteres no rompan la petición HTTP
     const correoCodificado = encodeURIComponent(correo);
     realizarBusqueda(`${API_URL}/usuarios/correo/${correoCodificado}`, true);
 };
@@ -218,9 +219,9 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
     try {
         const [resBusqueda, resRoles, resMapa] = await Promise.all([
-            fetch(urlFetch, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(urlFetch, { credentials: 'include' }),
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resBusqueda.ok && resRoles.ok && resMapa.ok) {
@@ -228,7 +229,6 @@ async function realizarBusqueda(urlFetch, esUnico) {
             const todosRoles = await resRoles.json();
             const mapaUsuariosRoles = await resMapa.json();
 
-            // 2. PARSEO INTELIGENTE: Detectamos si Java mandó una lista, un objeto paginado, o un usuario suelto.
             let usuarios = [];
             if (Array.isArray(dataBusqueda)) {
                 usuarios = dataBusqueda;
@@ -284,7 +284,7 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
 window.editarUsuario = async function(id) {
     try {
-        const response = await fetch(`${API_URL}/usuarios/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${id}`, { credentials: 'include' });
         if (response.ok) {
             const usuario = await response.json();
             document.getElementById('editUserId').value = id;
@@ -310,7 +310,8 @@ window.guardarEdicionUsuario = async function() {
     try {
         const response = await fetch(`${API_URL}/usuarios/${id}`, {
             method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(payload)
         });
         if (response.ok) {
@@ -324,7 +325,7 @@ window.guardarEdicionUsuario = async function() {
 window.borrarUsuario = async function(id) {
     if (!confirm(`¿Dar de baja al usuario con ID: ${id}?\n\n(Borrado lógico)`)) return;
     try {
-        const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) { alert("Usuario dado de baja."); cargarUsuarios(); }
     } catch (error) { alert("Fallo de red al intentar dar de baja."); }
 };
@@ -339,8 +340,8 @@ window.abrirGestionRoles = async function(idUsuario) {
 
     try {
         const [resTodosRoles, resMapa] = await Promise.all([
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resTodosRoles.ok && resMapa.ok) {
@@ -385,7 +386,8 @@ window.anadirRolAUsuario = async function(idUsuario, idRol) {
     try {
         const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ id_rol: idRol })
         });
         if (response.ok) abrirGestionRoles(idUsuario);
@@ -394,7 +396,7 @@ window.anadirRolAUsuario = async function(idUsuario, idRol) {
 
 window.quitarRolAUsuario = async function(idUsuario, idRol) {
     try {
-        const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles/${idRol}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles/${idRol}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) abrirGestionRoles(idUsuario);
     } catch (error) {}
 }
@@ -404,7 +406,7 @@ async function cargarRoles() {
     tabla.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-purple-500 animate-pulse font-bold">Cargando roles...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/roles`, { credentials: 'include' });
         if (response.ok) {
             const roles = await response.json();
             tabla.innerHTML = '';
@@ -441,7 +443,7 @@ window.crearRol = function() {
 
 window.editarRol = async function(id) {
     try {
-        const response = await fetch(`${API_URL}/roles/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/roles/${id}`, { credentials: 'include' });
         if (response.ok) {
             const rol = await response.json();
             document.getElementById('rolId').value = rol.id_rol || rol.idRol || rol.id;
@@ -468,7 +470,8 @@ window.guardarRol = async function() {
     try {
         const response = await fetch(esEdicion ? `${API_URL}/roles/${id}` : `${API_URL}/roles`, {
             method: esEdicion ? 'PUT' : 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(payload)
         });
 
@@ -486,7 +489,7 @@ window.guardarRol = async function() {
 window.borrarRol = async function(id) {
     if (!confirm(`¿Deseas desactivar este rol (ID: ${id})?`)) return;
     try {
-        const response = await fetch(`${API_URL}/roles/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
+        const response = await fetch(`${API_URL}/roles/${id}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) { alert("Rol desactivado."); cargarRoles(); }
     } catch (error) {}
 }
