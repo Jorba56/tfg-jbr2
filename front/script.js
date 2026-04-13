@@ -221,6 +221,7 @@ const Rosco = {
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                    credentials: 'include'
                 });
 
                 if (!response.ok) throw new Error("La IA no pudo generar el rosco");
@@ -280,6 +281,7 @@ const Rosco = {
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                    credentials: 'include'
                 });
 
                 if (!response.ok) throw new Error("La IA no pudo generar el rosco");
@@ -440,6 +442,7 @@ const Rosco = {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                         },
+                        credentials: 'include',
                         body: payloadJSON
                     });
 
@@ -938,7 +941,8 @@ const app = {
 
             const response = await fetch(url, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` },
+                credentials: 'include'
             });
 
             if (!response.ok) throw new Error("Error en la petición a boxes");
@@ -1079,6 +1083,7 @@ const app = {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
                         },
+                        credentials: 'include',
                         body: payloadJSON
                     });
 
@@ -1203,7 +1208,8 @@ const app = {
     loadTienda: async () => {
         try {
             const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/tienda', {
-                headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
+                credentials: 'include'
             });
             const items = await response.json();
             const shopList = document.getElementById('shop-list');
@@ -1274,7 +1280,7 @@ const app = {
             if (response.ok) {
                 app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo;
                 app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
-                
+
                 alert("¡Has comprado: " + nombreItem + "!");
                 app.updateUserUI();
                 app.loadTienda();
