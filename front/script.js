@@ -220,7 +220,7 @@ const Rosco = {
                 const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
                 const response = await fetch(url, {
                     method: 'GET',
-                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
                     credentials: 'include'
                 });
 
@@ -280,7 +280,7 @@ const Rosco = {
                 const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
                 const response = await fetch(url, {
                     method: 'GET',
-                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`}
+                    headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
                     credentials: 'include'
                 });
 
