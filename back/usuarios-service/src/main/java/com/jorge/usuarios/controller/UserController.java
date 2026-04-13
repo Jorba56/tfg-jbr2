@@ -15,11 +15,13 @@ import com.jorge.usuarios.services.impl.UserServiceImpl;
 import com.jorge.usuarios.utils.UsuarioExcelExporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
@@ -332,29 +334,21 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Cerrar Sesión Total", description = "Destruye la sesión en el servidor y borra la cookie del navegador de forma segura.")
+    @Operation(summary = "Cerrar Sesión Total", description = "Destruye el JWT y borra la cookie del navegador.")
     @PostMapping("/logout-manual")
-    public ResponseEntity<?> cerrarSesionTotal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, Authentication authentication) {
+    public ResponseEntity<?> cerrarSesionTotal(HttpServletResponse response) {
 
-        // 1. Limpiamos a nivel de Spring Security
-        if (authentication != null) {
-            new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler().logout(request, response, authentication);
-        }
+        // 1. Apuntamos DIRECTAMENTE a la cookie que crea tu AuthController y la matamos
+        Cookie jwtCookie = new Cookie("jwt_token", null);
+        jwtCookie.setPath("/");
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true); // Obligatorio para HTTPS/Railway
+        jwtCookie.setMaxAge(0);    // 0 segundos = Borrado instantáneo (La destruye)
+        response.addCookie(jwtCookie);
 
-        // 2. Destruimos la sesión física del servidor
-        jakarta.servlet.http.HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        // 2. Limpiamos la memoria residual de Spring Security en esta petición
+        SecurityContextHolder.clearContext();
 
-        // 3. 🛡️ REPARACIÓN: Forzamos el borrado en entornos HTTPS (Railway)
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("JSESSIONID", null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true); // <-- CRÍTICO: Sin esto, Chrome ignora la orden en Railway
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-
-        return ResponseEntity.ok(Map.of("mensaje", "Motor apagado y llave destruida."));
+        return ResponseEntity.ok(Map.of("mensaje", "Motor apagado y llave JWT destruida."));
     }
 }

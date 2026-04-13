@@ -732,26 +732,26 @@ const app = {
 
     logout: async () => {
         try {
-            // 1. Apuntamos a la ruta exacta que Spring Security no bloquea
+            // Llamamos a la ruta exacta
             await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout-manual', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include' // 🔑 VITAL: Envia la cookie 'jwt_token' para que Java la pueda machacar
             });
         } catch (error) {
             console.error("No se pudo contactar con el servidor:", error);
         } finally {
-            // 2. Limpieza de RAM
+            // Vaciamos la RAM
             app.currentUser = null;
             localStorage.clear();
             sessionStorage.clear();
 
-            // 3. ⏱️ REPARACIÓN: Le damos 200 milisegundos al navegador
-            // para procesar el borrado de la cookie antes de viajar al index
+            // Pequeña pausa para que el navegador procese el borrado antes de viajar
             setTimeout(() => {
                 window.location.href = "index.html";
             }, 200);
         }
     },
+
     updateUserUI: () => {
         if(!app.currentUser) return;
 
