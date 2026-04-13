@@ -87,7 +87,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=" + apiKey;
 
         String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
                 ? temaPersonalizado : "cultura general y curiosidades";
@@ -95,10 +95,11 @@ public class GeminiServiceImpl implements GeminiService {
         // El prompt es una obra de ingeniería estricta para que el JSON no falle
         String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
                 "Crea 25 palabras (UNICA Y EXCLUSIVAMENTE UNA PALABRA), una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "Evita palabras en inglés. centrate en el español. " +
                 "Di EXPLÍCITAMENTE si la palabra contiene o empieza con la letra que toca. " +
-                "REGLA ESTRICTA: Responde ÚNICAMENTE con un array JSON crudo. No añadas saludos. " +
-                "El formato de cada objeto debe ser: {'letra': 'A', 'palabra': '...', 'definicion': '...'}";
+                "REGLAS ESTRICTAS DE SALIDA: " +
+                "1. Devuelve ÚNICA Y EXCLUSIVAMENTE un array JSON válido. " +
+                "2. NO uses formato markdown (ni ```json). NO añadas saludos ni explicaciones de tu proceso. " +
+                "3. El formato de CADA objeto debe ser exactamente: {\"letra\": \"A\", \"palabra\": \"...\", \"definicion\": \"Empieza por A (o Contiene la A). [Resto de la definición]\"}";
 
         // Cuerpo de la petición perfectamente encapsulado
         String requestBody = "{" +
