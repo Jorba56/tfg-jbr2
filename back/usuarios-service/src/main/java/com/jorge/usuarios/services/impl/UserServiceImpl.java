@@ -415,8 +415,18 @@ public class UserServiceImpl implements UserService {
         perfil.put("creditos", usuario.getCreditos());
         perfil.put("avatar", usuario.getAvatarConfig() != null ? usuario.getAvatarConfig() : usuario.getNombreUsuario());
 
-        // Mapeo de inventario
-        perfil.put("inventario", usuario.getInventario());
+        // 🛠️ EL CINTURÓN DE SEGURIDAD: Mapeamos el inventario a mano para que JS nunca se confunda
+        List<Map<String, Object>> inventarioLimpio = new ArrayList<>();
+        if (usuario.getInventario() != null) {
+            for (Item item : usuario.getInventario()) {
+                Map<String, Object> itemData = new HashMap<>();
+                itemData.put("id_item", item.getIdItem());
+                itemData.put("nombre", item.getNombre());
+                itemData.put("descripcion", item.getDescripcion());
+                inventarioLimpio.add(itemData);
+            }
+        }
+        perfil.put("inventario", inventarioLimpio);
 
         return perfil;
     }

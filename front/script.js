@@ -812,7 +812,7 @@ const app = {
     logout: async () => {
         try {
             // Le decimos al servidor que destruya la Cookie
-            await fetch('https://gateway-production-a1f6.up.railway.app/api/usuarios/logout', {
+            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout', {
                 method: 'POST',
                 credentials: 'include'
             });

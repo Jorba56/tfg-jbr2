@@ -15,10 +15,12 @@ import com.jorge.usuarios.services.impl.UserServiceImpl;
 import com.jorge.usuarios.utils.UsuarioExcelExporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
@@ -45,6 +47,20 @@ public class UserController {
     public UserController(UserServiceImpl userServiceImpl, ItemRepository itemRepository) {
         this.userServiceImpl = userServiceImpl;
         this.itemRepository = itemRepository;
+    }
+
+    @Operation(summary = "Cerrar sesión", description = "Invalida la cookie de sesión del piloto en el servidor.")
+    @PostMapping("/logout")
+    public ResponseEntity<?> cerrarSesion(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        try {
+            if (authentication != null) {
+                // Esta línea hace la magia: invalida la sesión de Spring y manda la orden al navegador de borrar la cookie
+                new SecurityContextLogoutHandler().logout(request, response, authentication);
+            }
+            return ResponseEntity.ok(Map.of("mensaje", "Piloto desconectado. Motor apagado."));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("mensaje", "Fallo al desconectar los sistemas."));
+        }
     }
 
     /**
