@@ -55,6 +55,24 @@ public class UserController {
         return userServiceImpl.listarUsuarios();
     }
 
+    @Operation(summary = "Obtener propio perfil", description = "Devuelve los datos del usuario logueado basándose en su Cookie/Token.")
+    @GetMapping("/perfil")
+    public ResponseEntity<?> getPropioPerfil(Authentication authentication) {
+        try {
+            // El nombre en el token es el email
+            String emailLogueado = authentication.getName();
+
+            // Buscamos todos los datos del piloto en BBDD
+            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailLogueado);
+
+            // Devolvemos el piloto (Spring Boot lo convierte a JSON automáticamente)
+            return ResponseEntity.ok(pilotoActual);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body("Sesión inválida o caducada");
+        }
+    }
+
     /**
      * Busca y devuelve los datos de un usuario específico mediante su ID.
      * Exclusivo para el administrador.

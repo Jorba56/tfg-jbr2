@@ -39,30 +39,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 🏎️ 1. CONFIGURACIÓN CORS DE ALTO RENDIMIENTO
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        // 🚨 PON AQUÍ LAS URLs DESDE DONDE ABRES TU HTML (NO PUEDE SER "*")
-        config.setAllowedOrigins(List.of(
-                "http://127.0.0.1:5500",
-                "http://localhost:5500",
-                "https://tfg-jbr2.onrender.com", // Cambia esto si subes el front a Railway/Vercel
-                "http://localhost:63342"
-        ));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // 🔑 PERMITE QUE VIAJEN LAS COOKIES
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(c -> c.configurationSource(corsConfigurationSource())) // Enganchamos el CORS
+                .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth

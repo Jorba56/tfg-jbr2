@@ -626,7 +626,7 @@ const app = {
 
         try {
             // Preguntamos al servidor quiénes somos usando la Cookie
-            const response = await fetch('https://gateway-production-a1f6.up.railway.app/api/usuarios/perfil', {
+            const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/perfil', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include' // 🔑
