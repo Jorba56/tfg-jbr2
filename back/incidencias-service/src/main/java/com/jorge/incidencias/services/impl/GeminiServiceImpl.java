@@ -10,8 +10,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import java.util.logging.Level;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
 
 @Service
 public class GeminiServiceImpl implements GeminiService {
@@ -87,36 +91,58 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
+        // 🏎️ Usamos el motor ultrarresistente y oficial (1.5-flash)
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
         String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
                 ? temaPersonalizado : "cultura general y curiosidades";
 
-        // El prompt es una obra de ingeniería estricta para que el JSON no falle
+        // El prompt ahora es mucho más simple porque el esquema JSON hace el trabajo duro
         String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
-                "Crea 25 palabras (UNICA Y EXCLUSIVAMENTE UNA PALABRA), una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "Evita palabras en inglés. centrate en el español. " +
-                "Di EXPLÍCITAMENTE si la palabra contiene o empieza con la letra que toca. " +
-                "REGLA ESTRICTA: Responde ÚNICAMENTE con un array JSON crudo. No añadas saludos. " +
-                "El formato de cada objeto debe ser: {'letra': 'A', 'palabra': '...', 'definicion': '...'}";
-
-        // Cuerpo de la petición perfectamente encapsulado
-        String requestBody = "{" +
-                "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
-                "\"generationConfig\": {\"temperature\": 0.2, \"maxOutputTokens\": 2500}" +
-                "}";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+                "Crea exactamente 25 palabras en español, una para cada letra del abecedario (incluyendo la Ñ). " +
+                "La definición debe empezar diciendo si 'Empieza por' o 'Contiene' la letra.";
 
         try {
+            // 🛡️ EL ESCUDO DEFINITIVO: DEFINIMOS LA ESTRUCTURA EXACTA DEL JSON
+            // Obligamos a la IA a rellenar este molde, es imposible que falle la sintaxis.
+            Map<String, Object> schemaProperties = Map.of(
+                    "letra", Map.of("type", "STRING"),
+                    "palabra", Map.of("type", "STRING"),
+                    "definicion", Map.of("type", "STRING")
+            );
+
+            Map<String, Object> schemaItem = Map.of(
+                    "type", "OBJECT",
+                    "properties", schemaProperties,
+                    "required", List.of("letra", "palabra", "definicion")
+            );
+
+            Map<String, Object> responseSchema = Map.of(
+                    "type", "ARRAY",
+                    "items", schemaItem
+            );
+
+            Map<String, Object> requestMap = Map.of(
+                    "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
+                    "generationConfig", Map.of(
+                            "temperature", 0.1,
+                            "maxOutputTokens", 8000, // ⛽ Ampliamos el depósito para que nunca se corte a medias
+                            "responseMimeType", "application/json",
+                            "responseSchema", responseSchema // 🔒 APLICAMOS EL MOLDE ESTRICTO
+                    )
+            );
+
+            String requestBody = objectMapper.writeValueAsString(requestMap);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             JsonNode root = objectMapper.readTree(response.getBody());
 
-            // 1. Chivato antiescudos de seguridad (A veces Gemini bloquea temas sin avisar)
             if (root.path("candidates").isEmpty()) {
-                logger.error("🛑 Gemini bloqueó la respuesta o devolvió vacío: {}", response.getBody());
+                logger.error("🛑 Gemini devolvió vacío.");
                 return "[]";
             }
 
@@ -125,22 +151,16 @@ public class GeminiServiceImpl implements GeminiService {
                     .path("parts").get(0)
                     .path("text").asText().trim();
 
-            // 2. FILTRO EXTREMO ANTIBASURA:
-            // Si Gemini mete texto antes o después del JSON, lo recortamos de cuajo.
-            int inicioArray = jsonCrudo.indexOf("[");
-            int finArray = jsonCrudo.lastIndexOf("]");
+            // 🧹 LA ESCOBA FINAL: Si la IA mete un salto de línea real, JavaScript crashea.
+            // Con esto, cambiamos los saltos de línea por espacios normales antes de mandarlo al frontend.
+            jsonCrudo = jsonCrudo.replace("\n", " ").replace("\r", " ").trim();
 
-            if (inicioArray != -1 && finArray != -1) {
-                jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
-            }
-
-            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaFinal);
+            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: " + temaFinal);
             return jsonCrudo;
 
         } catch (Exception e) {
-            // 3. Telemetría de alta precisión
             logger.error("💥 FALLO CRÍTICO AL GENERAR ROSCO. Motivo exacto: {}", e.getMessage());
-            return "[]"; // Activará el error 400 en el controlador
+            return "[]";
         }
     }
 }
