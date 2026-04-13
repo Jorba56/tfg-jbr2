@@ -979,7 +979,7 @@ body.tema-cyberpunk input:focus {
 .nav-avatar-trigger img {
     border-radius: 50%;
     border: 2px solid #4CAF50; /* Tu color principal */
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--card-bg);
     transition: transform 0.3s ease;
     object-fit: cover;
 }
@@ -994,7 +994,7 @@ body.tema-cyberpunk input:focus {
     top: 120%; /* Se coloca justo debajo */
     right: 0;
     width: 200px;
-    background-color: #1a1a1a; /* Color de fondo de tu barra/cartas */
+    background-color: rgba(31, 40, 51); /* Color de fondo de tu barra/cartas */
     border: 1px solid #333;
     border-radius: 12px;
     padding: 20px;
@@ -1003,7 +1003,7 @@ body.tema-cyberpunk input:focus {
     z-index: 1000;
 
     /* Magia de la animación: Oculto por defecto */
-    opacity: 0;
+    opacity: -1;
     visibility: hidden;
     transform: translateY(15px);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

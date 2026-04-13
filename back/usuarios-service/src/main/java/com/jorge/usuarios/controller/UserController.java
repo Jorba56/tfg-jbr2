@@ -332,8 +332,8 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Cerrar Sesión Total", description = "Destruye la sesión en el servidor y borra la cookie del navegador.")
-    @PostMapping("/logout")
+    @Operation(summary = "Cerrar Sesión Total", description = "Destruye la sesión en el servidor y borra la cookie del navegador de forma segura.")
+    @PostMapping("/logout-manual")
     public ResponseEntity<?> cerrarSesionTotal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, Authentication authentication) {
 
         // 1. Limpiamos a nivel de Spring Security
@@ -347,11 +347,12 @@ public class UserController {
             session.invalidate();
         }
 
-        // 3. Forzamos al navegador a borrar la Cookie enviándole una caducada
+        // 3. 🛡️ REPARACIÓN: Forzamos el borrado en entornos HTTPS (Railway)
         jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("JSESSIONID", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setMaxAge(0); // 0 segundos de vida = Borrado instantáneo
+        cookie.setSecure(true); // <-- CRÍTICO: Sin esto, Chrome ignora la orden en Railway
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
 
         return ResponseEntity.ok(Map.of("mensaje", "Motor apagado y llave destruida."));
