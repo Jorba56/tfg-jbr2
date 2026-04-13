@@ -103,7 +103,7 @@ public class GeminiServiceImpl implements GeminiService {
         // Cuerpo de la petición perfectamente encapsulado
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
-                "\"generationConfig\": {\"temperature\": 0.7, \"maxOutputTokens\": 2500}" +
+                "\"generationConfig\": {\"temperature\": 0.2, \"maxOutputTokens\": 2500}" +
                 "}";
 
         HttpHeaders headers = new HttpHeaders();
