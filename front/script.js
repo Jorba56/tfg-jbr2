@@ -612,18 +612,21 @@ const app = {
         }
 
         try {
-            const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/perfil', {
+            // 🛡️ REPARACIÓN: Añadimos la hora actual a la URL para reventar la caché del navegador
+            const timestamp = new Date().getTime();
+            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/perfil?t=${timestamp}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-cache' // Forzamos a no usar memoria antigua
+                },
                 credentials: 'include' // 🔑
             });
 
             if (response.ok) {
                 const data = await response.json();
 
-                // 🛠️ TRADUCTOR: Adaptamos el DTO de Spring Boot al formato de nuestro JS
-
-                // 1. Traducir el inventario (El backend suele llamarlo 'items')
+                // 1. Traducir el inventario
                 let inventarioSeguro = [];
                 const itemsDelBackend = data.items || data.inventario || [];
                 if (Array.isArray(itemsDelBackend)) {
@@ -665,6 +668,7 @@ const app = {
             app.showScreen('login-screen');
         }
     },
+
 
     login: async () => {
         const userVal = document.getElementById('username').value.trim();

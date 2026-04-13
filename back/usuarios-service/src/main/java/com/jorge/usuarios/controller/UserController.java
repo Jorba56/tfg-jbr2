@@ -19,6 +19,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -338,17 +340,20 @@ public class UserController {
     @PostMapping("/logout-manual")
     public ResponseEntity<?> cerrarSesionTotal(HttpServletResponse response) {
 
-        // 1. Apuntamos DIRECTAMENTE a la cookie que crea tu AuthController y la matamos
-        Cookie jwtCookie = new Cookie("jwt_token", null);
-        jwtCookie.setPath("/");
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true); // Obligatorio para HTTPS/Railway
-        jwtCookie.setMaxAge(0);    // 0 segundos = Borrado instantáneo (La destruye)
-        response.addCookie(jwtCookie);
+        // 🛡️ REPARACIÓN DEFINITIVA CORS/RAILWAY: Usamos ResponseCookie para forzar el SameSite=None
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", "")
+                .path("/")
+                .httpOnly(true)
+                .secure(true)       // Obligatorio en HTTPS
+                .sameSite("None")   // 🔑 LA MAGIA: Permite que tu navegador borre la cookie aunque estés en otro dominio
+                .maxAge(0)          // 0 = Destrucción instantánea
+                .build();
 
-        // 2. Limpiamos la memoria residual de Spring Security en esta petición
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+        // Limpiamos la RAM del servidor
         SecurityContextHolder.clearContext();
 
-        return ResponseEntity.ok(Map.of("mensaje", "Motor apagado y llave JWT destruida."));
+        return ResponseEntity.ok(Map.of("mensaje", "Exorcismo completado. Sesión destruida."));
     }
 }

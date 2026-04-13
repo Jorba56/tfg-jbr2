@@ -416,6 +416,20 @@ public class UserServiceImpl implements UserService {
         perfil.put("creditos", usuario.getCreditos());
         perfil.put("avatar", usuario.getAvatarConfig() != null ? usuario.getAvatarConfig() : usuario.getNombreUsuario());
 
+        boolean isAdmin = false;
+        if (usuario.getRoles() != null) {
+            for (Rol rol : usuario.getRoles()) {
+                // OJO: Si tu getter del nombre del rol no es getNombreRol(), cámbialo por getNombre() o getName()
+                String nombreRol = rol.getName();
+                if (nombreRol != null && nombreRol.toUpperCase().contains("ADMIN")) {
+                    isAdmin = true;
+                    break;
+                }
+            }
+        }
+        // Metemos el pase VIP en el paquete
+        perfil.put("isAdmin", isAdmin);
+
         // 🛠️ EL CINTURÓN DE SEGURIDAD: Mapeamos el inventario a mano para que JS nunca se confunda
         List<Map<String, Object>> inventarioLimpio = new ArrayList<>();
         if (usuario.getInventario() != null) {
