@@ -21,10 +21,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.Authentication;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
 
 /**
  * Servicio encargado de gestionar la lógica de negocio relacionada con los Usuarios.
@@ -394,5 +392,59 @@ public class UserServiceImpl implements UserService {
 
         // 3. Apretamos los tornillos (Guardar en BBDD)
         userRep.save(usuario);
+    }
+
+    /**
+     * Obtiene los datos del perfil de un usuario logueado.
+     * Devuelve un mapa con la información esencial necesaria para el frontend (nombre, créditos, avatar e inventario).
+     *
+     * @param emailLogueado correo electrónico del usuario extraído del contexto de seguridad
+     * @return mapa con los datos del perfil del usuario listos para ser serializados a JSON
+     * @throws NotFoundException si el usuario no es encontrado en la base de datos
+     */
+    @Override
+    public Map<String, Object> getPropioPerfil(String emailLogueado) {
+        User usuario = userRep.findUserByEmailUsuario(emailLogueado);
+
+        if (usuario == null) {
+            throw new NotFoundException("Usuario no encontrado en el sistema.");
+        }
+
+        Map<String, Object> perfil = new HashMap<>();
+        perfil.put("username", usuario.getNombreUsuario());
+        perfil.put("creditos", usuario.getCreditos());
+        perfil.put("avatar", usuario.getAvatarConfig() != null ? usuario.getAvatarConfig() : usuario.getNombreUsuario());
+
+        // Mapeo de inventario
+        perfil.put("inventario", usuario.getInventario());
+
+        return perfil;
+    }
+
+    /**
+     * Actualiza la cadena de configuración del avatar (DiceBear) de un usuario en la base de datos.
+     *
+     * @param emailLogueado correo electrónico del usuario que solicita el cambio
+     * @param avatarConfig cadena de configuración generada por el frontend (ej. "Nombre&top=hat")
+     * @return mapa con el mensaje de confirmación de la operación
+     * @throws NotFoundException si el usuario no es encontrado en la base de datos
+     */
+    @Transactional
+    @Override
+    public Map<String, Object> actualizarAvatar(String emailLogueado, String avatarConfig) {
+        User usuario = userRep.findUserByEmailUsuario(emailLogueado);
+
+        if (usuario == null) {
+            throw new NotFoundException("Usuario no encontrado en el sistema.");
+        }
+
+        // Guardamos la "receta" que viene del frontend
+        usuario.setAvatarConfig(avatarConfig);
+        userRep.save(usuario);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("mensaje", "¡Avatar guardado con éxito!");
+
+        return response;
     }
 }

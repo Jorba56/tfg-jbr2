@@ -9,6 +9,7 @@ import com.jorge.usuarios.dto.UsersAllDTO;
 
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
+import com.jorge.usuarios.exceptions.NotFoundException;
 import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.services.impl.UserServiceImpl;
 import com.jorge.usuarios.utils.UsuarioExcelExporter;
@@ -26,6 +27,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Controlador REST encargado de gestionar las peticiones HTTP relacionadas con los Usuarios.
@@ -55,24 +58,6 @@ public class UserController {
         return userServiceImpl.listarUsuarios();
     }
 
-    @Operation(summary = "Obtener propio perfil", description = "Devuelve los datos del usuario logueado basándose en su Cookie/Token.")
-    @GetMapping("/perfil")
-    public ResponseEntity<?> getPropioPerfil(Authentication authentication) {
-        try {
-            // El nombre en el token es el email
-            String emailLogueado = authentication.getName();
-
-            // Buscamos todos los datos del piloto en BBDD
-            User pilotoActual = userServiceImpl.buscarPorEmailTodo(emailLogueado);
-
-            // Devolvemos el piloto (Spring Boot lo convierte a JSON automáticamente)
-            return ResponseEntity.ok(pilotoActual);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(401).body("Sesión inválida o caducada");
-        }
-    }
-
     /**
      * Busca y devuelve los datos de un usuario específico mediante su ID.
      * Exclusivo para el administrador.
@@ -84,29 +69,7 @@ public class UserController {
         return userServiceImpl.buscarPorId(id);
     }
 
-    @Operation(summary = "Actualizar propio perfil", description = "El usuario actualiza sus datos con su Token, sin enviar ID.")
-    @PutMapping("/perfil") // Usamos "mi-perfil" para evitar conflictos con la ruta "/{id}"
-    public ResponseEntity<?> updatePropioPerfil(@RequestBody User usuario, Authentication authentication) {
-        try {
-            // 1. La aduana saca tu email del Token automáticamente
-            String emailLogueado = authentication.getName();
 
-            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailLogueado);
-
-            // 🚨 ATENCIÓN MECÁNICO: Revisa tu DTO. Puede que el getter sea getIdUsuario() o getId_user()
-            Long idReal = pilotoActual.getIdUser();
-
-            // 3. Reutilizamos tu motor de actualización (que ahora sí pedirá todos los datos)
-            String resultado = userServiceImpl.actualizarUsuario(idReal, usuario, authentication);
-
-            return ResponseEntity.ok(resultado);
-
-        } catch (BadRequestException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Fallo interno en boxes al actualizar: " + e.getMessage());
-        }
-    }
 
     /**
      * Busca y devuelve los datos de un usuario específico mediante su correo.
@@ -300,6 +263,49 @@ public class UserController {
         } catch (Exception e) {
             System.err.println("💥 ERROR INTERNO AL GUARDAR: " + e.getMessage());
             return ResponseEntity.internalServerError().body("Fallo catastrófico en el motor de guardado");
+        }
+    }
+
+    @Operation(summary = "Obtener propio perfil", description = "Devuelve los datos del usuario logueado basándose en su Cookie/Token.")
+    @GetMapping("/perfil")
+    public ResponseEntity<?> getPropioPerfil(Authentication authentication) {
+        try {
+            // 1. El controller saca el dato de la petición HTTP
+            String emailLogueado = authentication.getName();
+
+            // 2. Delega el trabajo duro al Service
+            Map<String, Object> perfil = userServiceImpl.getPropioPerfil(emailLogueado);
+
+            // 3. Envuelve el resultado en un 200 OK
+            return ResponseEntity.ok(perfil);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Error al obtener perfil: " + e.getMessage());
+            return ResponseEntity.status(401).body(Map.of("mensaje", "Sesión inválida o caducada"));
+        }
+    }
+
+    @Operation(summary = "Actualizar Avatar", description = "Guarda la configuración del nuevo avatar de DiceBear.")
+    @PutMapping("/avatar")
+    public ResponseEntity<?> actualizarAvatar(Authentication authentication, @RequestBody Map<String, String> body) {
+        try {
+            // 1. Extraemos quién es y qué avatar quiere
+            String emailLogueado = authentication.getName();
+            String nuevaConfig = body.get("config");
+
+            // 2. Delegamos al Service
+            Map<String, Object> respuesta = userServiceImpl.actualizarAvatar(emailLogueado, nuevaConfig);
+
+            // 3. Devolvemos el OK
+            return ResponseEntity.ok(respuesta);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Error en el taller de avatares: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("mensaje", "Error interno en el taller"));
         }
     }
 }

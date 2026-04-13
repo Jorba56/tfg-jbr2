@@ -41,6 +41,9 @@ public class User{
     @Column(name = "color_tema")
     private String colorTema = "default";
 
+    @Column(name = "avatar_config", length = 255)
+    private String avatarConfig;
+
     // Genera los Getters y Setters para creditos y colorTema
     public int getCreditos() { return creditos; }
     public void setCreditos(int creditos) { this.creditos = creditos; }
@@ -82,6 +85,9 @@ public class User{
     public Long getIdUser() { return idUser; }
     @JsonIgnore
     public void setIdUser(Long idUser) { this.idUser= idUser; }
+
+    public String getAvatarConfig() { return avatarConfig; }
+    public void setAvatarConfig(String avatarConfig) { this.avatarConfig = avatarConfig; }
 
     public String getNombreUsuario() { return nombreUsuario; }
     public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }

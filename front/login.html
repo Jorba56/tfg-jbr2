@@ -223,6 +223,31 @@
                     <input type="password" id="upd-password" class="theme-input" style="width: 100%; padding: 10px; border-radius: 5px;" placeholder="Dejar en blanco para no cambiar">
                 </div>
 
+                <div class="avatar-workshop" style="text-align: center; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+                    <img id="avatar-preview" src="" width="150" height="150" style="border: 3px solid #4CAF50; border-radius: 50%;">
+
+                    <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
+                        <label>🎩 Pelo / Sombrero:
+                            <select id="av-top">
+                                <option value="shortHair">Corto</option>
+                                <option value="longHair">Largo</option>
+                                <option value="hat">Sombrero</option>
+                                <option value="eyepatch">Parche</option>
+                            </select>
+                        </label>
+
+                        <label>🕶️ Accesorios:
+                            <select id="av-acc">
+                                <option value="none">Ninguno</option>
+                                <option value="sunglasses">Gafas de sol</option>
+                                <option value="prescription02">Gafas de ver</option>
+                            </select>
+                        </label>
+
+                        <button id="btn-save-avatar" class="btn-primary">💾 Guardar Look</button>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn-main" style="width: 100%;">
                     <div>GUARDAR CAMBIOS</div>
                 </button>

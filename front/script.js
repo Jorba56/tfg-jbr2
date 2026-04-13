@@ -14,6 +14,42 @@ function navegarA(idPantalla) {
 
 }
 
+const DICEBEAR_API = 'https://api.dicebear.com/9.x/avataaars/svg';
+
+function updateAvatarPreview() {
+    const base = app.currentUser.username;
+    const top = document.getElementById('av-top').value;
+    const acc = document.getElementById('av-acc').value;
+
+    // Construimos la receta
+    let config = `${encodeURIComponent(base)}&top=${top}`;
+    if (acc !== 'none') config += `&accessories=${acc}`;
+
+    document.getElementById('avatar-preview').src = `${DICEBEAR_API}?seed=${config}`;
+    return config;
+}
+
+
+document.getElementById('btn-save-avatar').addEventListener('click', async () => {
+    const config = updateAvatarPreview();
+
+    try {
+        const response = await fetch(`${API_URL}/usuarios/avatar`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ config: config })
+        });
+
+        if (response.ok) {
+            app.currentUser.avatar = config;
+            alert("¡Piloto personalizado!");
+        }
+    } catch (e) {
+        console.error("Error en el taller:", e);
+    }
+});
+
 document.getElementById('update-profile-form').onsubmit = async (e) => {
     e.preventDefault();
 
@@ -1375,6 +1411,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('card-play').addEventListener('click', app.startGame);
     document.getElementById('card-profile').addEventListener('click', app.openProfile);
     document.getElementById('card-shop').addEventListener('click', app.openShop);
+    document.getElementById('av-top').addEventListener('change', updateAvatarPreview);
+    document.getElementById('av-acc').addEventListener('change', updateAvatarPreview);
 
     // 3. Tarjeta Admin (Ir a la otra página)
     document.getElementById('card-admin').addEventListener('click', () => {
