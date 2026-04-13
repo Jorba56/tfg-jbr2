@@ -308,4 +308,25 @@ public class UserController {
             return ResponseEntity.status(500).body(Map.of("mensaje", "Error interno en el taller"));
         }
     }
+
+    @Operation(summary = "Actualizar perfil propio", description = "Permite al piloto cambiar su nombre y contraseña.")
+    @PutMapping("/perfil")
+    public ResponseEntity<?> actualizarPropioPerfil(Authentication authentication, @RequestBody Map<String, String> payload) {
+        try {
+            // 1. Sacamos el email de la cookie segura
+            String emailLogueado = authentication.getName();
+
+            // 2. Delegamos al Service
+            Map<String, Object> respuesta = userServiceImpl.actualizarPerfil(emailLogueado, payload);
+
+            // 3. Devolvemos 200 OK
+            return ResponseEntity.ok(respuesta);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            // Cero loggers: informamos del fallo genérico al frontend
+            return ResponseEntity.status(500).body(Map.of("mensaje", "Fallo mecánico al actualizar el perfil"));
+        }
+    }
 }

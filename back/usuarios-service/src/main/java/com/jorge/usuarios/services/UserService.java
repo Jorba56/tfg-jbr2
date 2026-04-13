@@ -108,5 +108,8 @@ public interface UserService {
     Map<String, Object> getPropioPerfil(String emailLogueado);
 
     @Transactional
+    Map<String, Object> actualizarPerfil(String emailLogueado, Map<String, String> payload);
+
+    @Transactional
     Map<String, Object> actualizarAvatar(String emailLogueado, String avatarConfig);
 }

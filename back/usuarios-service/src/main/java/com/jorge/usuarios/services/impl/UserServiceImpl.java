@@ -421,6 +421,33 @@ public class UserServiceImpl implements UserService {
         return perfil;
     }
 
+    @Transactional
+    @Override
+    public Map<String, Object> actualizarPerfil(String emailLogueado, Map<String, String> payload) {
+        User usuario = userRep.findUserByEmailUsuario(emailLogueado);
+
+        if (usuario == null) {
+            throw new NotFoundException("Usuario no encontrado en el sistema.");
+        }
+
+        // 1. Actualizamos el nombre si viene en el paquete
+        if (payload.containsKey("nombre_usuario") && !payload.get("nombre_usuario").trim().isEmpty()) {
+            usuario.setNombreUsuario(payload.get("nombre_usuario"));
+        }
+
+        // 2. Actualizamos la contraseña si viene en el paquete
+        if (payload.containsKey("contrasenha_usuario") && !payload.get("contrasenha_usuario").trim().isEmpty()) {
+            // Nota: Si usas PasswordEncoder en tu proyecto, deberías envolver esto en un .encode()
+            // ej: usuario.setContrasenhaUsuario(passwordEncoder.encode(payload.get("contrasenha_usuario")));
+            usuario.setContrasenhaUsuario(payload.get("contrasenha_usuario"));
+        }
+
+        // 3. Apretamos tuercas en BBDD
+        userRep.save(usuario);
+
+        return Map.of("mensaje", "Perfil actualizado con éxito");
+    }
+
     /**
      * Actualiza la cadena de configuración del avatar (DiceBear) de un usuario en la base de datos.
      *

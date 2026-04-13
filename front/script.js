@@ -14,27 +14,60 @@ function navegarA(idPantalla) {
 
 }
 
-const DICEBEAR_API = 'https://api.dicebear.com/9.x/avataaars/svg';
-
 function updateAvatarPreview() {
+    const DICEBEAR_API = 'https://api.dicebear.com/9.x/avataaars/svg';
+    if (!app.currentUser) return '';
+
     const base = app.currentUser.username;
     const top = document.getElementById('av-top').value;
     const acc = document.getElementById('av-acc').value;
 
-    // Construimos la receta
+    // 1. Construimos la receta básica
     let config = `${encodeURIComponent(base)}&top=${top}`;
-    if (acc !== 'none') config += `&accessories=${acc}`;
 
+    // 2. 🛠️ REPARACIÓN GAFAS: Obligamos al servidor (100% probabilidad) a ponerlas
+    if (acc !== 'none') {
+        config += `&accessories=${acc}&accessoriesProbability=100`;
+    } else {
+        config += `&accessoriesProbability=0`; // Si elige "Ninguno", forzamos a 0
+    }
+
+    // 3. Pintamos la imagen al instante
     document.getElementById('avatar-preview').src = `${DICEBEAR_API}?seed=${config}`;
     return config;
 }
 
+// 🛠️ REPARACIÓN DE CARGA INICIAL: Lee la BD y coloca los botones en su sitio
+function inicializarTaller() {
+    if (app.currentUser && app.currentUser.avatar) {
+        const savedString = app.currentUser.avatar;
 
-document.getElementById('btn-save-avatar').addEventListener('click', async () => {
+        // Usamos magia de JS para extraer los parámetros de la cadena guardada
+        if (savedString.includes('&')) {
+            const params = new URLSearchParams(savedString.substring(savedString.indexOf('&')));
+
+            // Colocamos los desplegables en el valor que el piloto guardó la última vez
+            if (params.has('top')) document.getElementById('av-top').value = params.get('top');
+            if (params.has('accessories')) document.getElementById('av-acc').value = params.get('accessories');
+        }
+    }
+    // Forzamos la primera actualización visual para que no salga invisible
+    updateAvatarPreview();
+}
+
+// Escuchamos los cambios (Efecto Kahoot en vivo)
+document.getElementById('av-top').addEventListener('change', updateAvatarPreview);
+document.getElementById('av-acc').addEventListener('change', updateAvatarPreview);
+
+// Guardado en Base de Datos (Railway)
+document.getElementById('btn-save-avatar').addEventListener('click', async (e) => {
+    const btn = e.target;
+    btn.innerText = "Guardando...";
     const config = updateAvatarPreview();
 
     try {
-        const response = await fetch(`${API_URL}/usuarios/avatar`, {
+        // Usa aquí tu constante API_URL o el enlace directo de Railway
+        const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/avatar`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -43,65 +76,67 @@ document.getElementById('btn-save-avatar').addEventListener('click', async () =>
 
         if (response.ok) {
             app.currentUser.avatar = config;
-            alert("¡Piloto personalizado!");
+            btn.innerText = "¡Look Guardado! ✔️";
+            btn.style.backgroundColor = "#2e7d32";
+            setTimeout(() => {
+                btn.innerText = "💾 Guardar Look";
+                btn.style.backgroundColor = "#4CAF50";
+            }, 2000);
         }
     } catch (e) {
         console.error("Error en el taller:", e);
+        btn.innerText = "💾 Guardar Look";
     }
 });
 
 document.getElementById('update-profile-form').onsubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem('jwt_token');
-    if (!token) return alert("Falta el Token de acceso. Pasa por boxes.");
-
     try {
         const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
-        // Ponemos el botón en modo "Carga" para que el usuario no haga doble clic
+        // Ponemos el botón en modo "Carga" para evitar doble clic
         const btnSubmit = e.target.querySelector('button[type="submit"]');
         btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
         btnSubmit.disabled = true;
 
-        // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre.
-        // (El backend dejará el correo y el apellido intactos)
+        // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre y la nueva clave (si la hay)
         const payloadPut = {
             nombre_usuario: document.getElementById('upd-username').value
         };
 
         const newPassword = document.getElementById('upd-password').value;
         if (newPassword.trim() !== '') {
-            // ¡OJO AQUÍ! Asegúrate de que coincida con tu User.java
             payloadPut.contrasenha_usuario = newPassword;
         }
 
-        // 🚀 Disparamos el coche al carril VIP: /mi-perfil
+        // 🚀 Disparamos la actualización al pit lane
         const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
+                // 🛑 ELIMINADO: 'Authorization': `Bearer ${token}`
+                // Ya no hace falta, porque la seguridad va por la Cookie.
             },
-            credentials: 'include',
+            credentials: 'include', // 🔑 ESTA LÍNEA ES LA MAGIA. Envía la cookie automáticamente.
             body: JSON.stringify(payloadPut)
         });
 
         if (responsePut.ok) {
-            alert("¡Perfil actualizado con éxito! Por seguridad, vuelve a iniciar sesión.");
-            // Usamos tu función de logout para limpiar la sesión y mandarlo al inicio
+            alert("¡Look y Perfil actualizados con éxito! Por seguridad, vuelve a iniciar sesión.");
+            // Obligamos al usuario a reloguearse para que Spring Boot renueve sus credenciales
             app.logout();
         } else {
-            // Si el servidor se queja, leemos el mensaje de error exacto
+            // Leemos la queja del servidor si algo va mal
             const errText = await responsePut.text();
-            throw new Error(errText || "La base de datos rechazó los cambios.");
+            throw new Error(errText || "El taller rechazó los cambios.");
         }
 
     } catch (error) {
         alert("Fallo en boxes: " + error.message);
         console.error("Detalle del error:", error);
     } finally {
-        // Restauramos el botón a la normalidad pase lo que pase
+        // Restauramos el botón a la normalidad
         const btnSubmit = e.target.querySelector('button[type="submit"]');
         if(btnSubmit) {
             btnSubmit.innerHTML = '<div>GUARDAR CAMBIOS</div>';
@@ -761,7 +796,7 @@ const app = {
                 habilidadesEquipadas: data.habilidadesEquipadas || [],
                 colorTema: data.colorTema || null
             };
-
+            inicializarTaller();
             app.updateUserUI();
             app.showScreen('dashboard-screen');
             app.verificarTutorial();
