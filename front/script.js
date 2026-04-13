@@ -60,90 +60,6 @@ document.getElementById('av-top').addEventListener('change', updateAvatarPreview
 document.getElementById('av-acc').addEventListener('change', updateAvatarPreview);
 
 // Guardado en Base de Datos (Railway)
-document.getElementById('btn-save-avatar').addEventListener('click', async (e) => {
-    const btn = e.target;
-    btn.innerText = "Guardando...";
-    const config = updateAvatarPreview();
-
-    try {
-        // Usa aquí tu constante API_URL o el enlace directo de Railway
-        const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/avatar`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ config: config })
-        });
-
-        if (response.ok) {
-            app.currentUser.avatar = config;
-            btn.innerText = "¡Look Guardado! ✔️";
-            btn.style.backgroundColor = "#2e7d32";
-            setTimeout(() => {
-                btn.innerText = "💾 Guardar Look";
-                btn.style.backgroundColor = "#4CAF50";
-            }, 2000);
-        }
-    } catch (e) {
-        console.error("Error en el taller:", e);
-        btn.innerText = "💾 Guardar Look";
-    }
-});
-
-document.getElementById('update-profile-form').onsubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-        const API_URL = 'https://gateway-production-a1f6.up.railway.app';
-
-        // Ponemos el botón en modo "Carga" para evitar doble clic
-        const btnSubmit = e.target.querySelector('button[type="submit"]');
-        btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
-        btnSubmit.disabled = true;
-
-        // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre y la nueva clave (si la hay)
-        const payloadPut = {
-            nombre_usuario: document.getElementById('upd-username').value
-        };
-
-        const newPassword = document.getElementById('upd-password').value;
-        if (newPassword.trim() !== '') {
-            payloadPut.contrasenha_usuario = newPassword;
-        }
-
-        // 🚀 Disparamos la actualización al pit lane
-        const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-                // 🛑 ELIMINADO: 'Authorization': `Bearer ${token}`
-                // Ya no hace falta, porque la seguridad va por la Cookie.
-            },
-            credentials: 'include', // 🔑 ESTA LÍNEA ES LA MAGIA. Envía la cookie automáticamente.
-            body: JSON.stringify(payloadPut)
-        });
-
-        if (responsePut.ok) {
-            alert("¡Look y Perfil actualizados con éxito! Por seguridad, vuelve a iniciar sesión.");
-            // Obligamos al usuario a reloguearse para que Spring Boot renueve sus credenciales
-            app.logout();
-        } else {
-            // Leemos la queja del servidor si algo va mal
-            const errText = await responsePut.text();
-            throw new Error(errText || "El taller rechazó los cambios.");
-        }
-
-    } catch (error) {
-        alert("Fallo en boxes: " + error.message);
-        console.error("Detalle del error:", error);
-    } finally {
-        // Restauramos el botón a la normalidad
-        const btnSubmit = e.target.querySelector('button[type="submit"]');
-        if(btnSubmit) {
-            btnSubmit.innerHTML = '<div>GUARDAR CAMBIOS</div>';
-            btnSubmit.disabled = false;
-        }
-    }
-};
 
 // ==========================================
 // SISTEMA CENTRAL DE POWER-UPS (LIMPIO)
@@ -733,7 +649,8 @@ const app = {
                     inventario: inventarioSeguro,
                     isAdmin: esAdmin,
                     habilidadesEquipadas: data.habilidadesEquipadas || [],
-                    colorTema: data.colorTema || null
+                    colorTema: data.colorTema || null,
+                    avatar: data.avatar || data.avatarConfig || (data.username || data.nombreUsuario)
                 };
 
                 app.updateUserUI();
@@ -794,7 +711,8 @@ const app = {
                 inventario: inventarioSeguro,
                 isAdmin: data.isAdmin === true,
                 habilidadesEquipadas: data.habilidadesEquipadas || [],
-                colorTema: data.colorTema || null
+                colorTema: data.colorTema || null,
+                avatar: data.avatar || data.avatarConfig || (data.username || data.nombreUsuario)
             };
             inicializarTaller();
             app.restoreSession();
@@ -813,7 +731,7 @@ const app = {
     logout: async () => {
         try {
             // 1. Avisamos al servidor ( Railway ) para que DESTRUYA la sesión
-            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout-manual', {
+            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout', {
                 method: 'POST',
                 credentials: 'include' // 🔑 CRÍTICO: Envía la cookie para que el servidor sepa cuál machacar
             });
@@ -1251,20 +1169,17 @@ const app = {
         if(!app.currentUser.inventario || app.currentUser.inventario.length === 0) {
             inventoryList.innerHTML = '<p class="empty-msg">Tu inventario está vacío.</p>';
         } else {
-            app.currentUser.inventario.forEach(item => {;
+            app.currentUser.inventario.forEach(item => {
                 const idDelObjeto = item.id_item || item.idItem;
                 const desc = item.descripcion;
                 const nombre = item.nombre || 'Objeto Misterioso';
 
-                // Determinamos el tipo de objeto basándonos en su nombre
                 const esCosmetico = nombre.includes('Tema') || nombre.includes('Teclado');
 
                 let isEquipped = false;
                 if (esCosmetico) {
-                    // Los cosméticos se guardan en colorTema
                     isEquipped = app.currentUser.colorTema === idDelObjeto;
                 } else {
-                    // Las pasivas se guardan en el nuevo array habilidadesEquipadas
                     const hab = app.currentUser.habilidadesEquipadas || [];
                     isEquipped = hab.includes(idDelObjeto);
                 }
@@ -1283,6 +1198,9 @@ const app = {
             });
         }
         app.showScreen('profile-screen');
+
+        // 🛠️ REPARACIÓN: Si abres el perfil, arrancamos el motor visual
+        inicializarTaller();
     },
 
     toggleEquip: (id_item, esCosmetico) => {
@@ -1463,6 +1381,91 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('card-admin').addEventListener('click', () => {
         window.location.href = 'gestion-usuarios.html';
     });
+
+    document.getElementById('btn-save-avatar').addEventListener('click', async (e) => {
+        const btn = e.target;
+        btn.innerText = "Guardando...";
+        const config = updateAvatarPreview();
+
+        try {
+            // Usa aquí tu constante API_URL o el enlace directo de Railway
+            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/avatar`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ config: config })
+            });
+
+            if (response.ok) {
+                app.currentUser.avatar = config;
+                btn.innerText = "¡Look Guardado! ✔️";
+                btn.style.backgroundColor = "#2e7d32";
+                setTimeout(() => {
+                    btn.innerText = "💾 Guardar Look";
+                    btn.style.backgroundColor = "#4CAF50";
+                }, 2000);
+            }
+        } catch (e) {
+            console.error("Error en el taller:", e);
+            btn.innerText = "💾 Guardar Look";
+        }
+    });
+
+    document.getElementById('update-profile-form').onsubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const API_URL = 'https://gateway-production-a1f6.up.railway.app';
+
+            // Ponemos el botón en modo "Carga" para evitar doble clic
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.innerHTML = '<div><i class="fas fa-spinner fa-spin"></i> GUARDANDO...</div>';
+            btnSubmit.disabled = true;
+
+            // 📦 EL PAQUETE LIMPIO: Solo enviamos el nombre y la nueva clave (si la hay)
+            const payloadPut = {
+                nombre_usuario: document.getElementById('upd-username').value
+            };
+
+            const newPassword = document.getElementById('upd-password').value;
+            if (newPassword.trim() !== '') {
+                payloadPut.contrasenha_usuario = newPassword;
+            }
+
+            // 🚀 Disparamos la actualización al pit lane
+            const responsePut = await fetch(`${API_URL}/usuarios/perfil`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                    // 🛑 ELIMINADO: 'Authorization': `Bearer ${token}`
+                    // Ya no hace falta, porque la seguridad va por la Cookie.
+                },
+                credentials: 'include', // 🔑 ESTA LÍNEA ES LA MAGIA. Envía la cookie automáticamente.
+                body: JSON.stringify(payloadPut)
+            });
+
+            if (responsePut.ok) {
+                alert("¡Look y Perfil actualizados con éxito! Por seguridad, vuelve a iniciar sesión.");
+                // Obligamos al usuario a reloguearse para que Spring Boot renueve sus credenciales
+                app.logout();
+            } else {
+                // Leemos la queja del servidor si algo va mal
+                const errText = await responsePut.text();
+                throw new Error(errText || "El taller rechazó los cambios.");
+            }
+
+        } catch (error) {
+            alert("Fallo en boxes: " + error.message);
+            console.error("Detalle del error:", error);
+        } finally {
+            // Restauramos el botón a la normalidad
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            if(btnSubmit) {
+                btnSubmit.innerHTML = '<div>GUARDAR CAMBIOS</div>';
+                btnSubmit.disabled = false;
+            }
+        }
+    };
 
     // 4. Botones de Volver
     document.getElementById('btn-back-profile').addEventListener('click', () => app.showScreen('dashboard-screen'));

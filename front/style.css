@@ -1252,7 +1252,13 @@ body.light-mode .btn-main,
 body.light-mode button {
     color: #ffffff;
 }
-
+body.light-mode .tab-btn{
+    color:#2563eb;
+}
+body.light-mode #avatar-preview{
+    background: #2b5cb3;
+    linear-gradient(90deg, rgba(0, 92, 230, 0.04) 1px, transparent 1px);
+}
 body.light-mode td .text-yellow-500 { color: #d97706 !important; } /* Monedas */
 body.light-mode td .text-blue-500 { color: #2563eb !important; } /* Editar */
 body.light-mode td .text-purple-500 { color: #7e22ce !important; } /* Roles */
