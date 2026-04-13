@@ -100,6 +100,7 @@ public class GeminiServiceImpl implements GeminiService {
         // El prompt ahora es mucho más simple porque el esquema JSON hace el trabajo duro
         String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
                 "Crea exactamente 25 palabras en español, una para cada letra del abecedario (incluyendo la Ñ). " +
+                "REGLA DE ORO: No uses NUNCA comillas dobles (\") dentro de las definiciones ni de las palabras, usa comillas simples (') si es necesario. " +
                 "La definición debe empezar diciendo si 'Empieza por' o 'Contiene' la letra.";
 
         try {
@@ -151,12 +152,17 @@ public class GeminiServiceImpl implements GeminiService {
                     .path("parts").get(0)
                     .path("text").asText().trim();
 
-            // 🧹 LA ESCOBA FINAL: Si la IA mete un salto de línea real, JavaScript crashea.
-            // Con esto, cambiamos los saltos de línea por espacios normales antes de mandarlo al frontend.
-            jsonCrudo = jsonCrudo.replace("\n", " ").replace("\r", " ").trim();
+            // 🧹 ESCOBA NIVEL PRO:
+            // 1. Quitamos saltos de línea físicos que rompen el JSON
+            jsonCrudo = jsonCrudo.replace("\n", " ").replace("\r", " ");
+
+            // 2. 🛡️ PARCHE DE COMILLAS INTERNAS:
+            // Esto es magia negra: busca comillas dobles que NO vayan seguidas de coma, llave o corchete
+            // y las cambia por comillas simples para que no rompan el string del JSON.
+            jsonCrudo = jsonCrudo.replaceAll("(?<![:\\[\\{,])\"(?![:,\\]\\}])", "'");
 
             logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: " + temaFinal);
-            return jsonCrudo;
+            return jsonCrudo.trim();
 
         } catch (Exception e) {
             logger.error("💥 FALLO CRÍTICO AL GENERAR ROSCO. Motivo exacto: {}", e.getMessage());
