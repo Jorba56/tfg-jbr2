@@ -46,35 +46,38 @@ public class JwtFilter extends OncePerRequestFilter {
      * @throws ServletException Si ocurre un error durante el procesamiento del servlet.
      * @throws IOException Si ocurre un error de entrada/salida.
      */
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String header = request.getHeader("Authorization");
-
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        String token = null;
+        // buscamos el token en las cookies (alta seguridad)
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwt_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        // si hay token, lo validamos
+        if (token != null) {
             try {
                 String email = jwtUtil.validarTokenYObtenerEmail(token);
-
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    // buscamos al usuario en la BD para saber sus roles reales
                     User usuario = userRepository.findUserByEmailUsuario(email);
-
                     if (usuario != null) {
-                        // convertimos roles de la bd al formato spring security
                         List<SimpleGrantedAuthority> authorities = usuario.getRoles().stream()
                                 .map(rol -> new SimpleGrantedAuthority(rol.getName().toUpperCase()))
                                 .toList();
-
-                        // metemos los roles en el contexto de seguridad
                         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
                         SecurityContextHolder.getContext().setAuthentication(auth);
                     }
                 }
             } catch (Exception e) {
-                // para token inválido o expirado
-                e.printStackTrace();
+                System.out.println("Token inválido o caducado: " + e.getMessage());
             }
         }
-            filterChain.doFilter(request, response);
-        }
+        filterChain.doFilter(request, response);
+    }
+
     }

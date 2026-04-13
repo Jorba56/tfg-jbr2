@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Map;
 
@@ -46,6 +48,27 @@ public class AuthController {
     @PostMapping("/login")
     // FÍJATE AQUÍ: Cambiamos <String, String> por <String, Object>
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDTO loginDto) throws ConflictException, BadRequestException {
-        return ResponseEntity.ok(authServiceImpl.login(loginDto));
+        // 1. Delegamos toda la lógica de negocio al Service (¡Como debe ser!)
+        Map<String, Object> loginData = authServiceImpl.login(loginDto);
+
+        // 2. Extraemos el token del mapa para construir la Cookie
+        String token = (String) loginData.get("token");
+
+        // 3. El Controller fabrica la Cookie porque es un elemento HTTP
+        ResponseCookie springCookie = ResponseCookie.from("jwt_token", token)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(24 * 60 * 60)
+                .sameSite("None")
+                .build();
+
+        // 4. (Opcional/recomendado) Quitamos el token del body para que no llegue al JS
+        loginData.remove("token");
+
+        // 5. Devolvemos la respuesta HTTP montada
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, springCookie.toString())
+                .body(loginData);
+        }
     }
-}

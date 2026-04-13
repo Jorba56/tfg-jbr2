@@ -6,6 +6,20 @@ const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 let usuarioSeleccionadoParaCreditos = null;
 document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>'"]/g, function(tag) {
+        const charsToReplace = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        };
+        return charsToReplace[tag] || tag;
+    });
+}
+
 function toggleTheme () {
     const body = document.body;
     body.classList.toggle('light-mode');
@@ -126,8 +140,9 @@ async function cargarUsuarios() {
 
             usuarios.forEach(u => {
                 const idUser = u.id_usuario || u.id_user || u.idUser || u.id;
-                const nombreCompleto = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
-                const correo = u.correo_usuario || u.emailUsuario || 'Sin correo';
+                const nombreCrudo = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
+                const nombreCompleto = escapeHTML(nombreCrudo || 'Usuario N/A');
+                const correo = escapeHTML(u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo');
                 const relacion = mapaUsuariosRoles.find(m => (m.id_usuario || m.idUser) === idUser);
                 let rolesHtml = '<span class="text-gray-400 text-xs italic">Sin roles</span>';
 
@@ -235,8 +250,9 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
             usuarios.forEach(u => {
                 const idUser = u.id_usuario || u.idUser || u.id;
-                const nombreCompleto = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
-                const correo = u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo';
+                const nombreCrudo = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
+                const nombreCompleto = escapeHTML(nombreCrudo || 'Usuario N/A');
+                const correo = escapeHTML(u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo');
                 const relacion = mapaUsuariosRoles.find(m => (m.id_usuario || m.idUser) === idUser);
                 let rolesHtml = '<span class="text-gray-400 text-xs italic">Sin roles</span>';
 
@@ -396,10 +412,11 @@ async function cargarRoles() {
 
             roles.forEach(r => {
                 const id = r.id_rol || r.idRol || r.id;
+                const nombreRol = escapeHTML(r.name || r.nombre);
                 tabla.innerHTML += `
                     <tr class="theme-row">
                         <td class="px-5 py-4 text-sm theme-text">#${id}</td>
-                        <td class="px-5 py-4 text-sm font-bold text-purple-500 uppercase">${r.name || r.nombre}</td>
+                        <td class="px-5 py-4 text-sm font-bold text-purple-500 uppercase">${nombreRol}</td>
                         <td class="px-5 py-4 text-center">
                             <button onclick="editarRol(${id})" class="text-blue-500 hover:text-blue-600 font-bold mr-3"><i class="fas fa-edit"></i></button>
                             <button onclick="borrarRol(${id})" class="text-red-500 hover:text-red-600 font-bold"><i class="fas fa-trash"></i></button>

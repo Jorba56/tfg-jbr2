@@ -47,6 +47,7 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
+            credentials: 'include',
             body: JSON.stringify(payloadPut)
         });
 
@@ -74,7 +75,7 @@ document.getElementById('update-profile-form').onsubmit = async (e) => {
 };
 
 // ==========================================
-// ⚡ SISTEMA CENTRAL DE POWER-UPS (LIMPIO)
+// SISTEMA CENTRAL DE POWER-UPS (LIMPIO)
 // ==========================================
 
 window.estadoPartida = {
@@ -613,44 +614,40 @@ const app = {
 
     },
 
-    restoreSession: () => {
+    restoreSession: async () => {
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-mode');
             const btnTheme = document.getElementById('theme-toggle');
             if (btnTheme) btnTheme.innerText = "☀️";
         }
 
-        // Leemos la memoria del navegador
-        const token = localStorage.getItem('jwt_token');
-        const userData = localStorage.getItem('currentUser');
+        try {
+            // Preguntamos al servidor quiénes somos usando la Cookie
+            const response = await fetch('https://gateway-production-a1f6.up.railway.app/api/usuarios/perfil', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include' // 🔑
+            });
 
-        if (token && userData) {
-            // Si hay sesión guardada, la montamos en RAM
-            app.currentUser = JSON.parse(userData);
-
-            // Refrescamos la interfaz (pinta créditos, el perfil y el menú admin)
-            app.updateUserUI();
-
-            // Saltamos directamente al menú principal, esquivando el login
-            app.showScreen('dashboard-screen');
-            app.verificarTutorial();
-        } else {
-            // Si no hay datos, mostramos la pantalla de login normal
+            if (response.ok) {
+                app.currentUser = await response.json();
+                app.updateUserUI();
+                app.showScreen('dashboard-screen');
+                app.verificarTutorial();
+            } else {
+                app.showScreen('login-screen');
+            }
+        } catch (error) {
+            console.error("Fallo al restaurar sesión:", error);
             app.showScreen('login-screen');
         }
     },
 
-
-
-
- // --- LOGIN (Conectado al Backend Real) ---
     login: async () => {
-
         const userVal = document.getElementById('username').value.trim();
         const passVal = document.getElementById('password').value.trim();
         const errorMsg = document.getElementById('error-msg');
 
-        // 1. Pequeña validación antes de molestar al servidor
         if (!userVal || !passVal) {
             errorMsg.innerText = "Por favor, rellena ambos campos.";
             errorMsg.classList.remove('hidden');
@@ -658,7 +655,6 @@ const app = {
         }
 
         try {
-            // Opcional: Feedback visual mientras el servidor piensa
             const btnLogin = document.getElementById('btn-login');
             const originalText = btnLogin.innerText;
             btnLogin.innerText = "Conectando...";
@@ -667,69 +663,60 @@ const app = {
             const response = await fetch('https://gateway-production-a1f6.up.railway.app/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // 🔑 Permite que el backend nos instale la Cookie
                 body: JSON.stringify({
                     correo_usuario: userVal,
                     contrasenha_usuario: passVal
                 })
             });
 
-            // Restauramos el botón
             btnLogin.innerText = originalText;
             btnLogin.disabled = false;
 
             if (!response.ok) throw new Error("Credenciales inválidas");
 
-            // Leemos el JSON una única vez
             const data = await response.json();
 
-            // Guardamos la llave de la API
-            localStorage.setItem('jwt_token', data.token);
-
-            // 2. EL TRUCO DEL INVENTARIO:
-            // Si Java manda números [1, 2], lo convertimos a objetos [{idItem: 1}, {idItem: 2}]
-            // para que no haya problemas de compatibilidad con la tienda.
             let inventarioSeguro = [];
             if (data.inventario && Array.isArray(data.inventario)) {
-                inventarioSeguro = data.inventario.map(item => {
-                    return (typeof item === 'object') ? item : { id_item: item };
-                });
+                inventarioSeguro = data.inventario.map(item => (typeof item === 'object') ? item : { id_item: item });
             }
 
-            // 3. Montamos el usuario en la memoria RAM
+            // Guardamos SOLO en RAM
             app.currentUser = {
                 username: data.username,
                 creditos: data.creditos || 0,
                 inventario: inventarioSeguro,
-                // AHORA LEE EL ROL REAL DE LA BASE DE DATOS
-                isAdmin: data.isAdmin === true
+                isAdmin: data.isAdmin === true,
+                habilidadesEquipadas: data.habilidadesEquipadas || [],
+                colorTema: data.colorTema || null
             };
 
-            // 4. GUARDADO EN DISCO: Guardamos el perfil para sobrevivir al F5
-            localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
-
-            // 5. Actualizamos la interfaz y cambiamos de pantalla
             app.updateUserUI();
             app.showScreen('dashboard-screen');
             app.verificarTutorial();
             errorMsg.classList.add('hidden');
-
-            // 6. Pre-cargamos las frases de la IA en la sombra
             app.fetchMorePhrases();
 
         } catch (error) {
-            console.error("Fallo de inicio de sesión:", error);
             errorMsg.innerText = "Credenciales inválidas o servidor desconectado.";
             errorMsg.classList.remove('hidden');
         }
     },
-    
-    logout: () => {
-        localStorage.removeItem("currentUser");
-        localStorage.removeItem("jwt_token");
+
+    logout: async () => {
+        try {
+            // Le decimos al servidor que destruya la Cookie
+            await fetch('https://gateway-production-a1f6.up.railway.app/api/usuarios/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (e) {
+            console.error(e);
+        }
         app.currentUser = null;
         app.showScreen('login-screen');
     },
-
     updateUserUI: () => {
         if(!app.currentUser) return;
         document.getElementById('user-display').innerText = app.currentUser.username;
@@ -1182,25 +1169,16 @@ const app = {
     },
 
     toggleEquip: (id_item, esCosmetico) => {
-        // Inicializamos el array de habilidades si el usuario es viejo y no lo tenía
         if (!app.currentUser.habilidadesEquipadas) app.currentUser.habilidadesEquipadas = [];
 
         if (esCosmetico) {
-            // LÓGICA: 1 SOLO COSMÉTICO (Si pulsas el que ya tienes, te lo quitas)
-            if (app.currentUser.colorTema === id_item) {
-                app.currentUser.colorTema = null; // Desequipar
-            } else {
-                app.currentUser.colorTema = id_item; // Equipar nuevo (reemplaza al anterior)
-            }
+            if (app.currentUser.colorTema === id_item) app.currentUser.colorTema = null;
+            else app.currentUser.colorTema = id_item;
         } else {
-            // LÓGICA: MÁXIMO 2 PASIVAS
             const index = app.currentUser.habilidadesEquipadas.indexOf(id_item);
-
             if (index > -1) {
-                // Si ya la tenía equipada, la quitamos (Desequipar)
                 app.currentUser.habilidadesEquipadas.splice(index, 1);
             } else {
-                // Si no la tiene, comprobamos el límite antes de equipar
                 if (app.currentUser.habilidadesEquipadas.length >= 2) {
                     alert("⚠️ Límite alcanzado: Solo puedes equipar 2 habilidades pasivas a la vez.");
                     return;
@@ -1209,11 +1187,10 @@ const app = {
             }
         }
 
-        // Guardamos el perfil en memoria y refrescamos la vista
-        localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
         app.openProfile();
-        app.applyCosmetics(); // Actualizamos la interfaz gráfica al instante
+        app.applyCosmetics();
     },
+
 
     // --- TIENDA (Conectada a la BBDD) ---
     openShop: () => {
@@ -1285,36 +1262,26 @@ const app = {
 
     comprarObjeto: async (idItemParam, precio, nombreItem, descItem) => {
         if (app.currentUser.creditos < precio) {
-            alert("Créditos insuficientes 😔");
+            alert("Créditos insuficientes.");
             return;
         }
-
         try {
             const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/buy/${idItemParam}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('jwt_token')}` }
+                credentials: 'include'
             });
-
             const data = await response.json();
-
             if (response.ok) {
-                app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo; // Por si el saldo también viene en snake_case
-
-                // CORRECCIÓN: Guardamos usando id_item para mantener coherencia
+                app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo;
                 app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
-
-                localStorage.setItem('currentUser', JSON.stringify(app.currentUser));
-
+                
                 alert("¡Has comprado: " + nombreItem + "!");
-
                 app.updateUserUI();
                 app.loadTienda();
             } else {
                 alert(data.mensaje || "Hubo un error en la compra");
             }
-        } catch (error) {
-            console.error("Error:", error);
-        }
+        } catch (error) { console.error("Error:", error); }
     },
 
     addCreditsAdmin: () => {
