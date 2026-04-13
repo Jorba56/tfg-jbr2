@@ -127,7 +127,7 @@ public class GeminiServiceImpl implements GeminiService {
                     "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                     "generationConfig", Map.of(
                             "temperature", 0.1,
-                            "maxOutputTokens", 8000, // ⛽ Ampliamos el depósito para que nunca se corte a medias
+                            "maxOutputTokens", 100000, // ⛽ Ampliamos el depósito para que nunca se corte a medias
                             "responseMimeType", "application/json",
                             "responseSchema", responseSchema // 🔒 APLICAMOS EL MOLDE ESTRICTO
                     )
