@@ -49,20 +49,6 @@ public class UserController {
         this.itemRepository = itemRepository;
     }
 
-    @Operation(summary = "Cerrar sesión", description = "Invalida la cookie de sesión del piloto en el servidor.")
-    @PostMapping("/logout")
-    public ResponseEntity<?> cerrarSesion(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        try {
-            if (authentication != null) {
-                // Esta línea hace la magia: invalida la sesión de Spring y manda la orden al navegador de borrar la cookie
-                new SecurityContextLogoutHandler().logout(request, response, authentication);
-            }
-            return ResponseEntity.ok(Map.of("mensaje", "Piloto desconectado. Motor apagado."));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("mensaje", "Fallo al desconectar los sistemas."));
-        }
-    }
-
     /**
      * Obtiene la lista completa de usuarios activos en el sistema.
      * Exclusivo para el administrador.
@@ -344,5 +330,30 @@ public class UserController {
             // Cero loggers: informamos del fallo genérico al frontend
             return ResponseEntity.status(500).body(Map.of("mensaje", "Fallo mecánico al actualizar el perfil"));
         }
+    }
+
+    @Operation(summary = "Cerrar Sesión Total", description = "Destruye la sesión en el servidor y borra la cookie del navegador.")
+    @PostMapping("/logout")
+    public ResponseEntity<?> cerrarSesionTotal(jakarta.servlet.http.HttpServletRequest request, jakarta.servlet.http.HttpServletResponse response, Authentication authentication) {
+
+        // 1. Limpiamos a nivel de Spring Security
+        if (authentication != null) {
+            new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler().logout(request, response, authentication);
+        }
+
+        // 2. Destruimos la sesión física del servidor
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        // 3. Forzamos al navegador a borrar la Cookie enviándole una caducada
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("JSESSIONID", null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0); // 0 segundos de vida = Borrado instantáneo
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Motor apagado y llave destruida."));
     }
 }

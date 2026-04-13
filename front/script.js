@@ -797,6 +797,7 @@ const app = {
                 colorTema: data.colorTema || null
             };
             inicializarTaller();
+            app.restoreSession();
             app.updateUserUI();
             app.showScreen('dashboard-screen');
             app.verificarTutorial();
@@ -811,17 +812,26 @@ const app = {
 
     logout: async () => {
         try {
-            // Le decimos al servidor que destruya la Cookie
-            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout', {
+            // 1. Avisamos al servidor ( Railway ) para que DESTRUYA la sesión
+            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout-manual', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include' // 🔑 CRÍTICO: Envía la cookie para que el servidor sepa cuál machacar
             });
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error("No se pudo contactar con el servidor:", error);
+        } finally {
+            // 2. 🧹 LIMPIEZA DE RAM DEL NAVEGADOR
+            app.currentUser = null;
+
+            // 3. Limpiamos cualquier rastro en el almacenamiento local
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 4. 🏁 REDIRECCIÓN LIMPIA
+            window.location.href = "index.html";
         }
-        app.currentUser = null;
-        app.showScreen('login-screen');
     },
+
     updateUserUI: () => {
         if(!app.currentUser) return;
         document.getElementById('user-display').innerText = app.currentUser.username;
