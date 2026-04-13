@@ -101,4 +101,6 @@ public interface UserService {
     Page<UsersAllDTO> obtenerTodosLosUsuariosPaginados(int page, int size, String sortBy, String sortDir);
 
     UsersAllDTO buscarPorEmail(String correo) throws NotFoundException;
+
+    User buscarPorEmailTodo(String correo);
 }

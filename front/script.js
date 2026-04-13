@@ -625,7 +625,6 @@ const app = {
         }
 
         try {
-            // Preguntamos al servidor quiénes somos usando la Cookie
             const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/perfil', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' },
@@ -633,7 +632,39 @@ const app = {
             });
 
             if (response.ok) {
-                app.currentUser = await response.json();
+                const data = await response.json();
+
+                // 🛠️ TRADUCTOR: Adaptamos el DTO de Spring Boot al formato de nuestro JS
+
+                // 1. Traducir el inventario (El backend suele llamarlo 'items')
+                let inventarioSeguro = [];
+                const itemsDelBackend = data.items || data.inventario || [];
+                if (Array.isArray(itemsDelBackend)) {
+                    inventarioSeguro = itemsDelBackend.map(item => ({
+                        id_item: item.idItem || item.id_item || item.id,
+                        nombre: item.nombre || item.name,
+                        descripcion: item.descripcion || item.description
+                    }));
+                }
+
+                // 2. Traducir los Roles
+                let esAdmin = false;
+                if (data.roles && Array.isArray(data.roles)) {
+                    esAdmin = data.roles.some(rol => (rol.name || rol.nombre) === 'ADMIN');
+                } else if (data.isAdmin === true) {
+                    esAdmin = true;
+                }
+
+                // 3. Montar el currentUser a prueba de balas
+                app.currentUser = {
+                    username: data.nombreUsuario || data.username || data.nombre_usuario || 'Piloto',
+                    creditos: data.creditos || 0,
+                    inventario: inventarioSeguro,
+                    isAdmin: esAdmin,
+                    habilidadesEquipadas: data.habilidadesEquipadas || [],
+                    colorTema: data.colorTema || null
+                };
+
                 app.updateUserUI();
                 app.showScreen('dashboard-screen');
                 app.verificarTutorial();
@@ -1267,27 +1298,49 @@ const app = {
     },
 
     comprarObjeto: async (idItemParam, precio, nombreItem, descItem) => {
+        // 🛡️ Seguro anti-crashes: si por algún motivo inventario es undefined, lo creamos vacío
+        if (!app.currentUser.inventario) app.currentUser.inventario = [];
+
         if (app.currentUser.creditos < precio) {
-            alert("Créditos insuficientes.");
+            alert("Créditos insuficientes 😔");
             return;
         }
+
         try {
             const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/buy/${idItemParam}`, {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include' // 🔑
             });
-            const data = await response.json();
-            if (response.ok) {
-                app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo;
-                app.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
 
-                alert("¡Has comprado: " + nombreItem + "!");
+            // 🛡️ Leer la respuesta de forma segura (por si el backend devuelve un String y no un JSON)
+            const textResponse = await response.text();
+            let data = {};
+            if (textResponse) {
+                try { data = JSON.parse(textResponse); }
+                catch (e) { data = { mensaje: textResponse }; }
+            }
+
+            if (response.ok) {
+                // Actualizar los créditos en pantalla
+                app.currentUser.creditos = data.nuevo_saldo || data.nuevoSaldo || (app.currentUser.creditos - precio);
+
+                // Meter el objeto en el inventario visual
+                app.currentUser.inventario.push({
+                    id_item: idItemParam,
+                    nombre: nombreItem,
+                    descripcion: descItem
+                });
+
+                alert("¡Compra exitosa! Has adquirido: " + nombreItem);
                 app.updateUserUI();
                 app.loadTienda();
             } else {
-                alert(data.mensaje || "Hubo un error en la compra");
+                alert(data.mensaje || data.error || "El servidor rechazó la compra.");
             }
-        } catch (error) { console.error("Error:", error); }
+        } catch (error) {
+            console.error("Error en la transacción:", error);
+            alert("Fallo de conexión con la tienda.");
+        }
     },
 
     addCreditsAdmin: () => {

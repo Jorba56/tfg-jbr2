@@ -377,6 +377,12 @@ public class UserServiceImpl implements UserService {
         User usuario= userRep.findUserByEmailUsuario(correo);
         return userMap.mappingADTO(usuario);
     }
+
+    @Override
+    public User buscarPorEmailTodo(String correo) {
+        return userRep.findUserByEmailUsuario(correo);
+    }
+
     @Transactional
     public void sumarCreditosPartida(String email, Integer creditosGanados) {
         // 1. Buscamos al piloto

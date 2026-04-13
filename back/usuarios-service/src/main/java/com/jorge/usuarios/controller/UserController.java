@@ -63,7 +63,7 @@ public class UserController {
             String emailLogueado = authentication.getName();
 
             // Buscamos todos los datos del piloto en BBDD
-            UsersAllDTO pilotoActual = userServiceImpl.buscarPorEmail(emailLogueado);
+            User pilotoActual = userServiceImpl.buscarPorEmailTodo(emailLogueado);
 
             // Devolvemos el piloto (Spring Boot lo convierte a JSON automáticamente)
             return ResponseEntity.ok(pilotoActual);
