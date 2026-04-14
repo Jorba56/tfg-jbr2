@@ -87,7 +87,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
         String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
                 ? temaPersonalizado : "cultura general y curiosidades";
