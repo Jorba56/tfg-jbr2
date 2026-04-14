@@ -60,7 +60,7 @@ public class AuthController {
                 .secure(true)
                 .path("/")
                 .maxAge(24 * 60 * 60)
-                .sameSite("None")
+                .sameSite("Lax")
                 .build();
 
         // 4. (Opcional/recomendado) Quitamos el token del body para que no llegue al JS
