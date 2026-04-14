@@ -1,5 +1,6 @@
 package com.jorge.incidencias.services.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jorge.incidencias.services.GeminiService;
@@ -9,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Random;
@@ -87,63 +90,104 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        // Te recomiendo usar gemini-1.5-flash (es el modelo estándar más rápido y listo actualmente)
+        // Usar gemini-1.5-flash (modelo estable y disponible)
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
-        // Un prompt estructurado con viñetas es mucho más fácil de procesar para la IA
+        // Prompt limpio y bien escapado
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
-                "Genera 25 palabras exactas sobre el tema: '" + temaPersonalizado + "'. " +
+                "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
                 "REGLAS: " +
-                "1. La 'palabra' DEBE ser una única palabra (sin espacios). " +
+                "1. Cada palabra debe ser una única palabra sin espacios. " +
                 "2. El idioma es estrictamente ESPAÑOL. " +
-                "3. La 'definicion' debe empezar siempre indicando la letra, por ejemplo: 'Empieza por A: ...' o 'Contiene la X: ...'. " +
-                "4. Debes devolver un array de JSON donde cada objeto tenga exactamente estas claves: 'letra', 'palabra', 'definicion'.";
+                "3. La definición debe empezar indicando la letra: 'Empieza por A:' o 'Contiene la X:'. " +
+                "4. Devuelve un array JSON donde cada objeto tenga: 'letra', 'palabra', 'definicion'. " +
+                "Responde SOLO con el JSON sin explicaciones adicionales.";
 
-        // 🚨 LA MAGIA: Añadimos responseMimeType: application/json
+        // Escapar el prompt correctamente para JSON
+        String escapedPrompt = escapeJsonString(prompt);
+
         String requestBody = "{" +
-                "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
+                "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
-                "\"temperature\": 0.3, " +
-                "\"maxOutputTokens\": 2500, " +
+                "\"temperature\": 0.7," +
+                "\"maxOutputTokens\": 2500," +
                 "\"responseMimeType\": \"application/json\"" +
                 "}" +
                 "}";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.add("User-Agent", "MyApp/1.0");
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
         try {
+            logger.info("📤 Enviando request a Gemini para tema: {}", temaPersonalizado);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
 
-            // 1. Chivato antiescudos de seguridad
-            if (root.path("candidates").isEmpty()) {
-                logger.error("🛑 Gemini bloqueó la respuesta o devolvió vacío: {}", response.getBody());
+            // Verificar status HTTP
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                logger.error("❌ Error HTTP: {} - {}", response.getStatusCode(), response.getBody());
                 return "[]";
             }
 
-            // Como forzamos application/json, el texto que devuelve ya es un JSON puro sin backticks (```json)
+            JsonNode root = objectMapper.readTree(response.getBody());
+
+            // Verificar si hay error en la respuesta
+            if (root.has("error")) {
+                logger.error("🛑 Error de Gemini API: {}", root.path("error").asText());
+                return "[]";
+            }
+
+            // Verificar si hay candidates
+            if (root.path("candidates").isEmpty()) {
+                logger.error("🛑 Respuesta vacía de Gemini (sin candidates)");
+                logger.debug("Body completo: {}", response.getBody());
+                return "[]";
+            }
+
+            // Extraer el texto JSON
             String jsonCrudo = root.path("candidates").get(0)
                     .path("content")
                     .path("parts").get(0)
                     .path("text").asText().trim();
 
-            // 2. Filtro extremo antibasura (Mantenido por extrema seguridad, aunque con JSON mode rara vez hace falta)
-            int inicioArray = jsonCrudo.indexOf("[");
-            int finArray = jsonCrudo.lastIndexOf("]");
+            logger.info("📦 Respuesta raw de Gemini: {}", jsonCrudo);
 
-            if (inicioArray != -1 && finArray != -1) {
-                jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
+            // Limpiar si hay markdown (aunque con responseMimeType: application/json rara vez sucede)
+            if (jsonCrudo.startsWith("```")) {
+                int inicioArray = jsonCrudo.indexOf("[");
+                int finArray = jsonCrudo.lastIndexOf("]");
+                if (inicioArray != -1 && finArray != -1) {
+                    jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
+                }
             }
 
-            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaPersonalizado);
+            // Validar que es un JSON válido
+            objectMapper.readTree(jsonCrudo);
+
+            logger.info("✅ ROSCO GENERADO CON ÉXITO PARA: {}", temaPersonalizado);
             return jsonCrudo;
 
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            logger.error("🌐 Error HTTP en Gemini API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return "[]";
+        } catch (JsonProcessingException e) {
+            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
+            return "[]";
         } catch (Exception e) {
-            logger.error("💥 FALLO CRÍTICO AL GENERAR ROSCO. Motivo exacto: {}", e.getMessage());
+            logger.error("💥 Error inesperado: {}", e.getMessage(), e);
             return "[]";
         }
+    }
+
+    // auxiliar para escapar strings en JSON
+    private String escapeJsonString(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }
