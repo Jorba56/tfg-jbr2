@@ -88,7 +88,7 @@ public class GeminiServiceImpl implements GeminiService {
 
     public String generarRosco(String temaPersonalizado) {
         // Te recomiendo usar gemini-1.5-flash (es el modelo estándar más rápido y listo actualmente)
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
         // Un prompt estructurado con viñetas es mucho más fácil de procesar para la IA
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
