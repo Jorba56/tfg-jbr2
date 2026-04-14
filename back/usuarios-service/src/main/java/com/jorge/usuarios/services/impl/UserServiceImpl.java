@@ -499,4 +499,84 @@ public class UserServiceImpl implements UserService {
 
         return response;
     }
+
+    public void guardarEstadisticasPartida(String email, Map<String, Object> datosPartida) {
+        // Buscamos por el email completo que nos da Spring Security
+        User user = userRep.findUserByEmailUsuario(email);
+        if (user==null){throw new NotFoundException("Usuario no encontrado.");}
+
+        int creditosNuevos = ((Number) datosPartida.getOrDefault("creditos", 0)).intValue();
+        user.setCreditos(user.getCreditos() + creditosNuevos);
+
+        String modo = (String) datosPartida.getOrDefault("modo", "");
+
+        if ("ROSCO".equals(modo)) {
+            int totalPalabras = ((Number) datosPartida.getOrDefault("totalPalabras", 25)).intValue();
+            int puntuacionFinal = ((Number) datosPartida.getOrDefault("puntuacion", 0)).intValue();
+            user.setRoscoPalabrasJugadas(user.getRoscoPalabrasJugadas() + totalPalabras);
+
+            if (puntuacionFinal > user.getMejorPuntuacionRosco()) {
+                user.setMejorPuntuacionRosco(puntuacionFinal);
+            }
+        }
+        else if ("CONTRARRELOJ".equals(modo)) {
+            int frasesOk = ((Number) datosPartida.getOrDefault("aciertos", 0)).intValue();
+            int frasesTotal = ((Number) datosPartida.getOrDefault("totalPalabras", 0)).intValue();
+            int puntuacionFinal = ((Number) datosPartida.getOrDefault("puntuacion", 0)).intValue();
+
+            user.setFrasesAcertadas(user.getFrasesAcertadas() + frasesOk);
+            user.setFrasesJugadas(user.getFrasesJugadas() + frasesTotal);
+
+            if (puntuacionFinal > user.getMejorPuntuacionContrarreloj()) {
+                user.setMejorPuntuacionContrarreloj(puntuacionFinal);
+            }
+        }
+        userRep.save(user);
+    }
+
+    // --- OBTENER ESTADÍSTICAS POR ID ---
+    // 💡 Usamos el ID para evitar problemas con puntos o caracteres especiales en el email
+    public Map<String, Object> obtenerEstadisticasPublicas(Long id) {
+        User u = userRep.findById(id)
+                .orElseThrow(() -> new NotFoundException("Usuario no encontrado."));
+
+        Map<String, Object> stats = new HashMap<>();
+
+        // extraer lo que hay antes del @
+        String email = u.getEmailUsuario();
+        String alias = email.substring(0, email.indexOf("@"));
+
+        stats.put("username", alias);
+        stats.put("avatar", u.getAvatarConfig());
+        stats.put("creditos", u.getCreditos());
+        stats.put("mejorRosco", u.getMejorPuntuacionRosco());
+        stats.put("mejorContrarreloj", u.getMejorPuntuacionContrarreloj());
+
+        double pctFrases = u.getFrasesJugadas() == 0 ? 0 :
+                (u.getFrasesAcertadas() * 100.0) / u.getFrasesJugadas();
+
+        stats.put("pctFrases", Math.round(pctFrases));
+        return stats;
+    }
+
+    // --- RANKING GLOBAL ---
+    public List<Map<String, Object>> obtenerRankingGlobal() {
+        List<User> topUsuarios = userRep.findTop10ByOrderByCreditosDesc();
+        List<Map<String, Object>> rankingSeguro = new ArrayList<>();
+
+        for (User u : topUsuarios) {
+            Map<String, Object> piloto = new HashMap<>();
+
+            // aplicamos la misma lógica de subcadena
+            String email = u.getEmailUsuario();
+            String alias = email.substring(0, email.indexOf("@"));
+
+            piloto.put("id", u.getIdUser()); // el id es vital para el clic del frontend
+            piloto.put("username", alias);
+            piloto.put("creditos", u.getCreditos());
+            piloto.put("avatar", u.getAvatarConfig());
+            rankingSeguro.add(piloto);
+        }
+        return rankingSeguro;
+    }
 }

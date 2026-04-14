@@ -5,11 +5,15 @@ import { startGame, iniciarPartidaPersonalizada, checkInput, handleKeydown, abor
 import { Rosco } from './modules/rosco.js';
 import { updateAvatarPreview, openProfile, toggleEquip, guardarPerfilForm, guardarLookBtn } from './modules/profile.js';
 import { openShop, comprarObjeto } from './modules/shop.js';
+import { openRanking, openPlayerStats, closeStatsModal } from './modules/ranking.js';
 
 // --- PUENTE HACIA EL HTML (Inline events) ---
 window.app = {
     showScreen, openProfile, openShop, iniciarPartidaPersonalizada,
-    completarTutorial, toggleEquip, comprarObjeto, abortGame, startGame, checkInput, handleKeydown
+    completarTutorial, toggleEquip, comprarObjeto, abortGame, startGame, checkInput, handleKeydown,
+    openRanking: openRanking,
+    openPlayerStats: openPlayerStats,
+    closeStatsModal: closeStatsModal
 };
 window.Rosco = Rosco;
 window.toggleSidebar = toggleSidebar;

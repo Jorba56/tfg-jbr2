@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.MutablePropertyValues;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,11 @@ import java.util.List;
  * Mapea la tabla "usuarios" en la base de datos y gestiona las relaciones
  * con sus roles y su historial de incidencias.
  */
+@Data
 @Entity
 @Table(name = "usuarios")
 public class User{
+
     @JsonIgnore
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,10 +46,6 @@ public class User{
     @Column(name = "avatar_config", length = 255)
     private String avatarConfig;
 
-    // Genera los Getters y Setters para creditos y colorTema
-    public int getCreditos() { return creditos; }
-    public void setCreditos(int creditos) { this.creditos = creditos; }
-
     @NotBlank(message = "La contraseña no puede estar vacía")
     @Column(name = "contrasenha_usuario", length = 255)
     @JsonProperty("contrasenha_usuario")
@@ -61,6 +59,7 @@ public class User{
 
     @NotNull
     private boolean activo=true;
+
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
@@ -77,40 +76,22 @@ public class User{
     )
     private List<Item> inventario = new ArrayList<>();
 
-    public List<Item> getInventario() { return inventario; }
-    public void setInventario(List<Item> inventario) { this.inventario = inventario; }
+    @Column(name = "rosco_palabras_jugadas", columnDefinition = "integer default 0")
+    private Integer roscoPalabrasJugadas = 0;
 
-    // Getters and setters
-    @JsonIgnore
-    public Long getIdUser() { return idUser; }
-    @JsonIgnore
-    public void setIdUser(Long idUser) { this.idUser= idUser; }
+    @Column(name = "mejor_puntuacion_rosco", columnDefinition = "integer default 0")
+    private Integer mejorPuntuacionRosco = 0;
 
-    public String getAvatarConfig() { return avatarConfig; }
-    public void setAvatarConfig(String avatarConfig) { this.avatarConfig = avatarConfig; }
+    @Column(name = "frases_acertadas", columnDefinition = "integer default 0")
+    private Integer frasesAcertadas = 0;
 
-    public String getNombreUsuario() { return nombreUsuario; }
-    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
+    @Column(name = "frases_jugadas", columnDefinition = "integer default 0")
+    private Integer frasesJugadas = 0;
 
-    public String getEmailUsuario() { return emailUsuario; }
-    public void setEmailUsuario(String emailUsuario) { this.emailUsuario =emailUsuario; }
-
-    public String getApellidoUsuario() { return apellidoUsuario; }
-    public void setApellidoUsuario(String apellidoUsuario) { this.apellidoUsuario = apellidoUsuario; }
-
-    public String getContrasenhaUsuario() { return contrasenhaUsuario; }
-    public void setContrasenhaUsuario(String contrasenhaUsuario) { this.contrasenhaUsuario = contrasenhaUsuario; }
+    @Column(name = "mejor_puntuacion_contrarreloj", columnDefinition = "integer default 0")
+    private Integer mejorPuntuacionContrarreloj = 0;
 
     public boolean getActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo= activo; }
-    @JsonIgnore
-    public List<Rol> getRoles() {
-        return roles;
-    }
-    @JsonIgnore
-    public void setRoles(List<Rol> roles) {
-        this.roles = roles;
-    }
 
     //el "Getter Falso": Jackson lee esto y crea la clave "rol_id" automáticamente
     @JsonIgnore

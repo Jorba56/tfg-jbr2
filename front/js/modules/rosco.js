@@ -95,7 +95,24 @@ export const Rosco = {
         if (creditosGanados > 0 && AppState.currentUser) {
             AppState.currentUser.creditos += creditosGanados;
             updateUserUI();
-            try { await apiFetch('/usuarios/actualizar-creditos', { method: 'POST', body: JSON.stringify({creditosExtra: parseInt(creditosGanados)}) }); } catch(e){}
+
+            // 📦 NUEVO PAQUETE DE TELEMETRÍA
+            const payloadJSON = JSON.stringify({
+                creditos: parseInt(creditosGanados),
+                modo: "ROSCO",
+                aciertos: this.ok,
+                totalPalabras: this.data.length,
+                puntuacion: creditosGanados // En tu rosco, la puntuación son los créditos x10
+            });
+
+            try {
+                await apiFetch('/usuarios/guardar-partida', { // 📍 NUEVA RUTA
+                    method: 'POST',
+                    body: payloadJSON
+                });
+            } catch(e) {
+                console.error("Error guardando el rosco", e);
+            }
         }
     }
 };

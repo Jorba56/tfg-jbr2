@@ -374,6 +374,38 @@
     </div>
 </section>
 
+<div id="modal-stats" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div class="shop-container theme-card" style="width: 90%; max-width: 400px; padding: 25px; text-align: center; position: relative; border-radius: 15px; border: 1px solid var(--primary);">
+
+        <button onclick="app.closeStatsModal()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer;">&times;</button>
+
+        <img id="modal-avatar" src="" width="100" height="100" style="border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 10px auto; background: #1e293b;">
+        <h2 id="modal-username" style="margin: 0; font-size: 1.8rem; font-style: italic;">Piloto</h2>
+        <p style="color: #ffd700; font-weight: bold; font-size: 1.3rem; margin: 5px 0 20px 0; text-shadow: 0 0 10px rgba(255,215,0,0.4);">🪙 <span id="modal-credits">0</span></p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Rosco</span>
+                <h3 id="modal-record-rosco" style="margin: 5px 0 0 0; color: #00f2fe; font-size: 1.5rem;">0</h3>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Frases</span>
+                <h3 id="modal-record-frases" style="margin: 5px 0 0 0; color: #9d4edd; font-size: 1.5rem;">0</h3>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border); grid-column: span 2;">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Precisión en Frases</span>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                    <div style="flex-grow: 1; background: #333; height: 12px; border-radius: 6px; overflow: hidden;">
+                        <div id="modal-bar-frases" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                    </div>
+                    <span id="modal-pct-frases" style="font-weight: bold; width: 45px; text-align: right;">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="module" src="js/main.js"></script>
 </body>
 </html>

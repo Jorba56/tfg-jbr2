@@ -222,10 +222,27 @@ export async function endGame() {
     animateValue("final-score", 0, AppState.game.score, 1500);
 
     if (creditsEarned > 0) {
+        // 📦 NUEVO PAQUETE DE TELEMETRÍA
+        const aciertos = AppState.game.gameHistory.filter(h => h.points > 0).length;
+        const payloadJSON = JSON.stringify({
+            creditos: parseInt(creditsEarned),
+            modo: "CONTRARRELOJ",
+            aciertos: aciertos,
+            totalPalabras: AppState.game.gameHistory.length,
+            puntuacion: AppState.game.score
+        });
+
         try {
-            await apiFetch('/usuarios/actualizar-creditos', { method: 'POST', body: JSON.stringify({creditosExtra: parseInt(creditsEarned)}) });
-        } catch (e) {}
-    } else { alert("Cero créditos ganados. ¡Puedes hacerlo mejor!"); }
+            await apiFetch('/usuarios/guardar-partida', { // 📍 NUEVA RUTA
+                method: 'POST',
+                body: payloadJSON
+            });
+        } catch (e) {
+            console.error("No se pudo guardar la telemetría");
+        }
+    } else {
+        alert("Cero créditos ganados. ¡Puedes hacerlo mejor!");
+    }
 }
 
 export function abortGame() { clearInterval(AppState.game.timerInterval); showScreen('dashboard-screen'); }

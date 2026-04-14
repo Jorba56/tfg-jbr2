@@ -23,7 +23,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
@@ -355,5 +357,24 @@ public class UserController {
         SecurityContextHolder.clearContext();
 
         return ResponseEntity.ok(Map.of("mensaje", "Exorcismo completado. Sesión destruida."));
+    }
+
+    @GetMapping("/ranking/global")
+    public ResponseEntity<List<Map<String, Object>>> getRankingGlobal() {
+        return ResponseEntity.ok(userServiceImpl.obtenerRankingGlobal());
+    }
+
+    @PostMapping("/guardar-partida")
+    public ResponseEntity<?> guardarPartida(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, Object> datosPartida) {
+
+        userServiceImpl.guardarEstadisticasPartida(userDetails.getUsername(), datosPartida);
+        return ResponseEntity.ok(Map.of("mensaje", "Telemetría guardada"));
+    }
+
+    @GetMapping("/estadisticas/{id}")
+    public ResponseEntity<?> getEstadisticasPublicas(@PathVariable Long id) {
+        return ResponseEntity.ok(userServiceImpl.obtenerEstadisticasPublicas(id));
     }
 }
