@@ -95,12 +95,11 @@ public class GeminiServiceImpl implements GeminiService {
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
                 "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "IMPORTANTE: " +
-                "- Cada 'palabra' debe ser UNA SOLA PALABRA sin espacios. " +
-                "- La 'definicion' debe ser UN SOLO PÁRRAFO sin saltos de línea. " +
-                "- El idioma es estrictamente ESPAÑOL. " +
-                "- Formato: {\"letra\": \"A\", \"palabra\": \"ejemplo\", \"definicion\": \"Empieza por A: texto aquí sin saltos de línea\"}. " +
-                "Responde SOLO con el array JSON, nada más.";
+                "REQUISITOS CRÍTICOS: " +
+                "1. Cada 'definicion' DEBE ser una sola línea, sin saltos de línea. Si es larga, usa puntos suspensivos. " +
+                "2. Máximo 200 caracteres por definición. " +
+                "3. Devuelve SOLO el JSON sin formato, en una sola línea si es posible. " +
+                "4. Ejemplo exacto: [{\"letra\":\"A\",\"palabra\":\"Árbitro\",\"definicion\":\"Empieza por A: Juez...\"}, ...] ";
 
         String escapedPrompt = escapeJsonString(prompt);
 
@@ -108,7 +107,7 @@ public class GeminiServiceImpl implements GeminiService {
                 "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
                 "\"temperature\": 0.7," +
-                "\"maxOutputTokens\": 3000," +
+                "\"maxOutputTokens\": 2500," +
                 "\"responseMimeType\": \"application/json\"" +
                 "}" +
                 "}";
@@ -138,56 +137,35 @@ public class GeminiServiceImpl implements GeminiService {
                 return "[]";
             }
 
-            // 1️⃣ EXTRAER TEXTO RAW
+            // EXTRAER TEXTO RAW
             String jsonCrudo = root.path("candidates").get(0)
                     .path("content")
                     .path("parts").get(0)
-                    .path("text").asText().trim();
+                    .path("text").asText();
 
-            logger.info("📦 Respuesta raw de Gemini (primeros 500 chars): {}",
-                    jsonCrudo.length() > 500 ? jsonCrudo.substring(0, 500) : jsonCrudo);
+            logger.info("📦 Respuesta raw recibida, limpiando...");
 
-            // 2️⃣ LIMPIAR MARKDOWN SI EXISTE
-            if (jsonCrudo.contains("```")) {
-                int inicioArray = jsonCrudo.indexOf("[");
-                int finArray = jsonCrudo.lastIndexOf("]");
-                if (inicioArray != -1 && finArray != -1) {
-                    jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
-                }
-            }
+            // 🔧 LIMPIEZA AGRESIVA
+            String jsonLimpio = limpiarJsonDesdeBrokenNewlines(jsonCrudo);
 
-            // 3️⃣ ESCAPAR SALTOS DE LÍNEA DENTRO DE STRINGS
-            // Reemplazar \n y \r dentro de las definiciones
-            jsonCrudo = jsonCrudo.replace("\n", " ")
-                    .replace("\r", " ")
-                    .replace("  ", " ");  // Eliminar espacios dobles
+            logger.info("✅ JSON limpiado y validado. Primeros 300 chars: {}",
+                    jsonLimpio.length() > 300 ? jsonLimpio.substring(0, 300) : jsonLimpio);
 
-            logger.info("🧹 JSON limpiado (primeros 500 chars): {}",
-                    jsonCrudo.length() > 500 ? jsonCrudo.substring(0, 500) : jsonCrudo);
+            // VALIDAR Y PARSEAR
+            JsonNode arrayNode = objectMapper.readTree(jsonLimpio);
 
-            // 4️⃣ VALIDAR Y PARSEAR
-            try {
-                JsonNode arrayNode = objectMapper.readTree(jsonCrudo);
-
-                if (!arrayNode.isArray()) {
-                    logger.error("❌ La respuesta no es un array JSON válido");
-                    return "[]";
-                }
-
-                if (arrayNode.size() != 25) {
-                    logger.warn("⚠️  Se esperaban 25 palabras, se obtuvieron: {}", arrayNode.size());
-                }
-
-                logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras para tema: {}",
-                        arrayNode.size(), temaPersonalizado);
-                return jsonCrudo;
-
-            } catch (JsonProcessingException e) {
-                logger.error("📄 Error al parsear JSON después de limpiar: {}", e.getMessage());
-                logger.error("JSON problemático: {}", jsonCrudo.substring(0, Math.min(1000, jsonCrudo.length())));
+            if (!arrayNode.isArray()) {
+                logger.error("❌ La respuesta no es un array JSON válido");
                 return "[]";
             }
 
+            logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras para tema: {}",
+                    arrayNode.size(), temaPersonalizado);
+            return jsonLimpio;
+
+        } catch (JsonProcessingException e) {
+            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
+            return "[]";
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             logger.error("🌐 Error HTTP en Gemini API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
             return "[]";
@@ -195,6 +173,55 @@ public class GeminiServiceImpl implements GeminiService {
             logger.error("💥 Error inesperado: {}", e.getMessage(), e);
             return "[]";
         }
+    }
+
+    /**
+     * Limpia un JSON roto con saltos de línea dentro de strings
+     * Reconstruye el JSON de forma segura eliminando newlines problemáticos
+     */
+    private String limpiarJsonDesdeBrokenNewlines(String jsonRoto) {
+        // 1. Remover espacios en blanco al inicio/final
+        String cleaned = jsonRoto.trim();
+
+        // 2. Remover markdown si existe
+        if (cleaned.contains("```")) {
+            int start = cleaned.indexOf("[");
+            int end = cleaned.lastIndexOf("]");
+            if (start != -1 && end != -1 && start < end) {
+                cleaned = cleaned.substring(start, end + 1);
+            }
+        }
+
+        // 3. 🔨 RECONSTRUIR EL JSON LÍNEA POR LÍNEA
+        // Esto es lo clave: procesa cada línea y reconstruye sin saltos
+        StringBuilder resultado = new StringBuilder();
+        String[] lineas = cleaned.split("\n");
+
+        for (String linea : lineas) {
+            // Trim de cada línea y concatenar sin saltos
+            String lineaTrimmed = linea.trim();
+            if (!lineaTrimmed.isEmpty()) {
+                resultado.append(lineaTrimmed);
+            }
+        }
+
+        String jsonUnaLinea = resultado.toString();
+
+        // 4. 🧹 Limpiar espacios múltiples
+        jsonUnaLinea = jsonUnaLinea.replaceAll("\\s+", " ");
+
+        // 5. ✅ Asegurar que empiece con [ y termine con ]
+        if (!jsonUnaLinea.startsWith("[")) {
+            int idx = jsonUnaLinea.indexOf("[");
+            if (idx != -1) jsonUnaLinea = jsonUnaLinea.substring(idx);
+        }
+        if (!jsonUnaLinea.endsWith("]")) {
+            int idx = jsonUnaLinea.lastIndexOf("]");
+            if (idx != -1) jsonUnaLinea = jsonUnaLinea.substring(0, idx + 1);
+        }
+
+        logger.debug("🔧 JSON después de limpieza: {}", jsonUnaLinea);
+        return jsonUnaLinea;
     }
 
     private String escapeJsonString(String input) {
