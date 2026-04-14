@@ -14,9 +14,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class GeminiServiceImpl implements GeminiService {
@@ -90,26 +88,26 @@ public class GeminiServiceImpl implements GeminiService {
             return "El servidor de IA está repostando combustible|Inténtalo de nuevo en unos segundos|El coche de seguridad está en pista|#";
         }
     }
-
     public String generarRosco(String temaPersonalizado) {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
-        String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
-                "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
+        // Prompt estructurado para que devuelva líneas limpias
+        String prompt = "Actúa como un experto creador del juego Pasapalabra sobre: " + temaPersonalizado + ". " +
+                "Devuelve EXACTAMENTE 25 palabras, UNA POR LÍNEA, con este formato: " +
+                "LETRA|PALABRA|DEFINICION " +
+                "(sin comillas, separado por barras verticales). " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "REQUISITOS: " +
-                "1. Devuelve ÚNICAMENTE un JSON array, nada de markdown. " +
-                "2. Cada definición máximo 180 caracteres, SIN saltos de línea dentro de los strings. " +
-                "3. Formato exacto: [{\"letra\":\"A\",\"palabra\":\"ejemplo\",\"definicion\":\"Empieza por A: descripción...\"}, ...]";
+                "Ejemplo: A|Árbitro|Empieza por A: Persona que arbitra un partido. " +
+                "IMPORTANTE: Cada definición en UNA sola línea, máximo 150 caracteres, SIN saltos de línea.";
 
         String escapedPrompt = escapeJsonString(prompt);
 
+        // SIN responseMimeType, solo texto plano
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
                 "\"temperature\": 0.7," +
-                "\"maxOutputTokens\": 3000," +
-                "\"responseMimeType\": \"application/json\"" +
+                "\"maxOutputTokens\": 2500" +
                 "}" +
                 "}";
 
@@ -122,7 +120,7 @@ public class GeminiServiceImpl implements GeminiService {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
             if (!response.getStatusCode().is2xxSuccessful()) {
-                logger.error("❌ Error HTTP: {} - {}", response.getStatusCode(), response.getBody());
+                logger.error("❌ Error HTTP: {}", response.getStatusCode());
                 return "[]";
             }
 
@@ -134,53 +132,29 @@ public class GeminiServiceImpl implements GeminiService {
             }
 
             if (root.path("candidates").isEmpty()) {
-                logger.error("🛑 Respuesta vacía de Gemini (sin candidates)");
-                logger.error("🔍 Respuesta completa: {}", response.getBody());
+                logger.error("🛑 Respuesta vacía");
                 return "[]";
             }
 
-            // EXTRAER TEXTO RAW
-            String jsonCrudo = root.path("candidates").get(0)
+            String respuestaTexto = root.path("candidates").get(0)
                     .path("content")
                     .path("parts").get(0)
                     .path("text").asText();
 
-            logger.info("📦 Respuesta raw recibida ({} caracteres)", jsonCrudo.length());
+            logger.info("📦 Respuesta recibida ({} caracteres)", respuestaTexto.length());
+            logger.debug("🔍 Contenido:\n{}", respuestaTexto);
 
-            // 🚨 MOSTRAR LA RESPUESTA COMPLETA PARA DEBUGGEAR
-            logger.error("🔴 CONTENIDO COMPLETO DE LA RESPUESTA:");
-            logger.error("---START---");
-            logger.error(jsonCrudo);
-            logger.error("---END---");
+            // Convertir formato texto a JSON
+            String jsonResultado = convertirTextoAJson(respuestaTexto, temaPersonalizado);
 
-            // 🔧 LIMPIEZA
-            String jsonLimpio = procesarJsonDeLaIA(jsonCrudo);
-
-            if (jsonLimpio.equals("[]")) {
-                logger.error("❌ JSON limpio está vacío");
+            if (jsonResultado.equals("[]")) {
+                logger.error("❌ No se pudieron procesar las palabras");
                 return "[]";
             }
 
-            // VALIDAR Y PARSEAR
-            JsonNode arrayNode = objectMapper.readTree(jsonLimpio);
+            logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras", contarLineas(jsonResultado));
+            return jsonResultado;
 
-            if (!arrayNode.isArray()) {
-                logger.error("❌ La respuesta no es un array JSON válido");
-                return "[]";
-            }
-
-            if (arrayNode.size() == 0) {
-                logger.error("❌ Array vacío");
-                return "[]";
-            }
-
-            logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras para tema: {}",
-                    arrayNode.size(), temaPersonalizado);
-            return jsonLimpio;
-
-        } catch (JsonProcessingException e) {
-            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
-            return "[]";
         } catch (Exception e) {
             logger.error("💥 Error: {}", e.getMessage(), e);
             return "[]";
@@ -188,105 +162,70 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     /**
-     * Procesa JSON de Gemini: extrae objetos válidos y reconstruye el array
+     * Convierte el formato LETRA|PALABRA|DEFINICION a JSON array
      */
-    private String procesarJsonDeLaIA(String jsonRoto) {
-        // 1. Remover markdown si existe
-        String cleaned = jsonRoto.trim();
-        if (cleaned.contains("```")) {
-            int start = cleaned.indexOf("[");
-            int end = cleaned.lastIndexOf("]");
-            if (start != -1 && end != -1 && start < end) {
-                cleaned = cleaned.substring(start, end + 1);
+    private String convertirTextoAJson(String texto, String tema) {
+        List<Map<String, String>> palabras = new ArrayList<>();
+
+        // Dividir por líneas
+        String[] lineas = texto.split("\n");
+
+        logger.info("🔍 Procesando {} líneas", lineas.length);
+
+        for (String linea : lineas) {
+            linea = linea.trim();
+
+            // Ignorar líneas vacías o que no tengan el formato correcto
+            if (linea.isEmpty() || !linea.contains("|")) {
+                continue;
+            }
+
+            // Dividir por |
+            String[] partes = linea.split("\\|");
+
+            if (partes.length >= 3) {
+                String letra = partes[0].trim();
+                String palabra = partes[1].trim();
+                String definicion = partes[2].trim();
+
+                // Validar que letra sea un carácter único
+                if (letra.length() == 1 && !palabra.isEmpty() && !definicion.isEmpty()) {
+                    Map<String, String> item = new LinkedHashMap<>();
+                    item.put("letra", letra.toUpperCase());
+                    item.put("palabra", palabra);
+                    item.put("definicion", definicion);
+                    palabras.add(item);
+
+                    logger.debug("✓ Añadida palabra: {} - {}", letra, palabra);
+                }
             }
         }
 
-        // 2. Normalizar espacios y saltos de línea FUERA de strings
-        // Estrategia: reconocer objetos completos { ... }
-        List<String> objetos = extraerObjetos(cleaned);
+        logger.info("📊 Se extrajeron {} palabras válidas", palabras.size());
 
-        if (objetos.isEmpty()) {
-            logger.error("❌ No se encontraron objetos JSON válidos");
+        if (palabras.isEmpty()) {
             return "[]";
         }
 
-        // 3. Reconstruir array limpio
-        StringBuilder arrayReconstruido = new StringBuilder("[");
-        for (int i = 0; i < objetos.size(); i++) {
-            arrayReconstruido.append(objetos.get(i));
-            if (i < objetos.size() - 1) {
-                arrayReconstruido.append(",");
-            }
+        // Convertir a JSON
+        try {
+            return objectMapper.writeValueAsString(palabras);
+        } catch (Exception e) {
+            logger.error("❌ Error al serializar a JSON: {}", e.getMessage());
+            return "[]";
         }
-        arrayReconstruido.append("]");
-
-        return arrayReconstruido.toString();
     }
 
     /**
-     * Extrae objetos JSON individuales del texto, ignorando saltos de línea rotos
+     * Cuenta líneas en el JSON resultado
      */
-    private List<String> extraerObjetos(String json) {
-        List<String> objetos = new ArrayList<>();
-        int nivel = 0;
-        StringBuilder objetoActual = new StringBuilder();
-        boolean enString = false;
-        char charAnterior = ' ';
-
-        for (int i = 0; i < json.length(); i++) {
-            char c = json.charAt(i);
-
-            // Detectar si estamos dentro de un string (ignorar {}, [], etc. dentro de strings)
-            if (c == '"' && charAnterior != '\\') {
-                enString = !enString;
-            }
-
-            if (!enString) {
-                if (c == '{') {
-                    nivel++;
-                } else if (c == '}') {
-                    nivel--;
-                }
-            }
-
-            // Agregar carácter si no es salto de línea innecesario
-            if (c == '\n' || c == '\r') {
-                // Solo añadir espacio si estamos dentro de un objeto y es necesario
-                if (nivel > 0 && !enString && objetoActual.length() > 0) {
-                    char ultimoChar = objetoActual.charAt(objetoActual.length() - 1);
-                    if (ultimoChar != ' ' && ultimoChar != '{' && ultimoChar != '[' && ultimoChar != ':' && ultimoChar != ',') {
-                        objetoActual.append(" ");
-                    }
-                }
-            } else {
-                objetoActual.append(c);
-            }
-
-            // Cuando cerramos un objeto, guardarlo
-            if (nivel == 0 && objetoActual.length() > 0 && c == '}') {
-                String objeto = objetoActual.toString().trim();
-                if (objeto.startsWith("{") && objeto.endsWith("}")) {
-                    objetos.add(objeto);
-                    objetoActual = new StringBuilder();
-                }
-            }
-
-            charAnterior = c;
+    private int contarLineas(String json) {
+        try {
+            JsonNode root = objectMapper.readTree(json);
+            return root.isArray() ? root.size() : 0;
+        } catch (Exception e) {
+            return 0;
         }
-
-        logger.debug("🔍 Se extrajeron {} objetos válidos", objetos.size());
-        return objetos;
-    }
-
-    /**
-     * Cuenta objetos { } en el JSON (para logging)
-     */
-    private int contarObjetos(String json) {
-        int count = 0;
-        for (char c : json.toCharArray()) {
-            if (c == '{') count++;
-        }
-        return count;
     }
 
     private String escapeJsonString(String input) {
@@ -297,4 +236,5 @@ public class GeminiServiceImpl implements GeminiService {
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
     }
+
 }
