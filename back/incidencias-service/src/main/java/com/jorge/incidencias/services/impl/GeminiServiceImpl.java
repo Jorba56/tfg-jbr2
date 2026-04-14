@@ -90,42 +90,37 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        // Usar gemini-1.5-flash (modelo estable y disponible)
         String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
-        // Prompt limpio y bien escapado
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
                 "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "REGLAS: " +
-                "1. Cada palabra debe ser una única palabra sin espacios. " +
-                "2. El idioma es estrictamente ESPAÑOL. " +
-                "3. La definición debe empezar indicando la letra: 'Empieza por A:' o 'Contiene la X:'. " +
-                "4. Devuelve un array JSON donde cada objeto tenga: 'letra', 'palabra', 'definicion'. " +
-                "Responde SOLO con el JSON sin explicaciones adicionales.";
+                "IMPORTANTE: " +
+                "- Cada 'palabra' debe ser UNA SOLA PALABRA sin espacios. " +
+                "- La 'definicion' debe ser UN SOLO PÁRRAFO sin saltos de línea. " +
+                "- El idioma es estrictamente ESPAÑOL. " +
+                "- Formato: {\"letra\": \"A\", \"palabra\": \"ejemplo\", \"definicion\": \"Empieza por A: texto aquí sin saltos de línea\"}. " +
+                "Responde SOLO con el array JSON, nada más.";
 
-        // Escapar el prompt correctamente para JSON
         String escapedPrompt = escapeJsonString(prompt);
 
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
                 "\"temperature\": 0.7," +
-                "\"maxOutputTokens\": 2500," +
+                "\"maxOutputTokens\": 3000," +
                 "\"responseMimeType\": \"application/json\"" +
                 "}" +
                 "}";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("User-Agent", "MyApp/1.0");
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
         try {
             logger.info("📤 Enviando request a Gemini para tema: {}", temaPersonalizado);
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
 
-            // Verificar status HTTP
             if (!response.getStatusCode().is2xxSuccessful()) {
                 logger.error("❌ Error HTTP: {} - {}", response.getStatusCode(), response.getBody());
                 return "[]";
@@ -133,29 +128,27 @@ public class GeminiServiceImpl implements GeminiService {
 
             JsonNode root = objectMapper.readTree(response.getBody());
 
-            // Verificar si hay error en la respuesta
             if (root.has("error")) {
                 logger.error("🛑 Error de Gemini API: {}", root.path("error").asText());
                 return "[]";
             }
 
-            // Verificar si hay candidates
             if (root.path("candidates").isEmpty()) {
-                logger.error("🛑 Respuesta vacía de Gemini (sin candidates)");
-                logger.debug("Body completo: {}", response.getBody());
+                logger.error("🛑 Respuesta vacía de Gemini");
                 return "[]";
             }
 
-            // Extraer el texto JSON
+            // 1️⃣ EXTRAER TEXTO RAW
             String jsonCrudo = root.path("candidates").get(0)
                     .path("content")
                     .path("parts").get(0)
                     .path("text").asText().trim();
 
-            logger.info("📦 Respuesta raw de Gemini: {}", jsonCrudo);
+            logger.info("📦 Respuesta raw de Gemini (primeros 500 chars): {}",
+                    jsonCrudo.length() > 500 ? jsonCrudo.substring(0, 500) : jsonCrudo);
 
-            // Limpiar si hay markdown (aunque con responseMimeType: application/json rara vez sucede)
-            if (jsonCrudo.startsWith("```")) {
+            // 2️⃣ LIMPIAR MARKDOWN SI EXISTE
+            if (jsonCrudo.contains("```")) {
                 int inicioArray = jsonCrudo.indexOf("[");
                 int finArray = jsonCrudo.lastIndexOf("]");
                 if (inicioArray != -1 && finArray != -1) {
@@ -163,17 +156,40 @@ public class GeminiServiceImpl implements GeminiService {
                 }
             }
 
-            // Validar que es un JSON válido
-            objectMapper.readTree(jsonCrudo);
+            // 3️⃣ ESCAPAR SALTOS DE LÍNEA DENTRO DE STRINGS
+            // Reemplazar \n y \r dentro de las definiciones
+            jsonCrudo = jsonCrudo.replace("\n", " ")
+                    .replace("\r", " ")
+                    .replace("  ", " ");  // Eliminar espacios dobles
 
-            logger.info("✅ ROSCO GENERADO CON ÉXITO PARA: {}", temaPersonalizado);
-            return jsonCrudo;
+            logger.info("🧹 JSON limpiado (primeros 500 chars): {}",
+                    jsonCrudo.length() > 500 ? jsonCrudo.substring(0, 500) : jsonCrudo);
+
+            // 4️⃣ VALIDAR Y PARSEAR
+            try {
+                JsonNode arrayNode = objectMapper.readTree(jsonCrudo);
+
+                if (!arrayNode.isArray()) {
+                    logger.error("❌ La respuesta no es un array JSON válido");
+                    return "[]";
+                }
+
+                if (arrayNode.size() != 25) {
+                    logger.warn("⚠️  Se esperaban 25 palabras, se obtuvieron: {}", arrayNode.size());
+                }
+
+                logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras para tema: {}",
+                        arrayNode.size(), temaPersonalizado);
+                return jsonCrudo;
+
+            } catch (JsonProcessingException e) {
+                logger.error("📄 Error al parsear JSON después de limpiar: {}", e.getMessage());
+                logger.error("JSON problemático: {}", jsonCrudo.substring(0, Math.min(1000, jsonCrudo.length())));
+                return "[]";
+            }
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             logger.error("🌐 Error HTTP en Gemini API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return "[]";
-        } catch (JsonProcessingException e) {
-            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
             return "[]";
         } catch (Exception e) {
             logger.error("💥 Error inesperado: {}", e.getMessage(), e);
@@ -181,7 +197,6 @@ public class GeminiServiceImpl implements GeminiService {
         }
     }
 
-    // auxiliar para escapar strings en JSON
     private String escapeJsonString(String input) {
         return input
                 .replace("\\", "\\\\")
