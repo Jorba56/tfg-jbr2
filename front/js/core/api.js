@@ -1,4 +1,4 @@
-export const API_URL = '';
+export const API_URL = 'https://gateway-production-a1f6.up.railway.app';
 
 export async function apiFetch(endpoint, options = {}) {
     const defaultOptions = { credentials: 'include', headers: { 'Content-Type': 'application/json' } };

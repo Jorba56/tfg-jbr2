@@ -1216,6 +1216,121 @@ body.tema-cyberpunk input:focus {
 .text-danger i { color: #ef4444 !important; }
 .text-danger:hover { border-left-color: #ef4444 !important; }
 
+/* =========================================
+   🏆 ESTILOS DEL PODIO (RANKING)
+   ========================================= */
+
+/* Estructura del Podio en Pantallas Grandes (Grid de 6 columnas) */
+.podium-layout {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 divisiones mágicas */
+    grid-template-areas:
+        ". . first first . ."
+        "second second first first third third"
+        "fourth fourth fourth fifth fifth fifth"; /* 4 y 5 se reparten la mitad exacta */
+    gap: 15px;
+    margin-bottom: 30px;
+    align-items: start;
+}
+
+/* Asignación de posiciones en el Grid (Top 3) */
+.pos-1 { grid-area: first; z-index: 10; border-color: #ffd700 !important; box-shadow: 0 10px 25px rgba(255,215,0,0.2); }
+.pos-2 { grid-area: second; border-color: #c0c0c0 !important; }
+.pos-3 { grid-area: third; border-color: #cd7f32 !important; }
+
+/* ⬇️ AJUSTE PARA #4 y #5: Todo el ancho, menos altos, sin aire en medio ⬇️ */
+.pos-4 { grid-area: fourth; opacity: 0.95; padding: 10px 5px !important; }
+.pos-5 { grid-area: fifth; opacity: 0.95; padding: 10px 5px !important; }
+
+/* Sobrescribir JS para hacer los avatares y textos del 4 y 5 más pequeños */
+.pos-4 img, .pos-5 img {
+    width: 45px !important;
+    height: 45px !important;
+    margin-bottom: 5px !important;
+}
+.pos-4 > div:first-child, .pos-5 > div:first-child { /* Reduce el tamaño del "#4" y "#5" */
+    font-size: 1.4rem !important;
+    margin-top: -5px !important;
+    margin-bottom: 2px !important;
+}
+.pos-4 h4, .pos-5 h4 { /* Reduce el nombre del piloto */
+    font-size: 0.95rem !important;
+}
+.pos-4 div > div, .pos-5 div > div { /* Reduce el tamaño de los créditos */
+    font-size: 1rem !important;
+    margin-top: 2px !important;
+}
+
+/* Estilo general de la tarjeta para los Top 5 */
+.podium-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 10px;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.podium-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
+}
+
+/* Estilo para los jugadores del #6 en adelante */
+.ranking-rest {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+.small-rank-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 15px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s, background 0.2s;
+}
+.small-rank-card:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Adaptación a Móviles (Lista apilada perfecta) */
+@media (max-width: 768px) {
+    .podium-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas: "first" "second" "third" "fourth" "fifth";
+        gap: 10px;
+    }
+    .pos-1 { transform: none; margin-bottom: 10px; }
+    .podium-card { flex-direction: row; justify-content: space-between; padding: 10px 15px !important; text-align: left; }
+    .podium-card img { width: 50px !important; height: 50px !important; margin: 0 15px !important; }
+    .podium-card h4 { text-align: left !important; font-size: 1.1rem !important; }
+    .podium-card > div:first-child { margin: 0 !important; font-size: 1.5rem !important; }
+}
+
+/* Adaptación a Móviles (Se vuelve una lista apilada) */
+@media (max-width: 768px) {
+    .podium-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "first"
+            "second"
+            "third"
+            "fourth"
+            "fifth";
+        gap: 10px;
+    }
+    .pos-1 { transform: none; margin-bottom: 10px; }
+    .podium-card { flex-direction: row; justify-content: space-between; padding: 10px 15px; text-align: left; }
+    .podium-card img { width: 50px !important; height: 50px !important; margin: 0 15px !important; }
+    .podium-card h4 { text-align: left !important; }
+}
+
+
 /* Estilos para el Modal del Tutorial */
 .modal {
     position: fixed;

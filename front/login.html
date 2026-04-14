@@ -101,7 +101,7 @@
         <div id="card-play" class="shop-item playable group">
             <div class="item-type-tag type-powerup">MODO IA</div>
             <h4>⚡ Contrarreloj</h4>
-            <span class="desc">Demuestra tu velocidad punta en la arena de tecleo en el modo clásico. El tema de las frases es aleatorio, decidido por la IA. Gana créditos por cada acierto.</span>
+            <span class="desc">Demuestra tu velocidad punta en la arena de tecleo en el modo clásico. El tema de las frases es aleatorio.</span>
             <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
         </div>
 
@@ -124,6 +124,13 @@
             <button class="btn-item-action btn-buy" onclick="Rosco.init()">
                 <div>GENERAR Y JUGAR 🧠</div>
             </button>
+        </div>
+
+        <div id="card-ranking" class="shop-item playable group" onclick="app.openRanking()">
+            <div class="item-type-tag" style="background:#ff9f43; border-color: #ff9f43; color: white;">GLOBAL</div>
+            <h4>🏆 Hall of Fame</h4>
+            <span class="desc">Consulta la telemetría global y descubre quiénes son los pilotos más rápidos del circuito.</span>
+            <button class="btn-item-action btn-buy"><div>VER RANKING</div></button>
         </div>
 
         <div id="card-profile" class="shop-item playable group">
@@ -151,25 +158,19 @@
 
 <section id="game-screen" class="screen hidden">
     <div class="shop-container" style="max-width: 700px; text-align: center;">
-
         <div class="stats-bar">
             <div>⏳ <span id="timer">60</span>s</div>
-
             <div id="container-pasivas"></div>
-
             <div>🏆 <span id="score">0</span></div>
         </div>
-
         <div id="powerup-bar" class="powerup-bar"></div>
         <div class="phrase-container">
             <p id="phrase-display">...</p>
             <p id="next-phrase-preview" class="hidden"></p>
         </div>
-
         <div class="input-area">
             <input type="text" id="game-input" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
         </div>
-
         <button id="btn-abort" class="back-btn">Cancelar Misión</button>
     </div>
 </section>
@@ -180,14 +181,11 @@
         <div id="final-score" class="big-score">0</div>
         <div class="credits-earned">🪙 +<span id="earned-credits">0</span></div>
     </div>
-
     <div class="actions">
         <button id="btn-retry" class="final-action-btn">🔄 Jugar de nuevo</button>
         <button id="btn-menu" class="final-action-btn">🏠 Volver al Menú</button>
     </div>
-
-    <div id="history-list" class="history-container-scroll">
-    </div>
+    <div id="history-list" class="history-container-scroll"></div>
 </section>
 
 <section id="profile-screen" class="screen hidden">
@@ -261,7 +259,7 @@
                         </select>
                     </div>
 
-                        <button id="btn-save-avatar" class="btn-primary">💾 Guardar Look</button>
+                    <button id="btn-save-avatar" class="btn-primary">💾 Guardar Look</button>
                 </div>
                 <button type="submit" class="btn-main" style="width: 100%;">
                     <div>GUARDAR CAMBIOS</div>
@@ -277,64 +275,21 @@
         <header class="shop-header">
             <h2 style="margin: 0;">🛒 Tienda de Objetos</h2>
         </header>
-
-        <div id="shop-list" class="items-grid">
-        </div>
-
+        <div id="shop-list" class="items-grid"></div>
         <button id="btn-back-shop" class="back-btn">Volver al Menú</button>
     </div>
 </section>
 
 <section id="ui-rosco" class="screen hidden">
     <div class="shop-container" style="max-width: 700px; text-align: center; display: flex; flex-direction: column; align-items: center;">
-
         <button class="back-btn" style="align-self: flex-start; margin-bottom: 20px;" onclick="app.showScreen('dashboard-screen'); Rosco.stop();">
             ⬅ Abandonar Partida
         </button>
-
         <div class="rosco-layout">
             <ul class="circle" id="r-circle"></ul>
             <div class="center-panel">
-
                 <div id="r-play">
-                    <div class="timer-box" style="font-weight: bold; font-size: 1.2rem; color: var(--text-highlight);">
-                        ⏳ <span id="r-time">180</span>s
-                    </div>
-
-                    <h2 id="r-char" style="font-size:4.5rem; color:var(--primary); margin: 0; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">A</h2>
-
-                    <p id="r-def" class="definition" style="color: var(--text); font-size: 1rem; margin-top: 5px;">...</p>
-
-                    <input type="text" id="r-input" placeholder="Tu respuesta..." autocomplete="off">
-
-                    <div class="button-group" style="justify-content: center; margin-top: 15px; gap: 10px;">
-                        <button class="btn-main" onclick="Rosco.check()">
-                            <div>OK</div>
-                        </button>
-                        <button class="btn-main btn-registro" onclick="Rosco.pass()">
-                            <div>PASA</div>
-                        </button>
-                    </div>
                 </div>
-
-                <div id="r-end" class="hidden">
-                    <h2 style="color:var(--primary); margin: 0; font-size: 2.5rem;">¡FIN!</h2>
-
-                    <p style="font-size:1.4rem; font-weight: bold; margin: 10px 0;">
-                        ✅ <span id="r-ok" style="color: #00e676;">0</span> | ❌ <span id="r-bad" style="color: var(--error);">0</span>
-                    </p>
-
-                    <div style="font-size: 1.2rem; font-weight: bold; color: #ffd700; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);">
-                        🪙 +<span id="r-credits">0</span>
-                    </div>
-
-                    <div class="summary-box" id="r-summary" style="width: 90%; margin: 0 auto 15px auto; border-radius: 10px; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid var(--card-border); padding: 10px; text-align: left; font-size: 0.85rem;"></div>
-
-                    <button class="btn-main" onclick="app.showScreen('dashboard-screen')">
-                        <div>VOLVER AL MENÚ</div>
-                    </button>
-                </div>
-
             </div>
         </div>
     </div>
@@ -374,37 +329,55 @@
     </div>
 </section>
 
-<div id="modal-stats" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-    <div class="shop-container theme-card" style="width: 90%; max-width: 400px; padding: 25px; text-align: center; position: relative; border-radius: 15px; border: 1px solid var(--primary);">
+<section id="ranking-screen" class="screen hidden">
+    <div class="shop-container" style="max-width: 600px;">
+        <header class="shop-header" style="text-align: center;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 5px;">🏆 Hall of Fame</h2>
+            <p style="color: var(--text-secondary);">Top 10 pilotos con más créditos</p>
+        </header>
 
-        <button onclick="app.closeStatsModal()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer;">&times;</button>
+        <div id="ranking-list" class="items-grid" style="grid-template-columns: 1fr; gap: 10px; margin-top: 20px;">
+        </div>
 
-        <img id="modal-avatar" src="" width="100" height="100" style="border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 10px auto; background: #1e293b;">
-        <h2 id="modal-username" style="margin: 0; font-size: 1.8rem; font-style: italic;">Piloto</h2>
-        <p style="color: #ffd700; font-weight: bold; font-size: 1.3rem; margin: 5px 0 20px 0; text-shadow: 0 0 10px rgba(255,215,0,0.4);">🪙 <span id="modal-credits">0</span></p>
+        <button class="back-btn" style="margin-top: 30px;" onclick="app.showScreen('dashboard-screen')">
+            ⬅ Volver a Boxes
+        </button>
+    </div>
+</section>
+
+<section id="player-stats-screen" class="screen hidden">
+    <div class="shop-container theme-card" style="max-width: 500px; text-align: center; margin-top: 5%;">
+
+        <button class="back-btn" style="margin-bottom: 20px; align-self: flex-start;" onclick="app.showScreen('ranking-screen')">
+            ⬅ Volver al Ranking
+        </button>
+
+        <img id="modal-avatar" src="" width="120" height="120" style="border-radius: 50%; border: 4px solid var(--primary); margin: 0 auto 15px auto; background: #1e293b;">
+        <h2 id="modal-username" style="margin: 0; font-size: 2.2rem; font-style: italic;">Piloto</h2>
+        <p style="color: #ffd700; font-weight: bold; font-size: 1.5rem; margin: 5px 0 25px 0; text-shadow: 0 0 10px rgba(255,215,0,0.4);">🪙 <span id="modal-credits">0</span></p>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
             <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
-                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Rosco</span>
-                <h3 id="modal-record-rosco" style="margin: 5px 0 0 0; color: #00f2fe; font-size: 1.5rem;">0</h3>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">Récord Rosco</span>
+                <h3 id="modal-record-rosco" style="margin: 5px 0 0 0; color: #00f2fe; font-size: 1.8rem;">0</h3>
             </div>
             <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
-                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Frases</span>
-                <h3 id="modal-record-frases" style="margin: 5px 0 0 0; color: #9d4edd; font-size: 1.5rem;">0</h3>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">Récord Frases</span>
+                <h3 id="modal-record-frases" style="margin: 5px 0 0 0; color: #9d4edd; font-size: 1.8rem;">0</h3>
             </div>
 
             <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border); grid-column: span 2;">
-                <span style="font-size: 0.8rem; color: var(--text-secondary);">Precisión en Frases</span>
-                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
-                    <div style="flex-grow: 1; background: #333; height: 12px; border-radius: 6px; overflow: hidden;">
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">Precisión en Frases</span>
+                <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                    <div style="flex-grow: 1; background: #333; height: 14px; border-radius: 7px; overflow: hidden;">
                         <div id="modal-bar-frases" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);"></div>
                     </div>
-                    <span id="modal-pct-frases" style="font-weight: bold; width: 45px; text-align: right;">0%</span>
+                    <span id="modal-pct-frases" style="font-weight: bold; width: 50px; text-align: right; font-size: 1.1rem;">0%</span>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <script type="module" src="js/main.js"></script>
 </body>

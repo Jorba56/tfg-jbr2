@@ -21,4 +21,418 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 
 
+reajustame esto: <div id="modal-stats" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+    <div class="shop-container theme-card" style="width: 90%; max-width: 400px; padding: 25px; text-align: center; position: relative; border-radius: 15px; border: 1px solid var(--primary);">
+
+        <button onclick="app.closeStatsModal()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 1.8rem; cursor: pointer;">&times;</button>
+
+        <img id="modal-avatar" src="" width="100" height="100" style="border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 10px auto; background: #1e293b;">
+        <h2 id="modal-username" style="margin: 0; font-size: 1.8rem; font-style: italic;">Piloto</h2>
+        <p style="color: #ffd700; font-weight: bold; font-size: 1.3rem; margin: 5px 0 20px 0; text-shadow: 0 0 10px rgba(255,215,0,0.4);">🪙 <span id="modal-credits">0</span></p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;">
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Rosco</span>
+                <h3 id="modal-record-rosco" style="margin: 5px 0 0 0; color: #00f2fe; font-size: 1.5rem;">0</h3>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border);">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Récord Frases</span>
+                <h3 id="modal-record-frases" style="margin: 5px 0 0 0; color: #9d4edd; font-size: 1.5rem;">0</h3>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.4); padding: 15px; border-radius: 10px; border: 1px solid var(--card-border); grid-column: span 2;">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Precisión en Frases</span>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+                    <div style="flex-grow: 1; background: #333; height: 12px; border-radius: 6px; overflow: hidden;">
+                        <div id="modal-bar-frases" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+                    </div>
+                    <span id="modal-pct-frases" style="font-weight: bold; width: 45px; text-align: right;">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+        `para que se adecue a esto y funcione como debe, porque ahora mismo no sale ni el apartado de las estadisticas. debe ser una game/shop-card.
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastFingers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="static/images/favicon-16x16.png">
+</head>
+<body>
+
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<nav id="fc-sidebar" class="fc-sidebar">
+    <div class="sidebar-header">
+        <span class="nav-logo" style="color: #00f2fe; font-style: italic;">FASTFINGERS</span>
+        <button class="icon-btn close-btn" onclick="toggleSidebar()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <ul class="sidebar-links">
+        <li><a href="#" onclick="toggleSidebar(); app.showScreen('dashboard-screen');"><i class="fas fa-home"></i> Inicio</a></li>
+        <li><a href="#" onclick="toggleSidebar(); app.openProfile();"><i class="fas fa-user"></i> Mi Perfil</a></li>
+        <li><a href="#" onclick="toggleSidebar(); app.openShop();"><i class="fas fa-shopping-cart"></i> Boxes & Tienda</a></li>
+        <hr class="sidebar-divider">
+        <li><a href="#" id="btn-logout" class="text-danger" onclick="toggleSidebar();"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <button id="theme-toggle" class="sidebar-theme-btn" title="Cambiar tema">
+            <i class="fas fa-moon"></i> <span>Modo Oscuro</span>
+        </button>
+    </div>
+</nav>
+
+<nav id="global-top-nav" class="fc-top-nav hidden">
+    <div class="nav-left">
+        <button id="btn-sidebar-toggle" class="icon-btn" onclick="toggleSidebar()" title="Abrir Menú">
+            <i class="fas fa-bars"></i>
+        </button>
+        <span class="nav-logo" style="font-style: italic; color: #00f2fe;">
+            <img src="static/images/favicon.png" style="width: 40px; height: 40px" alt="20"/>
+        </span>
+    </div>
+
+    <div class="nav-right">
+        <div class="nav-currency">
+            <span class="coin-icon">🪙</span>
+            <span id="user-credits" class="coin-amount">0</span>
+        </div>
+        <div class="nav-profile-container">
+
+            <div class="nav-avatar-trigger">
+                <img id="nav-mini-avatar" src="" alt="Avatar" width="45" height="45">
+            </div>
+
+            <div class="nav-profile-dropdown">
+                <img id="dropdown-large-avatar" src="" alt="Avatar Grande" width="80" height="80">
+                <h4 id="dropdown-fullname">Cargando...</h4>
+                <p id="dropdown-username">@piloto</p>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<section id="login-screen" class="screen active">
+    <div class="login-container">
+        <h1><img src="static/images/favicon-32x32.png" alt="20"/> FastFingers</h1>
+        <p class="subtitle">Arena de tecleo competitivo</p>
+        <input type="text" id="username" placeholder="Correo electrónico">
+        <input type="password" id="password" placeholder="Contraseña">
+        <div class="button-group">
+            <button id="btn-login" class="btn-main">
+<div>Entrar a la Arena</div>
+            </button>
+            <a href="registro.html" class="btn-main btn-registro">
+<div>Crear una cuenta</div>
+            </a>
+            <a href="index.html"id="btn-index" class="btn-main btn-index">
+<div>Volver a la página principal</div>
+            </a>
+        </div>
+        <p id="error-msg" class="hidden error-text">Credenciales incorrectas</p>
+    </div>
+</section>
+
+<section id="dashboard-screen" class="screen hidden">
+    <div class="menu-grid items-grid" style="padding: 0 15px;">
+
+        <div class="shop-item playable group" id="card-tutorial">
+            <div class="card-icon">📖</div>
+            <h3>Tutorial</h3>
+            <span class="desc">Aprende a dominar la pista.</span>
+            <button class="btn-item-action btn-buy"><div>VER TUTORIAL</div></button>
+        </div>
+
+        <div id="card-play" class="shop-item playable group">
+            <div class="item-type-tag type-powerup">MODO IA</div>
+            <h4>⚡ Contrarreloj</h4>
+            <span class="desc">Demuestra tu velocidad punta en la arena de tecleo en el modo clásico. El tema de las frases es aleatorio, decidido por la IA. Gana créditos por cada acierto.</span>
+            <button class="btn-item-action btn-buy"><div>ENTRAR A CORRER</div></button>
+        </div>
+
+        <div id="card-custom" class="shop-item playable group">
+            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">MODO IA PERSONALIZADO</div>
+            <h4>🧠 Partida a Medida</h4>
+            <span class="desc">Dile a la IA sobre qué quieres teclear (ciencia, cine, motor...) y creará la pista.</span>
+            <input type="text" id="input-tema" placeholder="Ej: Fórmula 1 en los 90..."
+style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
+            <button class="btn-item-action btn-buy" onclick="app.iniciarPartidaPersonalizada()">
+<div>GENERAR Y JUGAR</div>
+            </button>
+        </div>
+
+        <div id="card-rosco" class="shop-item playable group">
+            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">EVENTO ESPECIAL</div>
+<h4>El Rosco IA</h4>
+            <span class="desc">Elige cualquier tema del universo y la IA creará un rosco personalizado.</span>
+            <input type="text" id="input-tema-rosco" placeholder="Ej: Universo Marvel..." style="width: 100%; margin: 15px 0 10px 0; padding: 10px; border-radius: 8px; border: 1px solid var(--card-border); background: rgba(0,0,0,0.3); color: white; text-align: center; font-family: inherit; font-size: 0.9rem; outline: none; transition: border-color 0.3s;">
+            <button class="btn-item-action btn-buy" onclick="Rosco.init()">
+<div>GENERAR Y JUGAR 🧠</div>
+            </button>
+        </div>
+
+        <div id="card-profile" class="shop-item playable group">
+            <div class="item-type-tag">GARAJE</div>
+            <h4>👤 Mi Perfil</h4>
+            <span class="desc">Gestiona tu inventario, equipa tus cosméticos y revisa tus estadísticas de carrera.</span>
+            <button class="btn-item-action btn-buy" onclick="app.openProfile()"><div>VER EQUIPO</div></button>
+        </div>
+
+        <div id="card-shop" class="shop-item playable group">
+            <div class="item-type-tag type-cosmetico">OFICIAL</div>
+            <h4>🛒 Tienda</h4>
+            <span class="desc">Adquiere mejoras de rendimiento y temas visuales exclusivos para tu interfaz.</span>
+            <button class="btn-item-action btn-buy" onclick="app.openShop()"><div>IR A COMPRAR</div></button>
+        </div>
+
+        <div id="card-admin" class="shop-item playable admin-card hidden group">
+            <div class="item-type-tag" style="background:#ff4b5c;">SISTEMA</div>
+            <h4>⚙️ Panel Admin</h4>
+            <span class="desc">Acceso restringido a la telemetría global y gestión de usuarios y roles del sistema.</span>
+            <button class="btn-item-action" style="background: #ff4b5c; color: white;"><div>CONFIGURAR</div></button>
+        </div>
+    </div>
+</section>
+
+<section id="game-screen" class="screen hidden">
+    <div class="shop-container" style="max-width: 700px; text-align: center;">
+
+        <div class="stats-bar">
+            <div>⏳ <span id="timer">60</span>s</div>
+
+            <div id="container-pasivas"></div>
+
+            <div>🏆 <span id="score">0</span></div>
+        </div>
+
+        <div id="powerup-bar" class="powerup-bar"></div>
+        <div class="phrase-container">
+            <p id="phrase-display">...</p>
+            <p id="next-phrase-preview" class="hidden"></p>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="game-input" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
+        </div>
+
+        <button id="btn-abort" class="back-btn">Cancelar Misión</button>
+    </div>
+</section>
+
+<section id="results-screen" class="screen hidden">
+    <div class="score-reveal-box">
+        <div class="score-title">Puntuación Final</div>
+        <div id="final-score" class="big-score">0</div>
+        <div class="credits-earned">🪙 +<span id="earned-credits">0</span></div>
+    </div>
+
+    <div class="actions">
+        <button id="btn-retry" class="final-action-btn">🔄 Jugar de nuevo</button>
+        <button id="btn-menu" class="final-action-btn">🏠 Volver al Menú</button>
+    </div>
+
+    <div id="history-list" class="history-container-scroll">
+    </div>
+</section>
+
+<section id="profile-screen" class="screen hidden">
+    <div class="shop-container profile-container theme-card" style="margin-top:5%; max-width: 800px; padding: 20px; border-radius: 10px;">
+
+        <header class="shop-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0;" class="theme-strong">👤 Tu Perfil</h2>
+        </header>
+
+        <button id="btn-back-profile" class="back-btn" style="margin-bottom: 20px;">
+        ⬅ Volver al Menú
+        </button>
+
+        <div class="profile-tabs">
+            <button class="tab-btn active" onclick="switchProfileTab('inventory')">INVENTARIO</button>
+            <button class="tab-btn" onclick="switchProfileTab('settings')">AJUSTES</button>
+        </div>
+
+        <div id="tab-inventory" class="tab-content active">
+            <h3 class="theme-strong mb-4" style="text-transform: uppercase; font-style: italic;">Garaje de Equipamiento</h3>
+            <div id="inventory-list" class="items-grid inventory-grid"></div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <h3 class="theme-strong mb-4" style="text-transform: uppercase; font-style: italic;">Configuración del Piloto</h3>
+            <form id="update-profile-form" class="profile-form">
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Nombre de Usuario</label>
+                    <input type="text" id="upd-username" class="theme-input" style="width: 100%; padding: 10px; border-radius: 5px;" placeholder="Nombre de piloto...">
+                </div>
+
+                <div class="input-group" style="margin-bottom: 15px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Correo Electrónico</label>
+                    <input type="email" id="upd-email" class="theme-input" readonly style="width: 100%; padding: 10px; border-radius: 5px; opacity: 0.6; cursor: not-allowed;">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--card-border); margin: 25px 0;">
+
+                <div class="input-group" style="margin-bottom: 20px;">
+                    <label class="theme-text" style="display: block; font-weight: bold; margin-bottom: 5px;">Nueva Contraseña</label>
+                    <input type="password" id="upd-password" class="theme-input" style="width: 100%; padding: 10px; border-radius: 5px;" placeholder="Dejar en blanco para no cambiar">
+                </div>
+
+                <div class="avatar-workshop" style="text-align: center; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px;">
+                    <img id="avatar-preview" src="" width="150" height="150" style="border: 3px solid #1e293b; border-radius: 50%;">
+
+                    <div class="input-group-avatar" style="margin-bottom: 15px;">
+                        <label for="av-top">
+                            <span style="margin-right: 8px;">🎩</span> Pelo / Sombrero
+        </label>
+                        <select id="av-top">
+                            <option value="shortRound">Pelo Corto Clásico</option>
+                            <option value="shortWaved">Pelo Ondulado</option>
+                            <option value="longButNotTooLong">Pelo Medio/Largo</option>
+                            <option value="dreads01">Rastas</option>
+                            <option value="hat">Sombrero</option>
+                            <option value="winterHat1">Gorro de Invierno</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group-avatar" style="margin-bottom: 20px;">
+                        <label for="av-acc">
+                            <span style="margin-right: 8px;">🕶️</span> Accesorios
+        </label>
+                        <select id="av-acc">
+                            <option value="none">Ninguno</option>
+                            <option value="sunglasses">Gafas de sol</option>
+                            <option value="prescription02">Gafas de ver</option>
+                            <option value="kurt">Gafas Modernas</option>
+                            <option value="round">Gafas Redondas</option>
+                        </select>
+                    </div>
+
+                        <button id="btn-save-avatar" class="btn-primary">💾 Guardar Look</button>
+                </div>
+                <button type="submit" class="btn-main" style="width: 100%;">
+<div>GUARDAR CAMBIOS</div>
+                </button>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+<section id="shop-screen" class="screen hidden">
+    <div class="shop-container">
+        <header class="shop-header">
+            <h2 style="margin: 0;">🛒 Tienda de Objetos</h2>
+        </header>
+
+        <div id="shop-list" class="items-grid">
+        </div>
+
+        <button id="btn-back-shop" class="back-btn">Volver al Menú</button>
+    </div>
+</section>
+
+<section id="ui-rosco" class="screen hidden">
+    <div class="shop-container" style="max-width: 700px; text-align: center; display: flex; flex-direction: column; align-items: center;">
+
+        <button class="back-btn" style="align-self: flex-start; margin-bottom: 20px;" onclick="app.showScreen('dashboard-screen'); Rosco.stop();">
+        ⬅ Abandonar Partida
+        </button>
+
+        <div class="rosco-layout">
+            <ul class="circle" id="r-circle"></ul>
+            <div class="center-panel">
+
+                <div id="r-play">
+                    <div class="timer-box" style="font-weight: bold; font-size: 1.2rem; color: var(--text-highlight);">
+        ⏳ <span id="r-time">180</span>s
+        </div>
+
+                    <h2 id="r-char" style="font-size:4.5rem; color:var(--primary); margin: 0; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">A</h2>
+
+                    <p id="r-def" class="definition" style="color: var(--text); font-size: 1rem; margin-top: 5px;">...</p>
+
+                    <input type="text" id="r-input" placeholder="Tu respuesta..." autocomplete="off">
+
+                    <div class="button-group" style="justify-content: center; margin-top: 15px; gap: 10px;">
+                        <button class="btn-main" onclick="Rosco.check()">
+                            <div>OK</div>
+                        </button>
+                        <button class="btn-main btn-registro" onclick="Rosco.pass()">
+                            <div>PASA</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="r-end" class="hidden">
+                    <h2 style="color:var(--primary); margin: 0; font-size: 2.5rem;">¡FIN!</h2>
+
+                    <p style="font-size:1.4rem; font-weight: bold; margin: 10px 0;">
+        ✅ <span id="r-ok" style="color: #00e676;">0</span> | ❌ <span id="r-bad" style="color: var(--error);">0</span>
+                    </p>
+
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #ffd700; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);">
+        🪙 +<span id="r-credits">0</span>
+                    </div>
+
+                    <div class="summary-box" id="r-summary" style="width: 90%; margin: 0 auto 15px auto; border-radius: 10px; max-height: 120px; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid var(--card-border); padding: 10px; text-align: left; font-size: 0.85rem;"></div>
+
+                    <button class="btn-main" onclick="app.showScreen('dashboard-screen')">
+<div>VOLVER AL MENÚ</div>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="tutorial-screen" class="screen hidden">
+    <div class="shop-container" style="max-width: 800px; text-align: left;">
+        <header class="shop-header" style="text-align: center; margin-bottom: 30px;">
+            <h2 style="margin: 0; font-size: 2.5rem;">🏎️ Manual del Piloto</h2>
+<p>Domina el asfalto de FastFingers</p>
+        </header>
+
+        <div class="tutorial-grid" style="display: grid; gap: 20px;">
+            <div class="shop-item" style="transform: none; border-left: 4px solid var(--primary);">
+                <h3 style="color: var(--primary);">🏁 Objetivo</h3>
+<p>Tu teclado es tu motor. Escribe las frases con precisión para ganar créditos. ¡La velocidad sin control no sirve de nada!</p>
+            </div>
+
+            <div class="shop-item" style="transform: none; border-left: 4px solid #9d4edd;">
+                <h3 style="color: #9d4edd;">🎮 Modos de Juego</h3>
+                <ul style="list-style: none; padding: 0; line-height: 1.6;">
+                    <li><strong>• Contrarreloj:</strong> Velocidad pura en 60 segundos.</li>
+                    <li><strong>• Partida a Medida:</strong> Tú eliges el tema de la pista.</li>
+                    <li><strong>• El Rosco:</strong> El desafío definitivo de la A a la Z.</li>
+                </ul>
+            </div>
+
+            <div class="shop-item" style="transform: none; border-left: 4px solid #ffd700;">
+                <h3 style="color: #ffd700;">⚡ Power-Ups</h3>
+<p>Usa tus créditos en la tienda para comprar <strong>Nitrógeno (Freeze)</strong> o <strong>Multiplicadores</strong>. Recuerda equiparlos en tu Perfil antes de correr.</p>
+            </div>
+        </div>
+
+        <button id="tutorial_comp" class="btn-main" style="width: 100%; margin-top: 30px;" onclick="app.completarTutorial()">
+            <div>¡ENTENDIDO, A CORRER!</div>
+        </button>
+    </div>
+</section>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
+
 

@@ -464,7 +464,7 @@ public class UserServiceImpl implements UserService {
         if (payload.containsKey("contrasenha_usuario") && !payload.get("contrasenha_usuario").trim().isEmpty()) {
             // Nota: Si usas PasswordEncoder en tu proyecto, deberías envolver esto en un .encode()
             // ej: usuario.setContrasenhaUsuario(passwordEncoder.encode(payload.get("contrasenha_usuario")));
-            usuario.setContrasenhaUsuario(payload.get("contrasenha_usuario"));
+            usuario.setContrasenhaUsuario(passwordEncoder.encode(payload.get("contrasenha_usuario")));
         }
 
         // 3. Apretamos tuercas en BBDD
