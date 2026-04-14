@@ -138,7 +138,7 @@ public class GeminiServiceImpl implements GeminiService {
                 jsonCrudo = jsonCrudo.substring(inicioArray, finArray + 1);
             }
 
-            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaFinal);
+            logger.info("🏁 ROSCO GENERADO CON ÉXITO PARA EL TEMA: {}", temaPersonalizado);
             return jsonCrudo;
 
         } catch (Exception e) {
