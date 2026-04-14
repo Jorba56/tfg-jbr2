@@ -87,7 +87,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
 
         String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
                 ? temaPersonalizado : "cultura general y curiosidades";
@@ -96,6 +96,7 @@ public class GeminiServiceImpl implements GeminiService {
         String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
                 "Crea 25 palabras (UNICA Y EXCLUSIVAMENTE UNA PALABRA), una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
                 "Evita palabras en inglés. centrate en el español. " +
+                "Especifica al inicio de la definición si la palabra COMIENZA POR o CONTIENE la letra. " +
                 "REGLA ESTRICTA: Responde ÚNICAMENTE con un array JSON crudo. No añadas saludos. " +
                 "El formato de cada objeto debe ser: {'letra': 'A', 'palabra': '...', 'definicion': '...'}";
 
