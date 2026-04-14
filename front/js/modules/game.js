@@ -222,11 +222,18 @@ export async function endGame() {
     animateValue("final-score", 0, AppState.game.score, 1500);
 
     if (creditsEarned > 0) {
-        // 🚨 AQUÍ ESTÁ EL ARREGLO:
-        // Comparamos que lo escrito (input) sea EXACTAMENTE IGUAL a la frase original (target)
-        const aciertos = AppState.game.gameHistory.filter(h => h.input.trim() === h.target.trim()).length;
+        // 🚨 PRECISIÓN ESTRICTA (Pero perdonando el punto final):
+        const aciertos = AppState.game.gameHistory.filter(h => {
+            if (!h.input || !h.target) return false;
 
-        // 📦 EL PAQUETE DE TELEMETRÍA (se queda igual)
+            // Limpiamos los espacios de los lados y ELIMINAMOS EL PUNTO FINAL (\.$) si existe
+            const inputLimpio = h.input.trim().replace(/\.$/, "");
+            const targetLimpio = h.target.trim().replace(/\.$/, "");
+
+            return inputLimpio === targetLimpio;
+        }).length;
+
+        // 📦 EL PAQUETE DE TELEMETRÍA
         const payloadJSON = JSON.stringify({
             creditos: parseInt(creditsEarned),
             modo: "CONTRARRELOJ",
