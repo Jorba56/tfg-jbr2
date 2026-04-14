@@ -87,7 +87,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
 
         String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
                 ? temaPersonalizado : "cultura general y curiosidades";
@@ -103,7 +103,7 @@ public class GeminiServiceImpl implements GeminiService {
         // Cuerpo de la petición perfectamente encapsulado
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
-                "\"generationConfig\": {\"temperature\": 0.7, \"maxOutputTokens\": 2500}" +
+                "\"generationConfig\": {\"temperature\": 0.3, \"maxOutputTokens\": 6000}" +
                 "}";
 
         HttpHeaders headers = new HttpHeaders();
