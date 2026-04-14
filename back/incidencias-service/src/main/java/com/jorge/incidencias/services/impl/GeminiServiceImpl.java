@@ -29,7 +29,7 @@ public class GeminiServiceImpl implements GeminiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public String generarFrase(String dificultad, String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview::generateContent?key=" + apiKey;
 
         String temaFinal = "";
 
@@ -87,23 +87,27 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent?key=" + apiKey;
+        // Te recomiendo usar gemini-1.5-flash (es el modelo estándar más rápido y listo actualmente)
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
-        String temaFinal = (temaPersonalizado != null && !temaPersonalizado.trim().isEmpty())
-                ? temaPersonalizado : "cultura general y curiosidades";
+        // Un prompt estructurado con viñetas es mucho más fácil de procesar para la IA
+        String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
+                "Genera 25 palabras exactas sobre el tema: '" + temaPersonalizado + "'. " +
+                "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
+                "REGLAS: " +
+                "1. La 'palabra' DEBE ser una única palabra (sin espacios). " +
+                "2. El idioma es estrictamente ESPAÑOL. " +
+                "3. La 'definicion' debe empezar siempre indicando la letra, por ejemplo: 'Empieza por A: ...' o 'Contiene la X: ...'. " +
+                "4. Debes devolver un array de JSON donde cada objeto tenga exactamente estas claves: 'letra', 'palabra', 'definicion'.";
 
-        // El prompt es una obra de ingeniería estricta para que el JSON no falle
-        String prompt = "Genera un juego de Pasapalabra sobre el tema: '" + temaFinal + "'. " +
-                "Crea 25 palabras (UNICA Y EXCLUSIVAMENTE UNA PALABRA), una para cada letra: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "Evita palabras en inglés. centrate en el español. " +
-                "Especifica al inicio de la definición si la palabra COMIENZA POR o CONTIENE la letra. " +
-                "REGLA ESTRICTA: Responde ÚNICAMENTE con un array JSON crudo. No añadas saludos. " +
-                "El formato de cada objeto debe ser: {'letra': 'A', 'palabra': '...', 'definicion': '...'}";
-
-        // Cuerpo de la petición perfectamente encapsulado
+        // 🚨 LA MAGIA: Añadimos responseMimeType: application/json
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + prompt + "\"}] }]," +
-                "\"generationConfig\": {\"temperature\": 0.3, \"maxOutputTokens\": 6000}" +
+                "\"generationConfig\": {" +
+                "\"temperature\": 0.3, " +
+                "\"maxOutputTokens\": 2500, " +
+                "\"responseMimeType\": \"application/json\"" +
+                "}" +
                 "}";
 
         HttpHeaders headers = new HttpHeaders();
@@ -114,19 +118,19 @@ public class GeminiServiceImpl implements GeminiService {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
             JsonNode root = objectMapper.readTree(response.getBody());
 
-            // 1. Chivato antiescudos de seguridad (A veces Gemini bloquea temas sin avisar)
+            // 1. Chivato antiescudos de seguridad
             if (root.path("candidates").isEmpty()) {
                 logger.error("🛑 Gemini bloqueó la respuesta o devolvió vacío: {}", response.getBody());
                 return "[]";
             }
 
+            // Como forzamos application/json, el texto que devuelve ya es un JSON puro sin backticks (```json)
             String jsonCrudo = root.path("candidates").get(0)
                     .path("content")
                     .path("parts").get(0)
                     .path("text").asText().trim();
 
-            // 2. FILTRO EXTREMO ANTIBASURA:
-            // Si Gemini mete texto antes o después del JSON, lo recortamos de cuajo.
+            // 2. Filtro extremo antibasura (Mantenido por extrema seguridad, aunque con JSON mode rara vez hace falta)
             int inicioArray = jsonCrudo.indexOf("[");
             int finArray = jsonCrudo.lastIndexOf("]");
 
@@ -138,9 +142,8 @@ public class GeminiServiceImpl implements GeminiService {
             return jsonCrudo;
 
         } catch (Exception e) {
-            // 3. Telemetría de alta precisión
             logger.error("💥 FALLO CRÍTICO AL GENERAR ROSCO. Motivo exacto: {}", e.getMessage());
-            return "[]"; // Activará el error 400 en el controlador
+            return "[]";
         }
     }
 }
