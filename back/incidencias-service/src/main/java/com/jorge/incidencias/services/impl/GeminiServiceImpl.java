@@ -92,7 +92,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
 
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
                 "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
