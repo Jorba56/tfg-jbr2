@@ -364,13 +364,25 @@ public class UserController {
         return ResponseEntity.ok(userServiceImpl.obtenerRankingGlobal());
     }
 
+    @Operation(summary = "Guardar telemetría", description = "Guarda las estadísticas y créditos al terminar la partida.")
     @PostMapping("/guardar-partida")
     public ResponseEntity<?> guardarPartida(
-            @AuthenticationPrincipal UserDetails userDetails,
+            Authentication authentication, // 🛠️ CAMBIO 1: Usamos Authentication normal
             @RequestBody Map<String, Object> datosPartida) {
 
-        userServiceImpl.guardarEstadisticasPartida(userDetails.getUsername(), datosPartida);
-        return ResponseEntity.ok(Map.of("mensaje", "Telemetría guardada"));
+        try {
+            // 🛠️ CAMBIO 2: Extraemos el email directamente como un String
+            String emailUsuario = authentication.getName();
+
+            // Enviamos los datos al motor
+            userServiceImpl.guardarEstadisticasPartida(emailUsuario, datosPartida);
+
+            return ResponseEntity.ok(Map.of("mensaje", "Telemetría guardada con éxito"));
+
+        } catch (Exception e) {
+            System.err.println("Fallo al guardar telemetría: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", "Fallo al procesar datos de la partida"));
+        }
     }
 
     @GetMapping("/estadisticas/{id}")
