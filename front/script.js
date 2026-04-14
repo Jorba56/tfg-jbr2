@@ -204,7 +204,7 @@ const Rosco = {
 
             try {
                 // 3. Petición a tu backend
-                const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
+                const url = `/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
@@ -264,7 +264,7 @@ const Rosco = {
 
             try {
                 // Petición a tu backend (asegúrate de que la ruta coincide con tu GameController)
-                const url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
+                const url = `/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`;
                 const response = await fetch(url, {
                     method: 'GET',
                     headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
@@ -422,7 +422,7 @@ const Rosco = {
                 const payloadJSON = JSON.stringify({creditosExtra: parseInt(creditosGanados)});
 
                 try {
-                    const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                    const url = '/usuarios/actualizar-creditos';
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
@@ -614,7 +614,7 @@ const app = {
         try {
             // 🛡️ REPARACIÓN: Añadimos la hora actual a la URL para reventar la caché del navegador
             const timestamp = new Date().getTime();
-            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/perfil?t=${timestamp}`, {
+            const response = await fetch(`/usuarios/perfil?t=${timestamp}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -686,7 +686,7 @@ const app = {
             btnLogin.innerText = "Conectando...";
             btnLogin.disabled = true;
 
-            const response = await fetch('https://gateway-production-a1f6.up.railway.app/auth/login', {
+            const response = await fetch('/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include', // 🔑 Permite que el backend nos instale la Cookie
@@ -738,7 +738,7 @@ const app = {
     logout: async () => {
         try {
             // Llamamos a la ruta exacta
-            await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/logout-manual', {
+            await fetch('/usuarios/logout-manual', {
                 method: 'POST',
                 credentials: 'include' // 🔑 VITAL: Envia la cookie 'jwt_token' para que Java la pueda machacar
             });
@@ -995,7 +995,7 @@ const app = {
             const timestamp = new Date().getTime();
 
             // 1. Armamos la URL base
-            let url = `https://gateway-production-a1f6.up.railway.app/incidencias/game/frase?dificultad=media&t=${timestamp}`;
+            let url = `/incidencias/game/frase?dificultad=media&t=${timestamp}`;
 
             // 2. Si estamos en modo personalizado, acoplamos el tema a la URL
             if (app.modoPersonalizado && app.temaElegido) {
@@ -1140,7 +1140,7 @@ const app = {
                 const payloadJSON = JSON.stringify({creditosExtra: parseInt(creditsEarned)});
 
                 try {
-                    const url = 'https://gateway-production-a1f6.up.railway.app/usuarios/actualizar-creditos';
+                    const url = '/usuarios/actualizar-creditos';
                     const response = await fetch(url, {
                         method: 'POST', // Aseguramos que es POST
                         headers: {
@@ -1271,7 +1271,7 @@ const app = {
 
     loadTienda: async () => {
         try {
-            const response = await fetch('https://gateway-production-a1f6.up.railway.app/usuarios/tienda', {
+            const response = await fetch('/usuarios/tienda', {
                 headers: {'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`},
                 credentials: 'include'
             });
@@ -1340,7 +1340,7 @@ const app = {
         }
 
         try {
-            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/buy/${idItemParam}`, {
+            const response = await fetch(`/usuarios/buy/${idItemParam}`, {
                 method: 'POST',
                 credentials: 'include' // 🔑
             });
@@ -1428,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Usa aquí tu constante API_URL o el enlace directo de Railway
-            const response = await fetch(`https://gateway-production-a1f6.up.railway.app/usuarios/avatar`, {
+            const response = await fetch(`/usuarios/avatar`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -1454,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            const API_URL = 'https://gateway-production-a1f6.up.railway.app';
+            const API_URL = '';
 
             // Ponemos el botón en modo "Carga" para evitar doble clic
             const btnSubmit = e.target.querySelector('button[type="submit"]');
