@@ -42,9 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('update-profile-form')?.addEventListener('submit', guardarPerfilForm);
 
     // Botones de Navegación
+    document.getElementById('btn-abort')?.addEventListener('click', abortGame);
+    document.getElementById('btn-menu')?.addEventListener('click', () => showScreen('dashboard-screen'));
+    document.getElementById('card-admin').addEventListener('click', () => {
+        window.location.href = 'gestion-usuarios.html';
+    });
     document.getElementById('btn-back-profile')?.addEventListener('click', () => showScreen('dashboard-screen'));
     document.getElementById('btn-back-shop')?.addEventListener('click', () => showScreen('dashboard-screen'));
-    document.getElementById('btn-menu')?.addEventListener('click', () => showScreen('dashboard-screen'));
     document.getElementById('btn-retry')?.addEventListener('click', startGame);
 
     // Eventos del Input del Juego principal
