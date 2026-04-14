@@ -1,99 +1,101 @@
-// js/modules/rosco.js
 import { AppState } from '../core/state.js';
 import { apiFetch } from '../core/api.js';
-import { showScreen } from '../core/ui.js';
+import { showScreen, updateUserUI } from '../core/ui.js';
 
-// Variables privadas del Rosco
-let letrasRosco = [];
-let indiceLetraActual = 0;
-let roscoCompletado = false;
+function normalize(s) { return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); }
 
-export async function startRosco() {
-    showScreen('rosco-screen'); // Asegúrate de tener un id "rosco-screen" en tu HTML
-    document.getElementById('rosco-definition').innerHTML = "Generando rosco con IA...";
+export const Rosco = {
+    data: [], curr: 0, ok: 0, bad: 0, time: 180, timer: null,
 
-    try {
-        // Tu llamada a la IA (ajusta la URL según tu código)
-        const response = await apiFetch(`/incidencias/game/rosco-ia?tema=programacion`);
-        if (!response.ok) throw new Error("Fallo en la IA");
+    init: async function () {
+        const temaInput = document.getElementById('input-tema-rosco').value.trim();
+        if (temaInput.length < 3) return alert("Introduce un tema válido de al menos 3 letras.");
 
-        letrasRosco = await response.json(); // Array de [{letra: 'A', definicion: '...', respuesta: '...'}, ...]
-        indiceLetraActual = 0;
-        roscoCompletado = false;
+        showScreen('ui-rosco');
+        document.getElementById('r-play').classList.remove('hidden');
+        document.getElementById('r-end').classList.add('hidden');
+        document.getElementById('r-summary').classList.add('hidden');
 
-        dibujarCirculoRosco();
-        mostrarDefinicion();
+        document.getElementById('r-char').innerText = "⏳";
+        document.getElementById('r-def').innerText = "Conectando con boxes... Generando 25 palabras sobre: " + temaInput;
+        document.getElementById('r-circle').innerHTML = '';
+        document.getElementById('r-input').disabled = true;
 
-    } catch(error) {
-        document.getElementById('rosco-definition').innerHTML = "Fallo en la conexión del Rosco.";
+        try {
+            const response = await apiFetch(`/incidencias/game/rosco-ia?tema=${encodeURIComponent(temaInput)}`, { method: 'GET' });
+            if (!response.ok) throw new Error();
+
+            this.data = (await response.json()).map(item => ({ id: item.letra.toUpperCase(), q: item.definicion, a: item.palabra, st: null }));
+            document.getElementById('r-input').disabled = false;
+            this.curr = 0; this.ok = 0; this.bad = 0; this.time = 180;
+            this.draw(); this.loadQ(); this.startTimer();
+        } catch (e) {
+            alert("Hubo un fallo en boxes al contactar con la IA."); showScreen('dashboard-screen');
+        }
+    },
+    draw() {
+        const ul = document.getElementById('r-circle'); ul.innerHTML = '';
+        this.data.forEach((d, i) => {
+            const li = document.createElement('li');
+            li.className = 'letter-item'; li.id = 'rn-' + i; li.innerText = d.id;
+            const rad = ((360 / this.data.length) * i - 90) * (Math.PI / 180);
+            li.style.transform = `translate(${300 * Math.cos(rad)}px, ${300 * Math.sin(rad)}px)`;
+            ul.appendChild(li);
+        });
+    },
+    loadQ() {
+        let p = -1;
+        for (let i = this.curr; i < this.data.length; i++) if (!this.data[i].st) { p = i; break; }
+        if (p === -1) for (let i = 0; i < this.data.length; i++) if (!this.data[i].st) { p = i; break; }
+        if (p === -1) return this.finish();
+
+        this.curr = p;
+        document.getElementById('r-char').innerText = this.data[p].id;
+        document.getElementById('r-def').innerText = this.data[p].q;
+        document.getElementById('r-input').value = ''; document.getElementById('r-input').focus();
+        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('rn-' + p).classList.add('active');
+    },
+    check() {
+        const v = normalize(document.getElementById('r-input').value);
+        const item = this.data[this.curr];
+        const node = document.getElementById('rn-' + this.curr);
+        if (v === normalize(item.a)) { item.st = 'ok'; this.ok++; node.classList.add('correct'); }
+        else { item.st = 'bad'; this.bad++; node.classList.add('wrong'); }
+        this.curr++; this.loadQ();
+    },
+    pass() { document.getElementById('rn-' + this.curr).classList.remove('active'); this.curr++; this.loadQ(); },
+    startTimer() {
+        clearInterval(this.timer);
+        this.timer = setInterval(() => {
+            this.time--; document.getElementById('r-time').innerText = this.time;
+            if (this.time <= 0) this.finish();
+        }, 1000);
+    },
+    stop() { clearInterval(this.timer); },
+    async finish() {
+        this.stop();
+        document.getElementById('r-play').classList.add('hidden');
+        document.getElementById('r-end').classList.remove('hidden');
+        document.getElementById('r-ok').innerText = this.ok;
+        document.getElementById('r-bad').innerText = this.bad;
+        document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
+
+        const sum = document.getElementById('r-summary');
+        sum.innerHTML = ''; sum.classList.remove('hidden');
+        this.data.forEach(d => {
+            const div = document.createElement('div'); div.className = 'summary-item';
+            div.innerHTML = `<span class="${d.st === 'ok' ? 'sum-correct' : 'sum-wrong'}">${d.id} ${d.st === 'ok' ? '✅' : '❌'}</span> <b>${d.a.toUpperCase()}</b><br><small>${d.q}</small>`;
+            sum.appendChild(div);
+        });
+
+        const creditosGanados = this.ok * 10;
+        document.getElementById('r-credits').innerText = creditosGanados;
+
+        if (creditosGanados > 0 && AppState.currentUser) {
+            AppState.currentUser.creditos += creditosGanados;
+            updateUserUI();
+            try { await apiFetch('/usuarios/actualizar-creditos', { method: 'POST', body: JSON.stringify({creditosExtra: parseInt(creditosGanados)}) }); } catch(e){}
+        }
     }
-}
-
-function dibujarCirculoRosco() {
-    const contenedor = document.getElementById('rosco-circle');
-    if (!contenedor) return;
-    contenedor.innerHTML = '';
-
-    const radio = 120; // Tamaño del círculo
-    const centro = 150;
-
-    letrasRosco.forEach((item, index) => {
-        const angulo = (index / letrasRosco.length) * (2 * Math.PI) - (Math.PI / 2);
-        const x = centro + radio * Math.cos(angulo);
-        const y = centro + radio * Math.sin(angulo);
-
-        const letraDiv = document.createElement('div');
-        letraDiv.className = 'rosco-letter bg-blue-500 text-white rounded-full absolute flex items-center justify-center font-bold w-8 h-8 transition-all';
-        letraDiv.style.left = `${x}px`;
-        letraDiv.style.top = `${y}px`;
-        letraDiv.innerText = item.letra;
-        letraDiv.id = `letra-${item.letra}`;
-
-        contenedor.appendChild(letraDiv);
-    });
-}
-
-function mostrarDefinicion() {
-    if (roscoCompletado) return;
-    const itemActual = letrasRosco[indiceLetraActual];
-    document.getElementById('rosco-definition').innerText = `Con la ${itemActual.letra}: ${itemActual.definicion}`;
-
-    // Resaltar letra actual en el círculo
-    document.querySelectorAll('.rosco-letter').forEach(el => el.classList.remove('ring-4', 'ring-yellow-400', 'scale-125'));
-    document.getElementById(`letra-${itemActual.letra}`).classList.add('ring-4', 'ring-yellow-400', 'scale-125');
-}
-
-export function checkRoscoAnswer(e) {
-    e.preventDefault(); // Si es un formulario
-    const input = document.getElementById('rosco-input');
-    const respuestaUsuario = input.value.trim().toLowerCase();
-    const itemActual = letrasRosco[indiceLetraActual];
-
-    const esCorrecta = respuestaUsuario === itemActual.respuesta.toLowerCase();
-    const letraDiv = document.getElementById(`letra-${itemActual.letra}`);
-
-    if (esCorrecta) {
-        letraDiv.classList.replace('bg-blue-500', 'bg-green-500'); // Acierto
-    } else {
-        letraDiv.classList.replace('bg-blue-500', 'bg-red-500'); // Fallo
-    }
-
-    input.value = '';
-    avanzarRosco();
-}
-
-export function pasarPalabra(e) {
-    if(e) e.preventDefault();
-    avanzarRosco();
-}
-
-function avanzarRosco() {
-    indiceLetraActual++;
-    if (indiceLetraActual >= letrasRosco.length) {
-        roscoCompletado = true;
-        alert("¡Rosco terminado!");
-        showScreen('dashboard-screen');
-    } else {
-        mostrarDefinicion();
-    }
-}
+};
