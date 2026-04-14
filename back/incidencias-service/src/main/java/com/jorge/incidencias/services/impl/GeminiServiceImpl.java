@@ -98,10 +98,9 @@ public class GeminiServiceImpl implements GeminiService {
                 "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
                 "REQUISITOS: " +
-                "1. Devuelve ÚNICAMENTE un JSON array, nada de markdown, nada de explicaciones. " +
-                "2. Cada definición debe ser una sola línea, máximo 180 caracteres, SIN saltos de línea. " +
-                "3. Si la definición es larga, acórtala o usa puntos suspensivos. " +
-                "4. Formato: [{\"letra\":\"A\",\"palabra\":\"ejemplo\",\"definicion\":\"Empieza por A: descripción...\"}, ...]";
+                "1. Devuelve ÚNICAMENTE un JSON array, nada de markdown. " +
+                "2. Cada definición máximo 180 caracteres, SIN saltos de línea dentro de los strings. " +
+                "3. Formato exacto: [{\"letra\":\"A\",\"palabra\":\"ejemplo\",\"definicion\":\"Empieza por A: descripción...\"}, ...]";
 
         String escapedPrompt = escapeJsonString(prompt);
 
@@ -109,7 +108,7 @@ public class GeminiServiceImpl implements GeminiService {
                 "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
                 "\"temperature\": 0.7," +
-                "\"maxOutputTokens\": 2500," +
+                "\"maxOutputTokens\": 3000," +
                 "\"responseMimeType\": \"application/json\"" +
                 "}" +
                 "}";
@@ -135,7 +134,8 @@ public class GeminiServiceImpl implements GeminiService {
             }
 
             if (root.path("candidates").isEmpty()) {
-                logger.error("🛑 Respuesta vacía de Gemini");
+                logger.error("🛑 Respuesta vacía de Gemini (sin candidates)");
+                logger.error("🔍 Respuesta completa: {}", response.getBody());
                 return "[]";
             }
 
@@ -145,12 +145,21 @@ public class GeminiServiceImpl implements GeminiService {
                     .path("parts").get(0)
                     .path("text").asText();
 
-            logger.info("📦 Respuesta raw recibida ({} caracteres), procesando...", jsonCrudo.length());
+            logger.info("📦 Respuesta raw recibida ({} caracteres)", jsonCrudo.length());
 
-            // 🔧 LIMPIEZA INTELIGENTE
+            // 🚨 MOSTRAR LA RESPUESTA COMPLETA PARA DEBUGGEAR
+            logger.error("🔴 CONTENIDO COMPLETO DE LA RESPUESTA:");
+            logger.error("---START---");
+            logger.error(jsonCrudo);
+            logger.error("---END---");
+
+            // 🔧 LIMPIEZA
             String jsonLimpio = procesarJsonDeLaIA(jsonCrudo);
 
-            logger.info("✅ JSON procesado. Objetos encontrados: {}", contarObjetos(jsonLimpio));
+            if (jsonLimpio.equals("[]")) {
+                logger.error("❌ JSON limpio está vacío");
+                return "[]";
+            }
 
             // VALIDAR Y PARSEAR
             JsonNode arrayNode = objectMapper.readTree(jsonLimpio);
@@ -170,14 +179,10 @@ public class GeminiServiceImpl implements GeminiService {
             return jsonLimpio;
 
         } catch (JsonProcessingException e) {
-            logger.error("📄 Error al parsear JSON: {} | Línea: {}, Columna: {}",
-                    e.getMessage(), e.getLocation().getLineNr(), e.getLocation().getColumnNr());
-            return "[]";
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            logger.error("🌐 Error HTTP en Gemini API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
             return "[]";
         } catch (Exception e) {
-            logger.error("💥 Error inesperado: {}", e.getMessage(), e);
+            logger.error("💥 Error: {}", e.getMessage(), e);
             return "[]";
         }
     }
