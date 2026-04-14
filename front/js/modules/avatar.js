@@ -22,10 +22,16 @@ export function updateAvatarPreview() {
 
     const finalUrl = `${DICEBEAR_API}?seed=${config}`;
 
+// Pintar el del Taller
     const avatarImg = document.getElementById('avatar-preview');
-    if (avatarImg) {
-        avatarImg.src = finalUrl;
-    }
+    if (avatarImg) avatarImg.src = finalUrl;
+
+// Pintar los de la barra de navegación
+    const miniAvatar = document.getElementById('nav-mini-avatar');
+    const largeAvatar = document.getElementById('dropdown-large-avatar');
+    if (miniAvatar) miniAvatar.src = finalUrl;
+    if (largeAvatar) largeAvatar.src = finalUrl;
+
 
     return config; // Devolvemos la config por si queremos guardarla
 }

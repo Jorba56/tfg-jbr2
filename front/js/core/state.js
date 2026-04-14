@@ -1,7 +1,7 @@
 // js/core/state.js
 
 // Exportamos un objeto reactivo que guardará el estado de toda la aplicación
-export const app = {
+export const AppState = {
     currentUser: null,
 
     // Variables del juego de mecanografía
