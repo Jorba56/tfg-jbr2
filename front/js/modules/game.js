@@ -222,8 +222,11 @@ export async function endGame() {
     animateValue("final-score", 0, AppState.game.score, 1500);
 
     if (creditsEarned > 0) {
-        // 📦 NUEVO PAQUETE DE TELEMETRÍA
-        const aciertos = AppState.game.gameHistory.filter(h => h.points > 0).length;
+        // 🚨 AQUÍ ESTÁ EL ARREGLO:
+        // Comparamos que lo escrito (input) sea EXACTAMENTE IGUAL a la frase original (target)
+        const aciertos = AppState.game.gameHistory.filter(h => h.input.trim() === h.target.trim()).length;
+
+        // 📦 EL PAQUETE DE TELEMETRÍA (se queda igual)
         const payloadJSON = JSON.stringify({
             creditos: parseInt(creditsEarned),
             modo: "CONTRARRELOJ",
@@ -233,7 +236,7 @@ export async function endGame() {
         });
 
         try {
-            await apiFetch('/usuarios/guardar-partida', { // 📍 NUEVA RUTA
+            await apiFetch('/usuarios/guardar-partida', {
                 method: 'POST',
                 body: payloadJSON
             });
