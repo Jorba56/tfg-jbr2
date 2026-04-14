@@ -1,5 +1,5 @@
 // 🛑 ELIMINAMOS LA BÚSQUEDA DEL TOKEN EN LOCALSTORAGE
-const API_URL = 'https://gateway-production-a1f6.up.railway.app';
+const API_URL = '';
 
 // 🛡️ BARRERA DE SEGURIDAD INICIAL: Verificamos si la cookie es válida
 async function verificarAcceso() {
