@@ -90,16 +90,16 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     public String generarRosco(String temaPersonalizado) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" + apiKey;
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
         String prompt = "Actúa como un experto creador del juego Pasapalabra. " +
                 "Genera 25 palabras exactas sobre el tema: " + temaPersonalizado + ". " +
                 "Letras obligatorias: A, B, C, D, E, F, G, H, I, J, L, M, N, Ñ, O, P, Q, R, S, T, U, V, X, Y, Z. " +
-                "REQUISITOS CRÍTICOS: " +
-                "1. Cada 'definicion' DEBE ser una sola línea, sin saltos de línea. Si es larga, usa puntos suspensivos. " +
-                "2. Máximo 200 caracteres por definición. " +
-                "3. Devuelve SOLO el JSON sin formato, en una sola línea si es posible. " +
-                "4. Ejemplo exacto: [{\"letra\":\"A\",\"palabra\":\"Árbitro\",\"definicion\":\"Empieza por A: Juez...\"}, ...] ";
+                "REQUISITOS: " +
+                "1. Devuelve ÚNICAMENTE un JSON array, nada de markdown, nada de explicaciones. " +
+                "2. Cada definición debe ser una sola línea, máximo 180 caracteres, SIN saltos de línea. " +
+                "3. Si la definición es larga, acórtala o usa puntos suspensivos. " +
+                "4. Formato: [{\"letra\":\"A\",\"palabra\":\"ejemplo\",\"definicion\":\"Empieza por A: descripción...\"}, ...]";
 
         String escapedPrompt = escapeJsonString(prompt);
 
@@ -143,13 +143,12 @@ public class GeminiServiceImpl implements GeminiService {
                     .path("parts").get(0)
                     .path("text").asText();
 
-            logger.info("📦 Respuesta raw recibida, limpiando...");
+            logger.info("📦 Respuesta raw recibida ({} caracteres), procesando...", jsonCrudo.length());
 
-            // 🔧 LIMPIEZA AGRESIVA
-            String jsonLimpio = limpiarJsonDesdeBrokenNewlines(jsonCrudo);
+            // 🔧 LIMPIEZA INTELIGENTE
+            String jsonLimpio = procesarJsonDeLaIA(jsonCrudo);
 
-            logger.info("✅ JSON limpiado y validado. Primeros 300 chars: {}",
-                    jsonLimpio.length() > 300 ? jsonLimpio.substring(0, 300) : jsonLimpio);
+            logger.info("✅ JSON procesado. Objetos encontrados: {}", contarObjetos(jsonLimpio));
 
             // VALIDAR Y PARSEAR
             JsonNode arrayNode = objectMapper.readTree(jsonLimpio);
@@ -159,12 +158,18 @@ public class GeminiServiceImpl implements GeminiService {
                 return "[]";
             }
 
+            if (arrayNode.size() == 0) {
+                logger.error("❌ Array vacío");
+                return "[]";
+            }
+
             logger.info("✅ ROSCO GENERADO CON ÉXITO - {} palabras para tema: {}",
                     arrayNode.size(), temaPersonalizado);
             return jsonLimpio;
 
         } catch (JsonProcessingException e) {
-            logger.error("📄 Error al parsear JSON: {}", e.getMessage());
+            logger.error("📄 Error al parsear JSON: {} | Línea: {}, Columna: {}",
+                    e.getMessage(), e.getLocation().getLineNr(), e.getLocation().getColumnNr());
             return "[]";
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             logger.error("🌐 Error HTTP en Gemini API: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
@@ -176,14 +181,11 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     /**
-     * Limpia un JSON roto con saltos de línea dentro de strings
-     * Reconstruye el JSON de forma segura eliminando newlines problemáticos
+     * Procesa JSON de Gemini: extrae objetos válidos y reconstruye el array
      */
-    private String limpiarJsonDesdeBrokenNewlines(String jsonRoto) {
-        // 1. Remover espacios en blanco al inicio/final
+    private String procesarJsonDeLaIA(String jsonRoto) {
+        // 1. Remover markdown si existe
         String cleaned = jsonRoto.trim();
-
-        // 2. Remover markdown si existe
         if (cleaned.contains("```")) {
             int start = cleaned.indexOf("[");
             int end = cleaned.lastIndexOf("]");
@@ -192,36 +194,92 @@ public class GeminiServiceImpl implements GeminiService {
             }
         }
 
-        // 3. 🔨 RECONSTRUIR EL JSON LÍNEA POR LÍNEA
-        // Esto es lo clave: procesa cada línea y reconstruye sin saltos
-        StringBuilder resultado = new StringBuilder();
-        String[] lineas = cleaned.split("\n");
+        // 2. Normalizar espacios y saltos de línea FUERA de strings
+        // Estrategia: reconocer objetos completos { ... }
+        List<String> objetos = extraerObjetos(cleaned);
 
-        for (String linea : lineas) {
-            // Trim de cada línea y concatenar sin saltos
-            String lineaTrimmed = linea.trim();
-            if (!lineaTrimmed.isEmpty()) {
-                resultado.append(lineaTrimmed);
+        if (objetos.isEmpty()) {
+            logger.error("❌ No se encontraron objetos JSON válidos");
+            return "[]";
+        }
+
+        // 3. Reconstruir array limpio
+        StringBuilder arrayReconstruido = new StringBuilder("[");
+        for (int i = 0; i < objetos.size(); i++) {
+            arrayReconstruido.append(objetos.get(i));
+            if (i < objetos.size() - 1) {
+                arrayReconstruido.append(",");
             }
         }
+        arrayReconstruido.append("]");
 
-        String jsonUnaLinea = resultado.toString();
+        return arrayReconstruido.toString();
+    }
 
-        // 4. 🧹 Limpiar espacios múltiples
-        jsonUnaLinea = jsonUnaLinea.replaceAll("\\s+", " ");
+    /**
+     * Extrae objetos JSON individuales del texto, ignorando saltos de línea rotos
+     */
+    private List<String> extraerObjetos(String json) {
+        List<String> objetos = new ArrayList<>();
+        int nivel = 0;
+        StringBuilder objetoActual = new StringBuilder();
+        boolean enString = false;
+        char charAnterior = ' ';
 
-        // 5. ✅ Asegurar que empiece con [ y termine con ]
-        if (!jsonUnaLinea.startsWith("[")) {
-            int idx = jsonUnaLinea.indexOf("[");
-            if (idx != -1) jsonUnaLinea = jsonUnaLinea.substring(idx);
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+
+            // Detectar si estamos dentro de un string (ignorar {}, [], etc. dentro de strings)
+            if (c == '"' && charAnterior != '\\') {
+                enString = !enString;
+            }
+
+            if (!enString) {
+                if (c == '{') {
+                    nivel++;
+                } else if (c == '}') {
+                    nivel--;
+                }
+            }
+
+            // Agregar carácter si no es salto de línea innecesario
+            if (c == '\n' || c == '\r') {
+                // Solo añadir espacio si estamos dentro de un objeto y es necesario
+                if (nivel > 0 && !enString && objetoActual.length() > 0) {
+                    char ultimoChar = objetoActual.charAt(objetoActual.length() - 1);
+                    if (ultimoChar != ' ' && ultimoChar != '{' && ultimoChar != '[' && ultimoChar != ':' && ultimoChar != ',') {
+                        objetoActual.append(" ");
+                    }
+                }
+            } else {
+                objetoActual.append(c);
+            }
+
+            // Cuando cerramos un objeto, guardarlo
+            if (nivel == 0 && objetoActual.length() > 0 && c == '}') {
+                String objeto = objetoActual.toString().trim();
+                if (objeto.startsWith("{") && objeto.endsWith("}")) {
+                    objetos.add(objeto);
+                    objetoActual = new StringBuilder();
+                }
+            }
+
+            charAnterior = c;
         }
-        if (!jsonUnaLinea.endsWith("]")) {
-            int idx = jsonUnaLinea.lastIndexOf("]");
-            if (idx != -1) jsonUnaLinea = jsonUnaLinea.substring(0, idx + 1);
-        }
 
-        logger.debug("🔧 JSON después de limpieza: {}", jsonUnaLinea);
-        return jsonUnaLinea;
+        logger.debug("🔍 Se extrajeron {} objetos válidos", objetos.size());
+        return objetos;
+    }
+
+    /**
+     * Cuenta objetos { } en el JSON (para logging)
+     */
+    private int contarObjetos(String json) {
+        int count = 0;
+        for (char c : json.toCharArray()) {
+            if (c == '{') count++;
+        }
+        return count;
     }
 
     private String escapeJsonString(String input) {
