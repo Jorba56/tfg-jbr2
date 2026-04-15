@@ -57,14 +57,23 @@ export const Rosco = {
         document.querySelectorAll('.letter-item').forEach(el => el.classList.remove('active'));
         document.getElementById('rn-' + p).classList.add('active');
     },
+
     check() {
         const v = normalize(document.getElementById('r-input').value);
         const item = this.data[this.curr];
         const node = document.getElementById('rn-' + this.curr);
-        if (v === normalize(item.a)) { item.st = 'ok'; this.ok++; node.classList.add('correct'); }
-        else { item.st = 'bad'; this.bad++; node.classList.add('wrong'); }
+        if (v === normalize(item.a)) {
+            item.st = 'ok'; this.ok++; node.classList.add('correct');
+
+            // 📡 ENVIAR PROGRESO AL RIVAL
+            if (Multiplayer && Multiplayer.salaActual) Multiplayer.enviarProgreso(this.ok * 10);
+
+        } else {
+            item.st = 'bad'; this.bad++; node.classList.add('wrong');
+        }
         this.curr++; this.loadQ();
     },
+
     pass() { document.getElementById('rn-' + this.curr).classList.remove('active'); this.curr++; this.loadQ(); },
     startTimer() {
         clearInterval(this.timer);
@@ -92,6 +101,12 @@ export const Rosco = {
 
         const creditosGanados = this.ok * 10;
         document.getElementById('r-credits').innerText = creditosGanados;
+
+        // 📡 AVISAR DE QUE HAS TERMINADO Y COMPROBAR GANADOR
+        if (Multiplayer && Multiplayer.salaActual) {
+            Multiplayer.enviarSeñal('FINISH', { puntuacion: creditosGanados });
+            window.dispatchEvent(new Event('my-game-finished'));
+        }
 
         if (creditosGanados > 0 && AppState.currentUser) {
             AppState.currentUser.creditos += creditosGanados;

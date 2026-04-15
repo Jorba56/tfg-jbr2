@@ -1,7 +1,11 @@
 import { AppState } from '../core/state.js';
-import { apiFetch, Multiplayer} from '../core/api.js';
+import { apiFetch, Multiplayer } from '../core/api.js';
 import { showScreen, updateUserUI, animateValue } from '../core/ui.js';
 import { Rosco } from './rosco.js';
+
+// ==========================================
+// ⚡ GESTIÓN DE POWER-UPS
+// ==========================================
 
 export function activarPowerUp(tipo) {
     if (AppState.powerUps.inventario[tipo] > 0) {
@@ -61,6 +65,10 @@ export function cargarPowerUps() {
     AppState.powerUps.tieneRadar = inv.find(i=>i.nombre==='Radar') && equipadas.includes(inv.find(i=>i.nombre==='Radar').id_item);
     AppState.powerUps.tieneSegundaOportunidad = inv.find(i=>i.nombre==='Segunda Oportunidad') && equipadas.includes(inv.find(i=>i.nombre==='Segunda Oportunidad').id_item);
 }
+
+// ==========================================
+// 🏁 MECÁNICA DEL JUEGO
+// ==========================================
 
 export function startGame() { startCommon(false); }
 export function iniciarPartidaPersonalizada() {
@@ -189,6 +197,12 @@ export function handleKeydown(e) {
         AppState.game.score += pointsEarned;
         document.getElementById('score').innerText = AppState.game.score;
         AppState.game.gameHistory.push({ target: targetText, input: inputVal, points: pointsEarned });
+
+        // 📡 ENVIAR PROGRESO AL RIVAL
+        if (Multiplayer && Multiplayer.salaActual) {
+            Multiplayer.enviarProgreso(AppState.game.score);
+        }
+
         loadNewPhrase();
     }
 }
@@ -208,33 +222,39 @@ export async function endGame() {
 
     AppState.currentUser.creditos += creditsEarned;
     updateUserUI();
-    document.getElementById('earned-credits').innerText = creditsEarned;
+
+    // Si tienes el elemento en pantalla, actualízalo
+    const earnedCreditsEl = document.getElementById('earned-credits');
+    if (earnedCreditsEl) earnedCreditsEl.innerText = creditsEarned;
 
     // Render Results
     const list = document.getElementById('history-list');
-    list.innerHTML = "";
-    AppState.game.gameHistory.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.innerHTML = `Frase ${idx+1}: <span style="color:${item.points>0?'var(--success)':'var(--error)'}">${item.points} pts</span>`;
-        div.className = "history-item"; list.appendChild(div);
-    });
+    if (list) {
+        list.innerHTML = "";
+        AppState.game.gameHistory.forEach((item, idx) => {
+            const div = document.createElement('div');
+            div.innerHTML = `Frase ${idx+1}: <span style="color:${item.points>0?'var(--success)':'var(--error)'}">${item.points} pts</span>`;
+            div.className = "history-item"; list.appendChild(div);
+        });
+    }
 
     showScreen('results-screen');
     animateValue("final-score", 0, AppState.game.score, 1500);
 
+    // 📡 TELEMETRÍA MULTIJUGADOR: Avisar al rival que he terminado
+    if (Multiplayer && Multiplayer.salaActual) {
+        Multiplayer.enviarSeñal('FINISH', { puntuacion: AppState.game.score });
+        window.dispatchEvent(new Event('my-game-finished'));
+    }
+
     if (creditsEarned > 0) {
-        // 🚨 PRECISIÓN ESTRICTA (Pero perdonando el punto final):
         const aciertos = AppState.game.gameHistory.filter(h => {
             if (!h.input || !h.target) return false;
-
-            // Limpiamos los espacios de los lados y ELIMINAMOS EL PUNTO FINAL (\.$) si existe
             const inputLimpio = h.input.trim().replace(/\.$/, "");
             const targetLimpio = h.target.trim().replace(/\.$/, "");
-
             return inputLimpio === targetLimpio;
         }).length;
 
-        // 📦 EL PAQUETE DE TELEMETRÍA
         const payloadJSON = JSON.stringify({
             creditos: parseInt(creditsEarned),
             modo: "CONTRARRELOJ",
@@ -251,165 +271,186 @@ export async function endGame() {
         } catch (e) {
             console.error("No se pudo guardar la telemetría");
         }
-    } else {
-        alert("Cero créditos ganados. ¡Puedes hacerlo mejor!");
     }
 }
 
 export function abortGame() { clearInterval(AppState.game.timerInterval); showScreen('dashboard-screen'); }
 
-function iniciarPartidaOnline() {
-    // 1. Pedimos el código de la sala al piloto
-    const sala = prompt("Introduce el código de la sala privada (ej: TFG2026):");
-
-    // Si le da a cancelar o lo deja vacío, abortamos
-    if (!sala || sala.trim() === "") {
-        alert("Cancelado: Necesitas un código para entrar a la pista.");
-        return;
-    }
-
-    // 2. Conectamos la telemetría (WebSockets)
-    Multiplayer.conectar(sala);
-
-    // 3. AQUÍ ARRANCAS TU JUEGO NORMAL
-    // Sustituye esta línea por la función real que usas para empezar una partida.
-    // Suele ser algo como iniciarRosco(), app.game.start() o mostrarPantallaJuego()
-    Rosco.init();
-
-    // Opcional: Mostrar una pequeña notificación visual
-    if (window.showToast) {
-        window.showToast(`Conectado a la sala: ${sala.toUpperCase()}`, 'info');
-    }
-}
+// ==========================================
+// 🌐 MODO MULTIJUGADOR (MODALES Y SALAS)
+// ==========================================
 
 document.getElementById('btn-create-room')?.addEventListener('click', crearSalaOnline);
 document.getElementById('btn-join-room')?.addEventListener('click', unirseSalaOnline);
 
 function crearSalaOnline() {
-    // 1. Generar código
     const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let codigoGenerado = '';
     for (let i = 0; i < 5; i++) {
         codigoGenerado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
     }
 
-    // 2. Mostrar Modal de Espera
-    document.getElementById('multiplayer-modal').style.display = 'flex';
-    document.getElementById('modal-content-join').style.display = 'none';
-    document.getElementById('modal-content-create').style.display = 'block';
-    document.getElementById('display-room-code').innerText = codigoGenerado;
+    const modal = document.getElementById('multiplayer-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('modal-content-join').style.display = 'none';
+        document.getElementById('modal-content-create').style.display = 'block';
+        document.getElementById('display-room-code').innerText = codigoGenerado;
+    }
 
-    // 3. Conectar al servidor (se queda en pausa esperando)
     Multiplayer.conectar(codigoGenerado, true);
 }
 
 function unirseSalaOnline() {
-    // 1. Mostrar Modal para escribir código
-    document.getElementById('multiplayer-modal').style.display = 'flex';
-    document.getElementById('modal-content-create').style.display = 'none';
-    document.getElementById('modal-content-join').style.display = 'block';
+    const modal = document.getElementById('multiplayer-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.getElementById('modal-content-create').style.display = 'none';
+        document.getElementById('modal-content-join').style.display = 'block';
 
-    const input = document.getElementById('input-room-code');
-    input.value = ''; // Limpiamos si había algo antes
-    setTimeout(() => input.focus(), 100); // Ponemos el cursor ahí automáticamente
+        const input = document.getElementById('input-room-code');
+        input.value = '';
+        setTimeout(() => input.focus(), 100);
+    }
 }
 
-// Evento al darle al botón verde de "Conectar y Jugar"
 document.getElementById('btn-confirm-join')?.addEventListener('click', () => {
     const sala = document.getElementById('input-room-code').value.trim().toUpperCase();
     if (!sala || sala.length < 2) return alert("Por favor, introduce un código válido.");
 
-    // Ocultar Modal y conectar
-    document.getElementById('multiplayer-modal').style.display = 'none';
+    const modal = document.getElementById('multiplayer-modal');
+    if (modal) modal.style.display = 'none';
+
     Multiplayer.conectar(sala, false);
 });
 
-// Función para cerrar el modal si el usuario se arrepiente y le da a la X
 window.cerrarModalMultiplayer = function() {
-    document.getElementById('multiplayer-modal').style.display = 'none';
-    // Si nos salimos de la sala de espera, cortamos la conexión
+    const modal = document.getElementById('multiplayer-modal');
+    if (modal) modal.style.display = 'none';
+
     if (Multiplayer && Multiplayer.salaActual) {
         Multiplayer.desconectar();
     }
 }
 
-// 🚨 MAGIA: Cuando la pantalla VERSUS aparece, ocultamos automáticamente este modal de espera
-window.addEventListener('multiplayer-vs-screen', (e) => {
-    document.getElementById('multiplayer-modal').style.display = 'none';
-
-    // ... aquí debajo debe estar el código que tenías para mostrarPantallaVersus ...
-    const hostName = e.detail.host;
-    const guestName = e.detail.guest;
-    mostrarPantallaVersus(hostName, guestName);
-});
-
 // ==========================================
-// ⚔️ EVENTOS DE LA PANTALLA VERSUS Y SINCRONIZACIÓN
+// ⚔️ EVENTOS DE LA PANTALLA VERSUS
 // ==========================================
 
-// Escuchamos el evento personalizado que dispara api.js cuando ambos están listos
 window.addEventListener('multiplayer-vs-screen', (e) => {
+    const modal = document.getElementById('multiplayer-modal');
+    if (modal) modal.style.display = 'none';
+
     const hostName = e.detail.host;
     const guestName = e.detail.guest;
-
     mostrarPantallaVersus(hostName, guestName);
 });
 
 function mostrarPantallaVersus(hostName, guestName) {
     const overlay = document.getElementById('versus-overlay');
-    if (!overlay) return;
+    if (!overlay) {
+        // Si no existe el HTML del versus, arranca el juego directamente.
+        startGame();
+        return;
+    }
 
-    // Rellenamos los nombres
     document.getElementById('vs-host-name').innerText = hostName;
     document.getElementById('vs-guest-name').innerText = guestName;
 
-    // Mostramos la pantalla y activamos la animación CSS
     overlay.style.display = 'flex';
 
-    // Pequeño delay para que el display:flex se aplique antes de añadir la clase de animación
     setTimeout(() => {
         overlay.classList.add('vs-active');
     }, 50);
 
-    // Arrancamos la cuenta atrás sincronizada
     let contador = 3;
     const countDOM = document.getElementById('vs-countdown');
-    countDOM.innerText = contador;
+    if(countDOM) countDOM.innerText = contador;
 
     const intervalo = setInterval(() => {
         contador--;
         if (contador > 0) {
-            countDOM.innerText = contador;
-            // Efecto de latido (pop)
-            countDOM.style.transform = 'scale(1.5)';
-            setTimeout(() => countDOM.style.transform = 'scale(1)', 150);
+            if(countDOM) {
+                countDOM.innerText = contador;
+                countDOM.style.transform = 'scale(1.5)';
+                setTimeout(() => countDOM.style.transform = 'scale(1)', 150);
+            }
         } else if (contador === 0) {
-            countDOM.innerText = "¡ACELERA!";
-            countDOM.style.color = "var(--primary)";
+            if(countDOM) {
+                countDOM.innerText = "¡ACELERA!";
+                countDOM.style.color = "var(--primary)";
+            }
         } else {
-            // Terminamos
             clearInterval(intervalo);
             overlay.classList.remove('vs-active');
 
             setTimeout(() => {
                 overlay.style.display = 'none';
-                countDOM.innerText = "";
-                countDOM.style.color = "#fff";
-
-                // 🚨 ¡ARRANCAMOS EL JUEGO REAL PARA AMBOS A LA VEZ!
-                if (typeof startGame === 'function') {
-                    startGame();
-                } else {
-                    console.error("No se encontró la función startGame()");
+                if(countDOM) {
+                    countDOM.innerText = "";
+                    countDOM.style.color = "#fff";
                 }
-            }, 500); // Medio segundo para que se lea el "¡Acelera!"
+
+                // ARRANCAMOS EL JUEGO (Prioridad a startGame si estás en este archivo)
+                startGame();
+
+            }, 500);
         }
     }, 1000);
 }
 
-// Escuchar cuando el rival termine para mostrar victoria/derrota
+// ==========================================
+// 🏆 LÓGICA FINAL Y GANADOR (SIN ALERTS)
+// ==========================================
+
+window.addEventListener('my-game-finished', comprobarGanadorOnline);
 window.addEventListener('rival-finished', () => {
-    console.log(`El rival ha terminado con ${Multiplayer.puntosRival} puntos.`);
-    // Si yo ya había terminado, muestro resultados finales
-    // (Si aún estoy jugando, la lógica de mi propio endGame debe comprobar si él ya terminó)
+    // Si yo ya he llegado a la pantalla de resultados, compruebo el ganador.
+    const resultsScreen = document.getElementById('results-screen');
+    if (resultsScreen && !resultsScreen.classList.contains('hidden')) {
+        comprobarGanadorOnline();
+    }
 });
+
+function comprobarGanadorOnline() {
+    if (!Multiplayer.salaActual) return;
+
+    // Contenedor donde mostraremos el resultado (puedes ajustar el ID según tu HTML)
+    const resultsContainer = document.getElementById('results-screen') || document.body;
+
+    if (Multiplayer.rivalFinalizado) {
+        // Borrar el mensaje de "Esperando..." si existía
+        const waitMsg = document.getElementById('online-wait-msg');
+        if (waitMsg) waitMsg.remove();
+
+        const misPuntos = AppState.game.score || 0;
+        const rivalPuntos = Multiplayer.puntosRival || 0;
+
+        let mensaje = misPuntos > rivalPuntos ? "¡VICTORIA! 🏆" : (misPuntos < rivalPuntos ? "DERROTA... 💀" : "EMPATE TÉCNICO 🤝");
+        let color = misPuntos > rivalPuntos ? "var(--success)" : (misPuntos < rivalPuntos ? "var(--error)" : "var(--primary)");
+
+        // Cartel Holográfico de Resultado
+        const cartel = document.createElement('div');
+        cartel.id = 'online-result-card';
+        cartel.style = `margin-top: 30px; padding: 25px; border: 2px solid ${color}; background: rgba(10, 10, 15, 0.9); text-align: center; border-radius: 8px; box-shadow: 0 0 30px ${color}; animation: glitch-entry 0.3s ease-out;`;
+        cartel.innerHTML = `
+            <h2 style="color: ${color}; font-size: 2.5rem; text-transform: uppercase; margin-bottom: 10px;">${mensaje}</h2>
+            <div style="font-size: 1.4rem; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 2px;">
+                <span style="color: var(--primary);">TÚ:</span> ${misPuntos} pts <br><br>
+                <span style="color: var(--secondary);">${Multiplayer.rivalNombre.toUpperCase()}:</span> ${rivalPuntos} pts
+            </div>
+        `;
+        resultsContainer.appendChild(cartel);
+
+        Multiplayer.desconectar();
+    } else {
+        // Si yo termino pero él no, muestro mensaje de espera en la pantalla de resultados
+        if (!document.getElementById('online-wait-msg')) {
+            const waitMsg = document.createElement('div');
+            waitMsg.id = 'online-wait-msg';
+            waitMsg.style = `margin-top: 30px; color: var(--secondary); text-align: center; font-weight: bold; font-size: 1.5rem; letter-spacing: 2px; animation: pulse 1.5s infinite;`;
+            waitMsg.innerText = `⏳ Esperando telemetría de ${Multiplayer.rivalNombre}...`;
+            resultsContainer.appendChild(waitMsg);
+        }
+    }
+}
