@@ -318,3 +318,30 @@ function unirseSalaOnline() {
     Multiplayer.conectar(sala);
     startGame();
 }
+
+function mostrarResultadosFinales() {
+    const misPuntos = AppState.game.score;
+    const rivalPuntos = Multiplayer.puntosRival;
+
+    let mensaje = "";
+    let subtexto = `Tú: ${misPuntos} pts | Rival: ${rivalPuntos} pts`;
+
+    if (misPuntos > rivalPuntos) {
+        mensaje = "¡VICTORIA MAGISTRAL! 🏆";
+    } else if (misPuntos < rivalPuntos) {
+        mensaje = "DERROTA...";
+    } else {
+        mensaje = "EMPATE TÉCNICO 🤝";
+    }
+
+    // Insertamos en un div de "Game Over" que ya tengas o creamos uno
+    const overlay = document.getElementById('game-over-overlay');
+    overlay.innerHTML = `
+        <div class="cyber-modal">
+            <h1>${mensaje}</h1>
+            <p>${subtexto}</p>
+            <button onclick="location.reload()">VOLVER AL BOX</button>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+}

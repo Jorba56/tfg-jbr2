@@ -19,4 +19,12 @@ public class GameController {
 
         return datosJugador;
     }
+
+    @MessageMapping("/progreso/{sala}")
+    @SendTo("/topic/partida/{sala}")
+    public Map<String, Object> gestionarCarrera(@DestinationVariable String sala, @Payload Map<String, Object> payload) {
+        // Si el mensaje es de tipo "ACCION" y la accion es "UNIRSE",
+        // podemos enviar una señal de "START" a ambos.
+        return payload;
+    }
 }

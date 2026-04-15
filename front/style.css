@@ -1216,6 +1216,31 @@ body.tema-cyberpunk input:focus {
 .text-danger i { color: #ef4444 !important; }
 .text-danger:hover { border-left-color: #ef4444 !important; }
 
+.cyber-modal {
+    background: rgba(5, 5, 10, 0.95);
+    border: 2px solid var(--primary);
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 30px var(--primary);
+    animation: glitch-entry 0.3s ease-out;
+}
+
+@keyframes glitch-entry {
+    0% { transform: scale(0.8); opacity: 0; filter: hue-rotate(90deg); }
+    100% { transform: scale(1); opacity: 1; filter: hue-rotate(0deg); }
+}
+
+#online-waiting-msg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border-left: 5px solid cornflowerblue;
+    padding: 20px;
+    z-index: 1000;
+}
+
 /* =========================================
    🏆 ESTILOS DEL PODIO (RANKING)
    ========================================= */
