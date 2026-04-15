@@ -63,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-abort')?.addEventListener('click', abortGame);
     document.getElementById('btn-back')?.addEventListener('click', limpiarModalesYVolver);
     document.getElementById('btn-menu')?.addEventListener('click', limpiarModalesYVolver);
-    
+    document.getElementById('btn-volver-box')?.addEventListener('click', limpiarModalesYVolver);
+
     document.getElementById('card-admin').addEventListener('click', () => {
         window.location.href = 'gestion-usuarios.html';
     });
