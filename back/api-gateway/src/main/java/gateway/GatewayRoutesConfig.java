@@ -19,7 +19,7 @@ public class GatewayRoutesConfig {
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
-                .route("usuarios-service", r -> r.path("/auth/**", "/usuarios/**", "/roles/**", "/usuarios_roles/**")
+                .route("usuarios-service", r -> r.path("/auth/**", "/usuarios/**", "/roles/**", "/usuarios_roles/**", "/ws-game/**", "/topic/**")
                         .uri(uriUsuarios))
                 // 2. Añadimos la nueva ruta para incidencias
                 .route("incidencias-service", r -> r.path("/incidencias/**")
