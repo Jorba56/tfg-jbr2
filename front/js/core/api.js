@@ -4,6 +4,7 @@ export const API_URL = ''; // Se queda vacío para que las llamadas HTTP vayan a
 // 🚨 TRUCO DE VELOCIDAD: Pon aquí tu URL directa de Railway (Ej: https://tu-backend.up.railway.app)
 const WS_URL = 'https://gateway-production-a1f6.up.railway.app';
 
+export let stompClient = null;
 export let miNombreUsuario = "Piloto_" + Math.floor(Math.random() * 1000);
 export let miAvatar = "👤"; // Avatar por defecto por si acaso
 
