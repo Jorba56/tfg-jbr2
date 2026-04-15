@@ -2006,6 +2006,7 @@ body.light-mode .data-table td {
     .versus-overlay {
         flex-direction: column; /* Apilamos de arriba a abajo */
         justify-content: space-evenly; /* Repartimos el espacio matemáticamente */
+        background: linear-gradient(rgba(0, 0, 0, 0.85) 0%);
     }
 
     .player-card {
