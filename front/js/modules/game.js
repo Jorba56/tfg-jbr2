@@ -1,7 +1,7 @@
 import { AppState } from '../core/state.js';
 import { apiFetch, Multiplayer} from '../core/api.js';
 import { showScreen, updateUserUI, animateValue } from '../core/ui.js';
-import { Rosco } from 'rosco.js';
+import { Rosco } from './rosco.js';
 
 export function activarPowerUp(tipo) {
     if (AppState.powerUps.inventario[tipo] > 0) {
