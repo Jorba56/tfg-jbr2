@@ -329,7 +329,11 @@ function comprobarGanadorOnline() {
         document.getElementById('res-op-score').innerText = rivalPuntos;
         document.getElementById('res-op-name').innerText = Multiplayer.rivalNombre.toUpperCase();
 
-        document.getElementById('btn-show-details'||'btn-show-details2').onclick = () => document.getElementById('details-modal').style.display = 'flex';
+        document.getElementById('btn-show-details').onclick = () => document.getElementById('details-modal').style.display = 'flex';
+        const btnDetailsSP = document.getElementById('btn-details-sp');
+        if (btnDetailsSP) {
+            btnDetailsSP.onclick = () => document.getElementById('details-modal').style.display = 'flex';
+        }
 
         Multiplayer.desconectar();
     }, 3000); // 🔥 3 Segundos de máxima tensión antes de revelar el resultado
