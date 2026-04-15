@@ -330,10 +330,6 @@ function comprobarGanadorOnline() {
         document.getElementById('res-op-name').innerText = Multiplayer.rivalNombre.toUpperCase();
 
         document.getElementById('btn-show-details').onclick = () => document.getElementById('details-modal').style.display = 'flex';
-        const btnDetailsSP = document.getElementById('btn-details-sp');
-        if (btnDetailsSP) {
-            btnDetailsSP.onclick = () => document.getElementById('details-modal').style.display = 'flex';
-        }
 
         Multiplayer.desconectar();
     }, 3000); // 🔥 3 Segundos de máxima tensión antes de revelar el resultado
@@ -478,12 +474,21 @@ function mostrarPantallaVersus(hostName, guestName, hostAvatar, guestAvatar) {
     document.getElementById('vs-host-name').innerText = hostName;
     document.getElementById('vs-guest-name').innerText = guestName;
 
-    // 🚨 2. Función auxiliar para pintar el avatar (por si es texto, emoji o URL de imagen)
+    // 🚨 REFACTORIZADO: Construimos el avatar basándonos en DiceBear (avatar.js / profile.js)
     const renderizarAvatar = (avatarData) => {
-        if (typeof avatarData === 'string' && (avatarData.includes('http') || avatarData.includes('data:image'))) {
+        // 1. Si no hay avatar, o es el emoji por defecto
+        if (!avatarData || avatarData === "👤" || avatarData.trim() === "") {
+            return `<div style="font-size: 5rem; display:flex; align-items:center; justify-content:center; width:100%; height:100%;">👤</div>`;
+        }
+
+        // 2. Si por algún motivo ya es una URL completa (retrocompatibilidad)
+        if (avatarData.startsWith('http') || avatarData.startsWith('data:image')) {
             return `<img src="${avatarData}" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid currentColor; box-shadow: 0 0 15px currentColor;">`;
         }
-        return avatarData; // Si es un emoji o texto corto, lo pinta normal
+
+        // 3. MAGIA DICEBEAR: Es una cadena de configuración (ej: username&top=...&accessories=...)
+        const dicebearUrl = `https://api.dicebear.com/9.x/avataaars/svg?seed=${avatarData}`;
+        return `<img src="${dicebearUrl}" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid currentColor; box-shadow: 0 0 15px currentColor; background: rgba(0,0,0,0.3);">`;
     };
 
     const hostAvatarDiv = document.getElementById('vs-host-avatar');

@@ -1908,9 +1908,13 @@ body.light-mode .data-table td {
     .shop-container, .login-container, .registro-container, .score-reveal-box {
         width: 92% !important; /* Deja un pequeño margen respecto a los bordes del móvil */
         padding: 1.5rem !important; /* Reducimos el relleno interno drásticamente */
-        margin: auto !important; /* Centrado y con margen inferior */
+        margin: 20px auto !important; /* Centrado y con margen inferior */
         max-height: none !important; /* Anulamos el límite de altura, que crezca libremente */
         box-sizing: border-box !important;
+    }
+
+    .login-container{
+        margin: auto !important;
     }
 
     /* 3. Centramos el saludo y los créditos para que queden simétricos */
@@ -1922,7 +1926,9 @@ body.light-mode .data-table td {
         margin-bottom: 20px;
         gap: 10px;
     }
-
+    .actions{
+        text-align: center;
+    }
     .theme-toggle {
         top: 15px;
         right: 15px;

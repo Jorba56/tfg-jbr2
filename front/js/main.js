@@ -47,7 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botones de Navegación
     document.getElementById('btn-abort')?.addEventListener('click', abortGame);
+    document.getElementById('btn-back')?.addEventListener('click', () => showScreen('dashboard-screen'));
     document.getElementById('btn-menu')?.addEventListener('click', () => showScreen('dashboard-screen'));
+    const btnDetailsSP = document.getElementById('btn-details-sp');
+    if (btnDetailsSP) {
+        btnDetailsSP.onclick = () => document.getElementById('details-modal').style.display = 'flex';
+    }
     document.getElementById('card-admin').addEventListener('click', () => {
         window.location.href = 'gestion-usuarios.html';
     });
