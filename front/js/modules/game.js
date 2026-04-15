@@ -1,6 +1,7 @@
 import { AppState } from '../core/state.js';
-import { apiFetch } from '../core/api.js';
+import { apiFetch, Multiplayer} from '../core/api.js';
 import { showScreen, updateUserUI, animateValue } from '../core/ui.js';
+import { Rosco } from 'rosco.js';
 
 export function activarPowerUp(tipo) {
     if (AppState.powerUps.inventario[tipo] > 0) {
@@ -256,3 +257,64 @@ export async function endGame() {
 }
 
 export function abortGame() { clearInterval(AppState.game.timerInterval); showScreen('dashboard-screen'); }
+
+function iniciarPartidaOnline() {
+    // 1. Pedimos el código de la sala al piloto
+    const sala = prompt("Introduce el código de la sala privada (ej: TFG2026):");
+
+    // Si le da a cancelar o lo deja vacío, abortamos
+    if (!sala || sala.trim() === "") {
+        alert("Cancelado: Necesitas un código para entrar a la pista.");
+        return;
+    }
+
+    // 2. Conectamos la telemetría (WebSockets)
+    Multiplayer.conectar(sala);
+
+    // 3. AQUÍ ARRANCAS TU JUEGO NORMAL
+    // Sustituye esta línea por la función real que usas para empezar una partida.
+    // Suele ser algo como iniciarRosco(), app.game.start() o mostrarPantallaJuego()
+    Rosco.init();
+
+    // Opcional: Mostrar una pequeña notificación visual
+    if (window.showToast) {
+        window.showToast(`Conectado a la sala: ${sala.toUpperCase()}`, 'info');
+    }
+}
+
+document.getElementById('btn-create-room')?.addEventListener('click', crearSalaOnline);
+document.getElementById('btn-join-room')?.addEventListener('click', unirseSalaOnline);
+
+// ==========================================
+// ➕ CREAR SALA (Eres el Host)
+// ==========================================
+function crearSalaOnline() {
+    // 1. Generamos un código aleatorio de 5 letras (quitamos la O, el 0, y la I para que no haya confusiones al leerlo)
+    const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let codigoGenerado = '';
+    for (let i = 0; i < 5; i++) {
+        codigoGenerado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+    }
+
+    // 2. Le mostramos el código al jugador
+    alert(`¡Sala creada con éxito!\n\nTu código de invitación es: ${codigoGenerado}\n\nPásaselo a tu rival para que se una.`);
+
+    // 3. Lo conectamos a su propia sala
+    Multiplayer.conectar(codigoGenerado);
+
+    // 4. Arrancamos el rosco
+    iniciarRosco();
+}
+
+// ==========================================
+// 🤝 UNIRSE A SALA (Eres el Invitado)
+// ==========================================
+function unirseSalaOnline() {
+    // Esta es la función que hicimos antes
+    const sala = prompt("Introduce el código de la sala privada:");
+
+    if (!sala || sala.trim() === "") return;
+
+    Multiplayer.conectar(sala);
+    iniciarRosco();
+}

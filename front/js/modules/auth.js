@@ -12,6 +12,7 @@ export async function restoreSession() {
             const inventarioSeguro = (data.items || data.inventario || []).map(i => ({ id_item: i.idItem || i.id_item || i.id, nombre: i.nombre || i.name, descripcion: i.descripcion || i.description }));
             AppState.currentUser = {
                 username: data.nombreUsuario || data.username || data.nombre_usuario || 'Piloto',
+                correo: data.correo_usuario || data.correoUsuario || data.email || '',
                 apellido: data.apellido_usuario || data.apellidoUsuario || data.apellido || '',
                 creditos: data.creditos || 0,
                 inventario: inventarioSeguro,

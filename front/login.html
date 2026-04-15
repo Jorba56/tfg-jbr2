@@ -126,6 +126,20 @@
             </button>
         </div>
 
+        <div id="card-online" class="shop-item playable group">
+            <div class="item-type-tag type-powerup" style="background-color: #9d4edd; color: white; border-color: #9d4edd;">ONLINE</div>
+            <h4>Partida Online</h4>
+            <span class="desc">Juega una parida online contra otro usuario.</span>
+            <div class="multiplayer-menu">
+                <button id="btn-create-room" class="btn-main theme-cyberpunk-glow">
+                    ➕ CREAR SALA PRIVADA
+                </button>
+                <button id="btn-join-room" class="btn-buy">
+                    🤝 UNIRSE A UNA SALA
+                </button>
+            </div>
+        </div>
+
         <div id="card-ranking" class="shop-item playable group" onclick="app.openRanking()">
             <div class="item-type-tag" style="background:#ff9f43; border-color: #ff9f43; color: white;">GLOBAL</div>
             <h4>🏆 Hall of Fame</h4>
@@ -287,6 +301,16 @@
         ⬅ Abandonar Partida
     </button>
 
+    <div id="online-hud" class="online-hud" style="display: none;">
+        <div class="hud-player">
+            <span id="hud-my-name">Tú</span>: <span id="hud-my-score">0</span> pts
+        </div>
+        <div class="hud-vs">VS</div>
+        <div class="hud-opponent">
+            <span id="hud-op-name">Buscando rival...</span>: <span id="hud-op-score">0</span> pts
+        </div>
+    </div>
+
     <div class="rosco-layout">
         <ul class="circle" id="r-circle"></ul>
         <div class="center-panel">
@@ -418,7 +442,8 @@
         </div>
     </div>
 </section>
-
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
