@@ -294,47 +294,6 @@ window.addEventListener('rival-finished', () => {
         comprobarGanadorOnline();
     }
 });
-
-function comprobarGanadorOnline() {
-    if (!Multiplayer.salaActual) return;
-
-    const suspenseView = document.getElementById('suspense-view');
-    const suspenseText = document.getElementById('suspense-text');
-
-    // Si yo termino pero él no, mantengo el suspense
-    if (!Multiplayer.rivalFinalizado) {
-        if (suspenseText) suspenseText.innerText = `⏳ Esperando telemetría de ${Multiplayer.rivalNombre}...`;
-        return;
-    }
-
-    // Si ambos hemos terminado, cambiamos el texto y empezamos la tensión de 3 segundos
-    if (suspenseText) suspenseText.innerText = "¡Datos recibidos! Cruzando resultados...";
-
-    setTimeout(() => {
-        if (suspenseView) suspenseView.style.display = 'none';
-
-        const finalView = document.getElementById('final-view');
-        if (finalView) finalView.style.display = 'block';
-
-        const misPuntos = AppState.game.score || 0;
-        const rivalPuntos = Multiplayer.puntosRival || 0;
-
-        let mensaje = misPuntos > rivalPuntos ? "¡VICTORIA! 🏆" : (misPuntos < rivalPuntos ? "DERROTA... 💀" : "EMPATE 🤝");
-        let color = misPuntos > rivalPuntos ? "var(--success)" : (misPuntos < rivalPuntos ? "var(--error)" : "var(--primary)");
-
-        document.getElementById('result-title').innerText = mensaje;
-        document.getElementById('result-title').style.color = color;
-
-        document.getElementById('res-my-score').innerText = misPuntos;
-        document.getElementById('res-op-score').innerText = rivalPuntos;
-        document.getElementById('res-op-name').innerText = Multiplayer.rivalNombre.toUpperCase();
-
-        document.getElementById('btn-show-details').onclick = () => document.getElementById('details-modal').style.display = 'flex';
-
-        Multiplayer.desconectar();
-    }, 3000); // 🔥 3 Segundos de máxima tensión antes de revelar el resultado
-}
-
 // ----------------------------------------------------
 // LÓGICA DE ANÁLISIS DETALLADO DE FRASES
 // ----------------------------------------------------
@@ -544,11 +503,78 @@ function mostrarPantallaVersus(hostName, guestName, hostAvatar, guestAvatar) {
 // 🏆 LÓGICA FINAL Y GANADOR (SIN ALERTS)
 // ==========================================
 
-window.addEventListener('my-game-finished', comprobarGanadorOnline);
+let miPartidaTerminada = false; // Variable a prueba de fallos
+
+window.addEventListener('my-game-finished', () => {
+    miPartidaTerminada = true;
+    comprobarGanadorOnline();
+});
+
 window.addEventListener('rival-finished', () => {
-    // Si yo ya he llegado a la pantalla de resultados, compruebo el ganador.
-    const resultsScreen = document.getElementById('results-screen');
-    if (resultsScreen && !resultsScreen.classList.contains('hidden')) {
+    // Solo compruebo el ganador si YO también he terminado. Si sigo jugando, espero.
+    if (miPartidaTerminada) {
         comprobarGanadorOnline();
     }
-})
+});
+
+function comprobarGanadorOnline() {
+    if (!Multiplayer.salaActual) return;
+
+    const suspenseView = document.getElementById('suspense-view');
+    const suspenseText = document.getElementById('suspense-text');
+
+    // 1. Si el rival aún no ha enviado su señal de haber terminado
+    if (!Multiplayer.rivalFinalizado) {
+        if (suspenseText) suspenseText.innerText = `⏳ Esperando telemetría de ${Multiplayer.rivalNombre || 'tu rival'}...`;
+        return;
+    }
+
+    // 2. Si ambos hemos terminado, cambiamos el texto y empezamos la tensión de 3 segundos
+    if (suspenseText) suspenseText.innerText = "¡Datos recibidos! Cruzando resultados...";
+
+    // 3. Ejecutamos la resolución con protección (try/catch) para evitar que la pantalla se congele
+    setTimeout(() => {
+        try {
+            if (suspenseView) suspenseView.style.display = 'none';
+
+            const finalView = document.getElementById('final-view');
+            if (finalView) finalView.style.display = 'block';
+
+            // Aseguramos que los puntos sean números estrictos (para evitar fallos en el empate 0-0)
+            const misPuntos = Number(AppState.game.score) || 0;
+            const rivalPuntos = Number(Multiplayer.puntosRival) || 0;
+
+            let mensaje = misPuntos > rivalPuntos ? "¡VICTORIA! 🏆" : (misPuntos < rivalPuntos ? "DERROTA... 💀" : "EMPATE 🤝");
+            let color = misPuntos > rivalPuntos ? "var(--success)" : (misPuntos < rivalPuntos ? "var(--error)" : "var(--primary)");
+
+            const resTitle = document.getElementById('result-title');
+            if(resTitle) {
+                resTitle.innerText = mensaje;
+                resTitle.style.color = color;
+            }
+
+            const resMyScore = document.getElementById('res-my-score');
+            if(resMyScore) resMyScore.innerText = misPuntos;
+
+            const resOpScore = document.getElementById('res-op-score');
+            if(resOpScore) resOpScore.innerText = rivalPuntos;
+
+            const resOpName = document.getElementById('res-op-name');
+            if(resOpName && Multiplayer.rivalNombre) resOpName.innerText = Multiplayer.rivalNombre.toUpperCase();
+
+            // Protegemos los botones con el símbolo (?) por si alguno no existe en el HTML
+            const btnDetails = document.getElementById('btn-show-details');
+            if(btnDetails) btnDetails.onclick = () => document.getElementById('details-modal').style.display = 'flex';
+
+            const btnDetails2 = document.getElementById('btn-show-details2');
+            if(btnDetails2) btnDetails2.onclick = () => document.getElementById('details-modal').style.display = 'flex';
+
+        } catch (error) {
+            console.error("Error al mostrar el resultado de la carrera:", error);
+        } finally {
+            // Se ejecuta SIEMPRE, haya ocurrido un error o no
+            Multiplayer.desconectar();
+            miPartidaTerminada = false; // Reseteamos el seguro por si jugamos otra partida
+        }
+    }, 3000);
+}

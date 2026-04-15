@@ -26,6 +26,20 @@ window.onload = () => {
     if (localStorage.getItem('theme') === 'light') toggleTheme();
 };
 
+const limpiarModalesYVolver = () => {
+    const resultModal = document.getElementById('result-modal');
+    const detailsModal = document.getElementById('details-modal');
+    const versusOverlay = document.getElementById('versus-overlay');
+
+    if (resultModal) resultModal.style.display = 'none';
+    if (detailsModal) detailsModal.style.display = 'none';
+    if (versusOverlay) versusOverlay.style.display = 'none';
+
+    showScreen('dashboard-screen');
+};
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
     // Escuchadores de Clicks Rápidos
     document.getElementById('tutorial_comp')?.addEventListener('click', completarTutorial);
@@ -47,12 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botones de Navegación
     document.getElementById('btn-abort')?.addEventListener('click', abortGame);
-    document.getElementById('btn-back')?.addEventListener('click', () => showScreen('dashboard-screen'));
-    document.getElementById('btn-menu')?.addEventListener('click', () => showScreen('dashboard-screen'));
-    const btnDetailsSP = document.getElementById('btn-details-sp');
-    if (btnDetailsSP) {
-        btnDetailsSP.onclick = () => document.getElementById('details-modal').style.display = 'flex';
-    }
+    document.getElementById('btn-back')?.addEventListener('click', limpiarModalesYVolver);
+    document.getElementById('btn-menu')?.addEventListener('click', limpiarModalesYVolver);
+    
     document.getElementById('card-admin').addEventListener('click', () => {
         window.location.href = 'gestion-usuarios.html';
     });
