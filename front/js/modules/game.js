@@ -286,26 +286,62 @@ document.getElementById('btn-create-room')?.addEventListener('click', crearSalaO
 document.getElementById('btn-join-room')?.addEventListener('click', unirseSalaOnline);
 
 function crearSalaOnline() {
+    // 1. Generar código
     const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let codigoGenerado = '';
     for (let i = 0; i < 5; i++) {
         codigoGenerado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
     }
 
-    // Mostramos el código de forma bonita (puedes cambiar el alert por un modal HTML si quieres)
-    alert(`¡Sala creada con éxito!\n\nTu código de invitación es: ${codigoGenerado}\n\nPásaselo a tu rival y espera a que se conecte.`);
+    // 2. Mostrar Modal de Espera
+    document.getElementById('multiplayer-modal').style.display = 'flex';
+    document.getElementById('modal-content-join').style.display = 'none';
+    document.getElementById('modal-content-create').style.display = 'block';
+    document.getElementById('display-room-code').innerText = codigoGenerado;
 
-    // Conectamos como HOST (true)
+    // 3. Conectar al servidor (se queda en pausa esperando)
     Multiplayer.conectar(codigoGenerado, true);
 }
 
 function unirseSalaOnline() {
-    const sala = prompt("Introduce el código de la sala privada (ej: XJ9K2):");
-    if (!sala || sala.trim() === "") return;
+    // 1. Mostrar Modal para escribir código
+    document.getElementById('multiplayer-modal').style.display = 'flex';
+    document.getElementById('modal-content-create').style.display = 'none';
+    document.getElementById('modal-content-join').style.display = 'block';
 
-    // Conectamos como INVITADO (false)
-    Multiplayer.conectar(sala, false);
+    const input = document.getElementById('input-room-code');
+    input.value = ''; // Limpiamos si había algo antes
+    setTimeout(() => input.focus(), 100); // Ponemos el cursor ahí automáticamente
 }
+
+// Evento al darle al botón verde de "Conectar y Jugar"
+document.getElementById('btn-confirm-join')?.addEventListener('click', () => {
+    const sala = document.getElementById('input-room-code').value.trim().toUpperCase();
+    if (!sala || sala.length < 2) return alert("Por favor, introduce un código válido.");
+
+    // Ocultar Modal y conectar
+    document.getElementById('multiplayer-modal').style.display = 'none';
+    Multiplayer.conectar(sala, false);
+});
+
+// Función para cerrar el modal si el usuario se arrepiente y le da a la X
+window.cerrarModalMultiplayer = function() {
+    document.getElementById('multiplayer-modal').style.display = 'none';
+    // Si nos salimos de la sala de espera, cortamos la conexión
+    if (Multiplayer && Multiplayer.salaActual) {
+        Multiplayer.desconectar();
+    }
+}
+
+// 🚨 MAGIA: Cuando la pantalla VERSUS aparece, ocultamos automáticamente este modal de espera
+window.addEventListener('multiplayer-vs-screen', (e) => {
+    document.getElementById('multiplayer-modal').style.display = 'none';
+
+    // ... aquí debajo debe estar el código que tenías para mostrarPantallaVersus ...
+    const hostName = e.detail.host;
+    const guestName = e.detail.guest;
+    mostrarPantallaVersus(hostName, guestName);
+});
 
 // ==========================================
 // ⚔️ EVENTOS DE LA PANTALLA VERSUS Y SINCRONIZACIÓN

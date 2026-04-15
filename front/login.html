@@ -464,6 +464,28 @@
     <div id="vs-countdown" class="vs-countdown"></div>
 </div>
 
+<div id="multiplayer-modal" class="cyber-modal-overlay" style="display: none;">
+    <div class="cyber-modal-box">
+        <button class="close-modal-btn" onclick="cerrarModalMultiplayer()">✖</button>
+
+        <div id="modal-content-create" style="display: none;">
+            <h2 style="color: var(--primary);">SALA DE ESPERA</h2>
+            <p>Pásale este código a tu rival:</p>
+            <div class="room-code-display" id="display-room-code">XXXXX</div>
+            <p class="waiting-text">Esperando conexión entrante...</p>
+            <div class="cyber-spinner"></div>
+        </div>
+
+        <div id="modal-content-join" style="display: none;">
+            <h2 style="color: var(blue);">UNIRSE A PARTIDA</h2>
+            <p>Introduce el código de la sala:</p>
+            <input type="text" id="input-room-code" placeholder="EJ: XJ9K2" maxlength="5" autocomplete="off">
+            <br>
+            <button class="btn-main" id="btn-confirm-join">CONECTAR A LA PISTA</button>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script type="module" src="js/main.js"></script>
