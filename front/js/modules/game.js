@@ -371,7 +371,7 @@ function generarAnalisisDiferencia(target, input) {
             html += `<span style="opacity:0.4; text-decoration:line-through;">${word}</span> `;
         } else if (userWord.toLowerCase() === word.toLowerCase()) {
             // Palabra correcta (Verde neón)
-            html += `<span style="color:var(--success);">${userWord}</span> `;
+            html += `<span style="color:limegreen">${userWord}</span> `;
         } else {
             // Palabra fallada (Rojo y subrayada)
             html += `<span style="color:var(--error); text-decoration:underline;">${userWord}</span> `;
@@ -542,47 +542,4 @@ window.addEventListener('rival-finished', () => {
     if (resultsScreen && !resultsScreen.classList.contains('hidden')) {
         comprobarGanadorOnline();
     }
-});
-
-function comprobarGanadorOnline() {
-    if (!Multiplayer.salaActual) return;
-
-    // Contenedor donde mostraremos el resultado (puedes ajustar el ID según tu HTML)
-    const resultsContainer = document.getElementById('results-screen') || document.body;
-
-    if (Multiplayer.rivalFinalizado) {
-        // Borrar el mensaje de "Esperando..." si existía
-        const waitMsg = document.getElementById('online-wait-msg');
-        if (waitMsg) waitMsg.remove();
-
-        const misPuntos = AppState.game.score || 0;
-        const rivalPuntos = Multiplayer.puntosRival || 0;
-
-        let mensaje = misPuntos > rivalPuntos ? "¡VICTORIA! 🏆" : (misPuntos < rivalPuntos ? "DERROTA... 💀" : "EMPATE TÉCNICO 🤝");
-        let color = misPuntos > rivalPuntos ? "var(--success)" : (misPuntos < rivalPuntos ? "var(--error)" : "var(--primary)");
-
-        // Cartel Holográfico de Resultado
-        const cartel = document.createElement('div');
-        cartel.id = 'online-result-card';
-        cartel.style = `margin-top: 15px; padding: 25px; border: 5px solid green; background: rgba(10, 10, 15, 0.9); text-align: center; border-radius: 8px; box-shadow: 0 0 30px ${color}; animation: glitch-entry 0.3s ease-out;`;
-        cartel.innerHTML = `
-            <h2 style="color: ${color}; font-size: 2.5rem; text-transform: uppercase; margin-bottom: 10px;">${mensaje}</h2>
-            <div style="font-size: 1.4rem; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 2px;">
-                <span style="color: var(--primary);">TÚ:</span> ${misPuntos} pts <br><br>
-                <span style="color: var(--secondary);">${Multiplayer.rivalNombre.toUpperCase()}:</span> ${rivalPuntos} pts
-            </div>
-        `;
-        resultsContainer.appendChild(cartel);
-
-        Multiplayer.desconectar();
-    } else {
-        // Si yo termino pero él no, muestro mensaje de espera en la pantalla de resultados
-        if (!document.getElementById('online-wait-msg')) {
-            const waitMsg = document.createElement('div');
-            waitMsg.id = 'online-wait-msg';
-            waitMsg.style = `margin-top: 30px; color: var(--secondary); text-align: center; font-weight: bold; font-size: 1.5rem; letter-spacing: 2px; animation: pulse 1.5s infinite;`;
-            waitMsg.innerText = `⏳ Esperando telemetría de ${Multiplayer.rivalNombre}...`;
-            resultsContainer.appendChild(waitMsg);
-        }
-    }
-}
+})
