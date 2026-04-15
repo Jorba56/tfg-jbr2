@@ -209,6 +209,8 @@ export function handleKeydown(e) {
 
 export async function endGame() {
     clearInterval(AppState.game.timerInterval);
+
+    // 1. Puntuar la última frase si el tiempo se agotó mientras escribías
     const inputVal = document.getElementById('game-input').value;
     if (inputVal.length > 0) {
         const points = calculatePhraseScore(AppState.game.currentPhrase.texto, inputVal);
@@ -216,6 +218,7 @@ export async function endGame() {
         AppState.game.gameHistory.push({target: AppState.game.currentPhrase.texto, input: inputVal, points: points});
     }
 
+    // 2. Cálculo de Créditos (Tu código original)
     let creditosBase = Math.floor(AppState.game.score * 0.1);
     const multiplicador = AppState.powerUps.multiplicadorActivo || 1;
     const creditsEarned = creditosBase * multiplicador;
@@ -223,55 +226,166 @@ export async function endGame() {
     AppState.currentUser.creditos += creditsEarned;
     updateUserUI();
 
-    // Si tienes el elemento en pantalla, actualízalo
     const earnedCreditsEl = document.getElementById('earned-credits');
     if (earnedCreditsEl) earnedCreditsEl.innerText = creditsEarned;
 
-    // Render Results
-    const list = document.getElementById('history-list');
-    if (list) {
-        list.innerHTML = "";
-        AppState.game.gameHistory.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.innerHTML = `Frase ${idx+1}: <span style="color:${item.points>0?'var(--success)':'var(--error)'}">${item.points} pts</span>`;
-            div.className = "history-item"; list.appendChild(div);
-        });
-    }
+    // 3. Preparar el HTML del Análisis Detallado en segundo plano
+    prepararDetallesPuntuacion();
 
-    showScreen('results-screen');
-    animateValue("final-score", 0, AppState.game.score, 1500);
-
-    // 📡 TELEMETRÍA MULTIJUGADOR: Avisar al rival que he terminado
+    // 4. LÓGICA DE PRESENTACIÓN Y SUSPENSE
     if (Multiplayer && Multiplayer.salaActual) {
+        // MODO MULTIJUGADOR: Avisar al rival que acabé y mostrar Suspense
         Multiplayer.enviarSeñal('FINISH', { puntuacion: AppState.game.score });
+
+        const resultModal = document.getElementById('result-modal');
+        if (resultModal) {
+            resultModal.style.display = 'flex';
+            document.getElementById('suspense-view').style.display = 'block';
+            document.getElementById('final-view').style.display = 'none';
+        }
         window.dispatchEvent(new Event('my-game-finished'));
+    } else {
+        // MODO UN JUGADOR: Mostrar pantalla normal
+        showScreen('results-screen');
+        animateValue("final-score", 0, AppState.game.score, 1500);
+
+        // Renderizar la lista básica por si acaso (Tu código original)
+        const list = document.getElementById('history-list');
+        if (list) {
+            list.innerHTML = "";
+            AppState.game.gameHistory.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.innerHTML = `Frase ${idx+1}: <span style="color:${item.points>0?'var(--success)':'var(--error)'}">${item.points} pts</span>`;
+                div.className = "history-item"; list.appendChild(div);
+            });
+        }
     }
 
+    // 5. Guardado en Base de Datos (Tu código original)
     if (creditsEarned > 0) {
         const aciertos = AppState.game.gameHistory.filter(h => {
             if (!h.input || !h.target) return false;
-            const inputLimpio = h.input.trim().replace(/\.$/, "");
-            const targetLimpio = h.target.trim().replace(/\.$/, "");
-            return inputLimpio === targetLimpio;
+            return h.input.trim().replace(/\.$/, "") === h.target.trim().replace(/\.$/, "");
         }).length;
 
         const payloadJSON = JSON.stringify({
             creditos: parseInt(creditsEarned),
-            modo: "CONTRARRELOJ",
+            modo: (Multiplayer && Multiplayer.salaActual) ? "VERSUS" : "CONTRARRELOJ",
             aciertos: aciertos,
             totalPalabras: AppState.game.gameHistory.length,
             puntuacion: AppState.game.score
         });
 
         try {
-            await apiFetch('/usuarios/guardar-partida', {
-                method: 'POST',
-                body: payloadJSON
-            });
-        } catch (e) {
-            console.error("No se pudo guardar la telemetría");
-        }
+            await apiFetch('/usuarios/guardar-partida', { method: 'POST', body: payloadJSON });
+        } catch (e) { console.error("No se pudo guardar la telemetría"); }
     }
+}
+
+// ----------------------------------------------------
+// LÓGICA DE SUSPENSE Y EVENTOS MULTIJUGADOR
+// ----------------------------------------------------
+
+window.addEventListener('my-game-finished', comprobarGanadorOnline);
+window.addEventListener('rival-finished', () => {
+    // Si yo ya estoy en el modal de espera, avanzo a comprobar el ganador
+    const resultModal = document.getElementById('result-modal');
+    if (resultModal && resultModal.style.display !== 'none') {
+        comprobarGanadorOnline();
+    }
+});
+
+function comprobarGanadorOnline() {
+    if (!Multiplayer.salaActual) return;
+
+    const suspenseView = document.getElementById('suspense-view');
+    const suspenseText = document.getElementById('suspense-text');
+
+    // Si yo termino pero él no, mantengo el suspense
+    if (!Multiplayer.rivalFinalizado) {
+        if (suspenseText) suspenseText.innerText = `⏳ Esperando telemetría de ${Multiplayer.rivalNombre}...`;
+        return;
+    }
+
+    // Si ambos hemos terminado, cambiamos el texto y empezamos la tensión de 3 segundos
+    if (suspenseText) suspenseText.innerText = "¡Datos recibidos! Cruzando resultados...";
+
+    setTimeout(() => {
+        if (suspenseView) suspenseView.style.display = 'none';
+
+        const finalView = document.getElementById('final-view');
+        if (finalView) finalView.style.display = 'block';
+
+        const misPuntos = AppState.game.score || 0;
+        const rivalPuntos = Multiplayer.puntosRival || 0;
+
+        let mensaje = misPuntos > rivalPuntos ? "¡VICTORIA! 🏆" : (misPuntos < rivalPuntos ? "DERROTA... 💀" : "EMPATE 🤝");
+        let color = misPuntos > rivalPuntos ? "var(--success)" : (misPuntos < rivalPuntos ? "var(--error)" : "var(--primary)");
+
+        document.getElementById('result-title').innerText = mensaje;
+        document.getElementById('result-title').style.color = color;
+
+        document.getElementById('res-my-score').innerText = misPuntos;
+        document.getElementById('res-op-score').innerText = rivalPuntos;
+        document.getElementById('res-op-name').innerText = Multiplayer.rivalNombre.toUpperCase();
+
+        document.getElementById('btn-show-details').onclick = () => document.getElementById('details-modal').style.display = 'flex';
+
+        Multiplayer.desconectar();
+    }, 3000); // 🔥 3 Segundos de máxima tensión antes de revelar el resultado
+}
+
+// ----------------------------------------------------
+// LÓGICA DE ANÁLISIS DETALLADO DE FRASES
+// ----------------------------------------------------
+
+function prepararDetallesPuntuacion() {
+    const list = document.getElementById('details-list');
+    if (!list) return;
+    list.innerHTML = "";
+
+    AppState.game.gameHistory.forEach((h, i) => {
+        const item = document.createElement('div');
+        item.style = "background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 15px; border-left: 3px solid var(--primary); border-radius: 4px;";
+
+        const analisis = generarAnalisisDiferencia(h.target, h.input);
+
+        item.innerHTML = `
+            <span style="float: right; color: var(--primary); font-weight: bold; font-size: 1.2rem;">${h.points} PTS</span>
+            <p style="margin: 0 0 10px 0; color: #fff;"><strong>Frase ${i+1}:</strong></p>
+            <p style="font-family: 'Courier New', Courier, monospace; line-height: 1.6; background: #000; padding: 10px; margin: 0;">${analisis}</p>
+        `;
+        list.appendChild(item);
+    });
+}
+
+function generarAnalisisDiferencia(target, input) {
+    const targetWords = target.split(' ');
+    const inputWords = (input || "").split(' ');
+    let html = "";
+
+    targetWords.forEach((word, i) => {
+        const userWord = inputWords[i];
+        if (!userWord) {
+            // Palabra omitida (Tachada y transparente)
+            html += `<span style="opacity:0.4; text-decoration:line-through;">${word}</span> `;
+        } else if (userWord.toLowerCase() === word.toLowerCase()) {
+            // Palabra correcta (Verde neón)
+            html += `<span style="color:var(--success);">${userWord}</span> `;
+        } else {
+            // Palabra fallada (Rojo y subrayada)
+            html += `<span style="color:var(--error); text-decoration:underline;">${userWord}</span> `;
+        }
+    });
+
+    // Si el jugador ha escrito palabras de más
+    if (inputWords.length > targetWords.length) {
+        inputWords.slice(targetWords.length).forEach(word => {
+            html += `<span style="color:var(--error); text-decoration:underline;">${word}</span> `;
+        });
+    }
+
+    return html;
 }
 
 export function abortGame() { clearInterval(AppState.game.timerInterval); showScreen('dashboard-screen'); }

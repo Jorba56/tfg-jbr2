@@ -477,12 +477,53 @@
         </div>
 
         <div id="modal-content-join" style="display: none;">
-            <h2 style="color: var(blue);">UNIRSE A PARTIDA</h2>
+            <h2 style="color: var(--secondary);">UNIRSE A PARTIDA</h2>
             <p>Introduce el código de la sala:</p>
             <input type="text" id="input-room-code" placeholder="EJ: XJ9K2" maxlength="5" autocomplete="off">
             <br>
             <button class="btn-main" id="btn-confirm-join">CONECTAR A LA PISTA</button>
         </div>
+    </div>
+</div>
+
+<div id="result-modal" class="cyber-modal-overlay" style="display: none;">
+    <div class="cyber-modal-box" style="min-width: 400px; padding: 40px;">
+
+        <div id="suspense-view">
+            <h2 style="color: var(--primary); letter-spacing: 2px;">CALCULANDO TELEMETRÍA</h2>
+            <div class="radar-loader"></div>
+            <p id="suspense-text" style="color: var(--text-secondary); font-family: monospace;">Sincronizando datos del rival...</p>
+        </div>
+
+        <div id="final-view" style="display: none; animation: glitch-entry 0.3s ease-out;">
+            <h1 id="result-title" style="font-size: 3rem; margin-bottom: 20px;">VICTORIA</h1>
+
+            <div style="display: flex; justify-content: space-around; align-items: center; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                <div>
+                    <div style="color: var(--primary); font-size: 1.2rem;">TÚ</div>
+                    <div id="res-my-score" style="font-size: 2.5rem; font-weight: bold;">0</div>
+                </div>
+                <div style="font-size: 2rem; color: #fff; font-weight: 900;">VS</div>
+                <div>
+                    <div id="res-op-name" style="color: var(--secondary); font-size: 1.2rem;">RIVAL</div>
+                    <div id="res-op-score" style="font-size: 2.5rem; font-weight: bold;">0</div>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button class="btn-main" onclick="location.reload()" style="width: 100%;">🏁 VOLVER AL BOX</button>
+                <button class="btn-buy" id="btn-show-details" style="width: 100%; border-color: var(--primary);">📊 VER ANÁLISIS DE FRASES</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="details-modal" class="cyber-modal-overlay" style="display: none;">
+    <div class="cyber-modal-box" style="width: 80%; max-width: 700px; max-height: 80vh; display: flex; flex-direction: column;">
+        <button class="close-modal-btn" onclick="document.getElementById('details-modal').style.display='none'">✖</button>
+        <h2 style="color: var(--primary); margin-bottom: 20px;">ANÁLISIS DE CARRERA</h2>
+        <div id="details-list" style="overflow-y: auto; text-align: left; padding-right: 10px;"></div>
     </div>
 </div>
 
