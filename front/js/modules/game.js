@@ -303,7 +303,7 @@ function crearSalaOnline() {
     Multiplayer.conectar(codigoGenerado);
 
     // 4. Arrancamos el rosco
-    iniciarRosco();
+    startGame();
 }
 
 // ==========================================
@@ -316,5 +316,5 @@ function unirseSalaOnline() {
     if (!sala || sala.trim() === "") return;
 
     Multiplayer.conectar(sala);
-    iniciarRosco();
+    startGame();
 }
