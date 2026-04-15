@@ -341,15 +341,18 @@ window.addEventListener('multiplayer-vs-screen', (e) => {
     const modal = document.getElementById('multiplayer-modal');
     if (modal) modal.style.display = 'none';
 
+    // 🚨 1. Atrapamos también los avatares
     const hostName = e.detail.host;
     const guestName = e.detail.guest;
-    mostrarPantallaVersus(hostName, guestName);
+    const hostAvatar = e.detail.hostAvatar || "👤";
+    const guestAvatar = e.detail.guestAvatar || "👤";
+
+    mostrarPantallaVersus(hostName, guestName, hostAvatar, guestAvatar);
 });
 
-function mostrarPantallaVersus(hostName, guestName) {
+function mostrarPantallaVersus(hostName, guestName, hostAvatar, guestAvatar) {
     const overlay = document.getElementById('versus-overlay');
     if (!overlay) {
-        // Si no existe el HTML del versus, arranca el juego directamente.
         startGame();
         return;
     }
@@ -357,6 +360,21 @@ function mostrarPantallaVersus(hostName, guestName) {
     document.getElementById('vs-host-name').innerText = hostName;
     document.getElementById('vs-guest-name').innerText = guestName;
 
+    // 🚨 2. Función auxiliar para pintar el avatar (por si es texto, emoji o URL de imagen)
+    const renderizarAvatar = (avatarData) => {
+        if (typeof avatarData === 'string' && (avatarData.includes('http') || avatarData.includes('data:image'))) {
+            return `<img src="${avatarData}" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid currentColor; box-shadow: 0 0 15px currentColor;">`;
+        }
+        return avatarData; // Si es un emoji o texto corto, lo pinta normal
+    };
+
+    const hostAvatarDiv = document.getElementById('vs-host-avatar');
+    if (hostAvatarDiv) hostAvatarDiv.innerHTML = renderizarAvatar(hostAvatar);
+
+    const guestAvatarDiv = document.getElementById('vs-guest-avatar');
+    if (guestAvatarDiv) guestAvatarDiv.innerHTML = renderizarAvatar(guestAvatar);
+
+    // Mostramos la pantalla
     overlay.style.display = 'flex';
 
     setTimeout(() => {
@@ -432,7 +450,7 @@ function comprobarGanadorOnline() {
         // Cartel Holográfico de Resultado
         const cartel = document.createElement('div');
         cartel.id = 'online-result-card';
-        cartel.style = `margin-top: 30px; padding: 25px; border: 2px solid ${color}; background: rgba(10, 10, 15, 0.9); text-align: center; border-radius: 8px; box-shadow: 0 0 30px ${color}; animation: glitch-entry 0.3s ease-out;`;
+        cartel.style = `margin-top: 15px; padding: 25px; border: 5px solid green; background: rgba(10, 10, 15, 0.9); text-align: center; border-radius: 8px; box-shadow: 0 0 30px ${color}; animation: glitch-entry 0.3s ease-out;`;
         cartel.innerHTML = `
             <h2 style="color: ${color}; font-size: 2.5rem; text-transform: uppercase; margin-bottom: 10px;">${mensaje}</h2>
             <div style="font-size: 1.4rem; color: #fff; font-family: 'Courier New', monospace; letter-spacing: 2px;">

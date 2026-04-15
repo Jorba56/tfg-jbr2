@@ -4,8 +4,8 @@ export const API_URL = ''; // Se queda vacío para que las llamadas HTTP vayan a
 // 🚨 TRUCO DE VELOCIDAD: Pon aquí tu URL directa de Railway (Ej: https://tu-backend.up.railway.app)
 const WS_URL = 'https://gateway-production-a1f6.up.railway.app';
 
-let stompClient = null;
 export let miNombreUsuario = "Piloto_" + Math.floor(Math.random() * 1000);
+export let miAvatar = "👤"; // Avatar por defecto por si acaso
 
 export async function apiFetch(endpoint, options = {}) {
     const defaultOptions = { credentials: 'include', headers: { 'Content-Type': 'application/json' } };
@@ -20,6 +20,7 @@ export const Multiplayer = {
     puntosRival: 0,
     rivalFinalizado: false,
     rivalNombre: "Rival",
+    rivalAvatar: "👤", // Guardamos el avatar del rival
 
     conectar: function(codigoSala, esHost = false) {
         if (!codigoSala) return;
@@ -28,8 +29,11 @@ export const Multiplayer = {
         this.rivalFinalizado = false;
         this.puntosRival = 0;
 
-        if (AppState.currentUser && AppState.currentUser.correo) {
-            miNombreUsuario = AppState.currentUser.correo.split('@')[0];
+        // 🚨 1. COGEMOS LA IDENTIDAD REAL DEL ESTADO DEL JUEGO
+        if (AppState.currentUser) {
+            // Prioridad absoluta al username real. Si no hay, pillamos el del correo.
+            miNombreUsuario = AppState.currentUser.username || AppState.currentUser.nombreUsuario || (AppState.currentUser.correo ? AppState.currentUser.correo.split('@')[0] : miNombreUsuario);
+            miAvatar = AppState.currentUser.avatar || "👤";
         }
 
         const hud = document.getElementById('online-hud');
@@ -37,7 +41,6 @@ export const Multiplayer = {
         document.getElementById('hud-my-name').innerText = miNombreUsuario;
         document.getElementById('hud-op-name').innerText = `Sala: ${this.salaActual} - Esperando...`;
 
-        // ⚡ CONECTAMOS DIRECTO A RAILWAY (¡Adiós a los 15 segundos de retraso!)
         const socket = new SockJS(`${WS_URL}/ws-game`);
         stompClient = Stomp.over(socket);
         stompClient.debug = null;
@@ -50,19 +53,30 @@ export const Multiplayer = {
                 if (data.jugador === miNombreUsuario) return; // Ignoro mis propios mensajes
 
                 this.rivalNombre = data.jugador;
+                if (data.avatar) this.rivalAvatar = data.avatar;
 
                 switch (data.type) {
                     case 'PLAYER_JOINED':
                         if (this.esHost) {
-                            this.enviarSeñal('BATTLE_START', { hostName: miNombreUsuario });
-                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', { detail: { host: miNombreUsuario, guest: data.jugador } }));
+                            // Le paso mi nombre Y MI AVATAR al invitado
+                            this.enviarSeñal('BATTLE_START', { hostName: miNombreUsuario, hostAvatar: miAvatar });
+
+                            // Disparo mi pantalla Versus con los datos de ambos
+                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', {
+                                detail: { host: miNombreUsuario, hostAvatar: miAvatar, guest: data.jugador, guestAvatar: data.avatar }
+                            }));
                         }
                         break;
                     case 'BATTLE_START':
                         if (!this.esHost) {
-                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', { detail: { host: data.hostName, guest: miNombreUsuario } }));
+                            // El host me responde. Disparo mi pantalla Versus.
+                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', {
+                                detail: { host: data.hostName, hostAvatar: data.hostAvatar, guest: miNombreUsuario, guestAvatar: miAvatar }
+                            }));
                         }
                         break;
+
+                    // ... (Aquí dejas los case 'FINISH' y 'PROGRESS' que ya tenías)
                     case 'FINISH':
                         this.rivalFinalizado = true;
                         this.puntosRival = data.puntuacion;
@@ -86,11 +100,17 @@ export const Multiplayer = {
 
     enviarSeñal: function(type, extra = {}) {
         if (stompClient && stompClient.connected && this.salaActual) {
-            const paquete = { type: type, jugador: miNombreUsuario, puntuacion: 0, ...extra };
+            // 🚨 2. METEMOS EL AVATAR EN EL PAQUETE DE DATOS
+            const paquete = {
+                type: type,
+                jugador: miNombreUsuario,
+                avatar: miAvatar,
+                puntuacion: AppState.game ? AppState.game.score : 0,
+                ...extra
+            };
             stompClient.send(`/app/progreso/${this.salaActual}`, {}, JSON.stringify(paquete));
         }
     },
-
     enviarProgreso: function(puntosActuales) {
         if (document.getElementById('hud-my-score')) document.getElementById('hud-my-score').innerText = puntosActuales;
         this.enviarSeñal('PROGRESS', { puntuacion: puntosActuales });

@@ -15,7 +15,7 @@
     --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     --radius: 4px; /* Bordes más rectos/agresivos para estilo racing */
     --error: red;
-    --secondar: blue;
+    --secondary: #00f2fe;
 }
 
 body {
