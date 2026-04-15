@@ -285,63 +285,95 @@ function iniciarPartidaOnline() {
 document.getElementById('btn-create-room')?.addEventListener('click', crearSalaOnline);
 document.getElementById('btn-join-room')?.addEventListener('click', unirseSalaOnline);
 
-// ==========================================
-// ➕ CREAR SALA (Eres el Host)
-// ==========================================
 function crearSalaOnline() {
-    // 1. Generamos un código aleatorio de 5 letras (quitamos la O, el 0, y la I para que no haya confusiones al leerlo)
     const caracteres = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let codigoGenerado = '';
     for (let i = 0; i < 5; i++) {
         codigoGenerado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
     }
 
-    // 2. Le mostramos el código al jugador
-    alert(`¡Sala creada con éxito!\n\nTu código de invitación es: ${codigoGenerado}\n\nPásaselo a tu rival para que se una.`);
+    // Mostramos el código de forma bonita (puedes cambiar el alert por un modal HTML si quieres)
+    alert(`¡Sala creada con éxito!\n\nTu código de invitación es: ${codigoGenerado}\n\nPásaselo a tu rival y espera a que se conecte.`);
 
-    // 3. Lo conectamos a su propia sala
-    Multiplayer.conectar(codigoGenerado);
-
-    // 4. Arrancamos el rosco
-    startGame();
+    // Conectamos como HOST (true)
+    Multiplayer.conectar(codigoGenerado, true);
 }
 
-// ==========================================
-// 🤝 UNIRSE A SALA (Eres el Invitado)
-// ==========================================
 function unirseSalaOnline() {
-    // Esta es la función que hicimos antes
-    const sala = prompt("Introduce el código de la sala privada:");
-
+    const sala = prompt("Introduce el código de la sala privada (ej: XJ9K2):");
     if (!sala || sala.trim() === "") return;
 
-    Multiplayer.conectar(sala);
-    startGame();
+    // Conectamos como INVITADO (false)
+    Multiplayer.conectar(sala, false);
 }
 
-function mostrarResultadosFinales() {
-    const misPuntos = AppState.game.score;
-    const rivalPuntos = Multiplayer.puntosRival;
+// ==========================================
+// ⚔️ EVENTOS DE LA PANTALLA VERSUS Y SINCRONIZACIÓN
+// ==========================================
 
-    let mensaje = "";
-    let subtexto = `Tú: ${misPuntos} pts | Rival: ${rivalPuntos} pts`;
+// Escuchamos el evento personalizado que dispara api.js cuando ambos están listos
+window.addEventListener('multiplayer-vs-screen', (e) => {
+    const hostName = e.detail.host;
+    const guestName = e.detail.guest;
 
-    if (misPuntos > rivalPuntos) {
-        mensaje = "¡VICTORIA MAGISTRAL! 🏆";
-    } else if (misPuntos < rivalPuntos) {
-        mensaje = "DERROTA...";
-    } else {
-        mensaje = "EMPATE TÉCNICO 🤝";
-    }
+    mostrarPantallaVersus(hostName, guestName);
+});
 
-    // Insertamos en un div de "Game Over" que ya tengas o creamos uno
-    const overlay = document.getElementById('game-over-overlay');
-    overlay.innerHTML = `
-        <div class="cyber-modal">
-            <h1>${mensaje}</h1>
-            <p>${subtexto}</p>
-            <button onclick="location.reload()">VOLVER AL BOX</button>
-        </div>
-    `;
+function mostrarPantallaVersus(hostName, guestName) {
+    const overlay = document.getElementById('versus-overlay');
+    if (!overlay) return;
+
+    // Rellenamos los nombres
+    document.getElementById('vs-host-name').innerText = hostName;
+    document.getElementById('vs-guest-name').innerText = guestName;
+
+    // Mostramos la pantalla y activamos la animación CSS
     overlay.style.display = 'flex';
+
+    // Pequeño delay para que el display:flex se aplique antes de añadir la clase de animación
+    setTimeout(() => {
+        overlay.classList.add('vs-active');
+    }, 50);
+
+    // Arrancamos la cuenta atrás sincronizada
+    let contador = 3;
+    const countDOM = document.getElementById('vs-countdown');
+    countDOM.innerText = contador;
+
+    const intervalo = setInterval(() => {
+        contador--;
+        if (contador > 0) {
+            countDOM.innerText = contador;
+            // Efecto de latido (pop)
+            countDOM.style.transform = 'scale(1.5)';
+            setTimeout(() => countDOM.style.transform = 'scale(1)', 150);
+        } else if (contador === 0) {
+            countDOM.innerText = "¡ACELERA!";
+            countDOM.style.color = "var(--primary)";
+        } else {
+            // Terminamos
+            clearInterval(intervalo);
+            overlay.classList.remove('vs-active');
+
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                countDOM.innerText = "";
+                countDOM.style.color = "#fff";
+
+                // 🚨 ¡ARRANCAMOS EL JUEGO REAL PARA AMBOS A LA VEZ!
+                if (typeof startGame === 'function') {
+                    startGame();
+                } else {
+                    console.error("No se encontró la función startGame()");
+                }
+            }, 500); // Medio segundo para que se lea el "¡Acelera!"
+        }
+    }, 1000);
 }
+
+// Escuchar cuando el rival termine para mostrar victoria/derrota
+window.addEventListener('rival-finished', () => {
+    console.log(`El rival ha terminado con ${Multiplayer.puntosRival} puntos.`);
+    // Si yo ya había terminado, muestro resultados finales
+    // (Si aún estoy jugando, la lógica de mi propio endGame debe comprobar si él ya terminó)
+});

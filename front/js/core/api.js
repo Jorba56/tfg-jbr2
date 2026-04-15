@@ -15,6 +15,7 @@ export const Multiplayer = {
     esHost: false,
     puntosRival: 0,
     rivalFinalizado: false,
+    rivalNombre: "Rival",
 
     conectar: function(codigoSala, esHost = false) {
         this.salaActual = codigoSala.toUpperCase().trim();
@@ -22,44 +23,103 @@ export const Multiplayer = {
         this.rivalFinalizado = false;
         this.puntosRival = 0;
 
+        // Extraer el nombre de usuario del correo (lo que hay antes de la @)
+        if (AppState.currentUser && AppState.currentUser.correo) {
+            miNombreUsuario = AppState.currentUser.correo.split('@')[0];
+        } else if (AppState.currentUser && AppState.currentUser.username) {
+            miNombreUsuario = AppState.currentUser.username;
+        }
+
+        // Mostrar HUD
+        const hud = document.getElementById('online-hud');
+        if (hud) hud.style.display = 'flex';
+        document.getElementById('hud-my-name').innerText = miNombreUsuario;
+        document.getElementById('hud-op-name').innerText = `Sala: ${this.salaActual} - Esperando...`;
+
+        // 🚨 CAMBIA ESTO POR TU URL DE RAILWAY SI PRUEBAS EN PRODUCCIÓN
         const socket = new SockJS(`${API_URL}/ws-game`);
         stompClient = Stomp.over(socket);
-        stompClient.debug = null;
+        stompClient.debug = null; // Ocultar logs de consola para no ensuciar
 
         stompClient.connect({}, () => {
-            stompClient.subscribe(`/topic/partida/${this.salaActual}`, (msg) => {
-                const data = JSON.parse(msg.body);
+            console.log(`📡 Conectado a la sala: ${this.salaActual}`);
 
-                if (data.type === 'START_SIGNAL') {
-                    // 🚨 AMBOS empiezan a la vez cuando llega esta señal
-                    window.dispatchEvent(new CustomEvent('multiplayer-start'));
-                } else if (data.jugador !== miNombreUsuario) {
-                    if (data.type === 'FINISH') {
+            // Suscribirse a la radio de la sala
+            stompClient.subscribe(`/topic/partida/${this.salaActual}`, (mensaje) => {
+                const data = JSON.parse(mensaje.body);
+
+                // Ignorar mis propios mensajes
+                if (data.jugador === miNombreUsuario) return;
+
+                this.rivalNombre = data.jugador;
+
+                // 🚦 GESTIÓN DE SEÑALES
+                switch (data.type) {
+                    case 'PLAYER_JOINED':
+                        if (this.esHost) {
+                            // El invitado ha llegado. Le digo que empiece la batalla.
+                            this.enviarSeñal('BATTLE_START', { hostName: miNombreUsuario });
+                            // Y yo también lanzo mi pantalla VS
+                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', {
+                                detail: { host: miNombreUsuario, guest: data.jugador }
+                            }));
+                        }
+                        break;
+
+                    case 'BATTLE_START':
+                        if (!this.esHost) {
+                            // El Host me confirma la batalla, lanzo mi pantalla VS
+                            window.dispatchEvent(new CustomEvent('multiplayer-vs-screen', {
+                                detail: { host: data.hostName, guest: miNombreUsuario }
+                            }));
+                        }
+                        break;
+
+                    case 'FINISH':
                         this.rivalFinalizado = true;
                         this.puntosRival = data.puntuacion;
                         window.dispatchEvent(new CustomEvent('rival-finished'));
-                    } else {
-                        actualizarHUDRival(data.jugador, data.puntuacion);
-                    }
+                        break;
+
+                    case 'PROGRESS':
+                        // Actualizar puntos del rival en el HUD
+                        document.getElementById('hud-op-name').innerText = data.jugador;
+                        document.getElementById('hud-op-score').innerText = data.puntuacion;
+
+                        // Efecto visual de parpadeo
+                        const opScoreSpan = document.getElementById('hud-op-score');
+                        opScoreSpan.style.color = "var(--primary)";
+                        setTimeout(() => opScoreSpan.style.color = "", 300);
+                        break;
                 }
             });
 
-            // Si soy el invitado, envío señal de que he llegado para empezar
+            // Si soy el invitado, aviso a la sala de que he llegado
             if (!this.esHost) {
-                this.enviarSeñal('START_SIGNAL');
+                this.enviarSeñal('PLAYER_JOINED');
             }
         });
     },
 
     enviarSeñal: function(type, extra = {}) {
-        if (stompClient?.connected) {
+        if (stompClient && stompClient.connected && this.salaActual) {
             const paquete = {
                 type: type,
                 jugador: miNombreUsuario,
-                puntuacion: AppState.game.score,
+                puntuacion: AppState.game ? AppState.game.score : 0,
                 ...extra
             };
             stompClient.send(`/app/progreso/${this.salaActual}`, {}, JSON.stringify(paquete));
         }
+    },
+
+    desconectar: function() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        console.log("📡 Desconectado de la sala.");
+        this.salaActual = null;
+        const hud = document.getElementById('online-hud');
+        if (hud) hud.style.display = 'none';
     }
 };

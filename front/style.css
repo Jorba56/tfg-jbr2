@@ -1216,6 +1216,62 @@ body.tema-cyberpunk input:focus {
 .text-danger i { color: #ef4444 !important; }
 .text-danger:hover { border-left-color: #ef4444 !important; }
 
+.versus-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #05050a 0%, #000 100%);
+    z-index: 9999;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.player-card {
+    text-align: center;
+    width: 40%;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.host-side { color: var(--primary); transform: translateX(-150%); }
+.guest-side { color: var(--secondary); transform: translateX(150%); }
+
+.vs-active .host-side, .vs-active .guest-side { transform: translateX(0); }
+
+.vs-avatar {
+    font-size: 8rem;
+    filter: drop-shadow(0 0 15px currentColor);
+    margin: 20px 0;
+}
+
+.vs-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.4s 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+}
+
+.vs-active .vs-center { transform: translate(-50%, -50%) scale(1); }
+
+.vs-circle {
+    width: 120px; height: 120px;
+    background: #fff;
+    color: #000;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; font-weight: 900;
+    box-shadow: 0 0 50px var(--primary), 0 0 20px var(--secondary);
+}
+
+.vs-countdown {
+    position: absolute;
+    bottom: 10%;
+    font-size: 5rem;
+    color: #fff;
+    text-shadow: 0 0 20px var(--primary);
+}
+
 .cyber-modal {
     background: rgba(5, 5, 10, 0.95);
     border: 2px solid var(--primary);
