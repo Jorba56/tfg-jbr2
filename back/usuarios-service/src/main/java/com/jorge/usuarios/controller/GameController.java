@@ -10,16 +10,6 @@ import java.util.Map;
 @Controller
 public class GameController {
 
-    // 🚨 Atrapamos la variable {sala} que nos envíe el JavaScript
-    @MessageMapping("/progreso/{sala}")
-    @SendTo("/topic/partida/{sala}")
-    public Map<String, Object> enviarProgreso(@DestinationVariable String sala, @Payload Map<String, Object> datosJugador) {
-
-        System.out.println("🏁 Actualización en Sala Privada [" + sala + "]: " + datosJugador);
-
-        return datosJugador;
-    }
-
     @MessageMapping("/progreso/{sala}")
     @SendTo("/topic/partida/{sala}")
     public Map<String, Object> gestionarCarrera(@DestinationVariable String sala, @Payload Map<String, Object> payload) {
