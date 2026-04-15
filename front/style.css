@@ -1249,10 +1249,11 @@ body.tema-cyberpunk input:focus {
 .versus-overlay {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: radial-gradient(circle, #05050a 0%, #000 100%);
+    background: radial-gradient(circle, #0a0a0f 0%, #000 100%);
     z-index: 9999;
     display: flex;
-    justify-content: space-around;
+    flex-direction: row; /* Horizontal por defecto */
+    justify-content: center;
     align-items: center;
     overflow: hidden;
     font-family: 'Courier New', Courier, monospace;
@@ -1302,8 +1303,12 @@ body.tema-cyberpunk input:focus {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .player-card {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra horizontalmente */
+    justify-content: center;
     width: 40%;
+    text-align: center;
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1313,36 +1318,53 @@ body.tema-cyberpunk input:focus {
 .vs-active .host-side, .vs-active .guest-side { transform: translateX(0); }
 
 .vs-avatar {
-    font-size: 8rem;
-    filter: drop-shadow(0 0 15px currentColor);
     margin: 20px 0;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .vs-center {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) scale(0);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    margin: 0 20px;
+    transform: scale(0);
     transition: transform 0.4s 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045);
 }
 
-.vs-active .vs-center { transform: translate(-50%, -50%) scale(1); }
+.vs-active .vs-center {
+    transform: scale(1);
+}
 
 .vs-circle {
-    width: 120px; height: 120px;
+    width: 100px; height: 100px;
     background: #fff;
     color: #000;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 3rem; font-weight: 900;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem; font-weight: 900;
     box-shadow: 0 0 50px var(--primary), 0 0 20px var(--secondary);
 }
 
 .vs-countdown {
     position: absolute;
-    bottom: 10%;
-    font-size: 5rem;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado perfecto horizontal */
+    font-size: 6rem;
+    font-weight: bold;
     color: #fff;
-    text-shadow: 0 0 20px var(--primary);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    transition: transform 0.1s ease-out;
+    z-index: 20;
+    margin: auto;
 }
 
 .cyber-modal {
@@ -1979,6 +2001,48 @@ body.light-mode .data-table td {
     /* Aumentamos un pelín la definición para que se lea mejor en el móvil */
     #ui-rosco .definition {
         font-size: 1.15rem !important;
+    }
+
+    .versus-overlay {
+        flex-direction: column; /* Apilamos de arriba a abajo */
+        justify-content: space-evenly; /* Repartimos el espacio matemáticamente */
+    }
+
+    .player-card {
+        width: 100%;
+        height: auto;
+        margin: auto;
+    }
+
+    /* Animaciones adaptadas al eje vertical */
+    .host-side { transform: translateY(-100vh); }
+    .guest-side { transform: translateY(100vh);  margin: auto;}
+    .vs-active .host-side, .vs-active .guest-side { transform: translateY(0); }
+
+    .vs-avatar {
+        width: 130px;
+        height: 130px;
+        margin: 10px 0;
+    }
+
+    .player-card h2 {
+        font-size: 1.5rem;
+        margin: 5px 0;
+    }
+
+    .vs-center {
+        margin: 10px 0;
+    }
+
+    .vs-circle {
+        width: 60px; height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .vs-countdown {
+        bottom: 20px;
+        font-size: 4rem;
+        margin: auto;
     }
 }
 
