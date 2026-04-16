@@ -566,7 +566,7 @@ function comprobarGanadorOnline() {
             const btnDetails = document.getElementById('btn-show-details');
             if(btnDetails) btnDetails.onclick = () => document.getElementById('details-modal').style.display = 'flex';
 
-            const btnDetails2 = document.getElementById('btn-show-details2');
+            const btnDetails2 = document.getElementById('btn-details-sp');
             if(btnDetails2) btnDetails2.onclick = () => document.getElementById('details-modal').style.display = 'flex';
 
         } catch (error) {
