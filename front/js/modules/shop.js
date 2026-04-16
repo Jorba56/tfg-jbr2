@@ -55,7 +55,7 @@ export async function comprarObjeto(idItemParam, precio, nombreItem, descItem) {
             AppState.currentUser.creditos -= precio;
             AppState.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
             showToast("¡Objeto adquirido correctamente!", "success");
-            updateUserUI(); 
+            updateUserUI();
             loadTienda();
         } else alert(data.mensaje || "El servidor rechazó la compra.");
     } catch (error) { alert("Fallo de conexión con la tienda."); }
