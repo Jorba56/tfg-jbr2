@@ -93,3 +93,31 @@ export function animateValue(id, start, end, duration) {
     };
     window.requestAnimationFrame(step);
 }
+
+export function showToast(mensaje, tipo = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    // 1. Creamos el elemento
+    const toast = document.createElement('div');
+    toast.className = `cyber-toast ${tipo}`; // Se le asigna 'success' o 'error'
+
+    // 2. Le ponemos un icono dependiendo del tipo
+    const icono = tipo === 'success' ? '✅' : '❌';
+    toast.innerHTML = `<span>${icono}</span> <span>${mensaje}</span>`;
+
+    // 3. Lo añadimos a la pantalla
+    container.appendChild(toast);
+
+    // 4. Programamos su destrucción tras 3 segundos
+    setTimeout(() => {
+        toast.classList.add('fade-out'); // Empieza la animación de salida
+
+        // Esperamos a que acabe la animación (500ms) para borrar el HTML y liberar memoria
+        setTimeout(() => {
+            if (container.contains(toast)) {
+                toast.remove();
+            }
+        }, 500);
+    }, 3000); // <-- 3000ms = 3 segundos en pantalla
+}

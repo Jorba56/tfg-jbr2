@@ -1560,6 +1560,61 @@ body.tema-cyberpunk input:focus {
     border-color: #a855f7 !important; /* Color púrpura para diferenciarlo */
 }
 
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10000; /* Siempre por encima de todo */
+    pointer-events: none; /* Para que no bloqueen clics debajo */
+}
+
+.cyber-toast {
+    background: rgba(10, 10, 15, 0.9);
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+
+    /* Animación de entrada por defecto */
+    transform: translateX(120%);
+    animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Tipos de Toast (Éxito y Error) */
+.cyber-toast.success {
+    border-left: 5px solid #00f2fe; /* Tu color Primary */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+
+.cyber-toast.error {
+    border-left: 5px solid #fe019a; /* Tu color Secondary */
+    box-shadow: 0 0 15px rgba(254, 1, 154, 0.3);
+}
+
+/* Animación para ocultar el toast */
+.cyber-toast.fade-out {
+    animation: fadeOutToast 0.5s ease forwards;
+}
+
+@keyframes slideInToast {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(120%); opacity: 0; }
+}
+
 /* Animación de pulso neón */
 @keyframes neon-flicker {
     0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {

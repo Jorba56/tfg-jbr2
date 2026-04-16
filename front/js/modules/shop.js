@@ -1,6 +1,7 @@
 import { AppState } from '../core/state.js';
 import { showScreen, updateUserUI } from '../core/ui.js';
 import { apiFetch } from '../core/api.js';
+import { showToast } from '../core/ui.js';
 
 export function openShop() {
     updateUserUI(); showScreen('shop-screen'); loadTienda();
@@ -44,7 +45,7 @@ export async function loadTienda() {
 
 export async function comprarObjeto(idItemParam, precio, nombreItem, descItem) {
     if (!AppState.currentUser.inventario) AppState.currentUser.inventario = [];
-    if (AppState.currentUser.creditos < precio) return alert("Créditos insuficientes 😔");
+    if (AppState.currentUser.creditos < precio) return showToast("Créditos insuficientes.", "error");
 
     try {
         const response = await apiFetch(`/usuarios/buy/${idItemParam}`, { method: 'POST' });
@@ -53,8 +54,9 @@ export async function comprarObjeto(idItemParam, precio, nombreItem, descItem) {
         if (response.ok) {
             AppState.currentUser.creditos -= precio;
             AppState.currentUser.inventario.push({ id_item: idItemParam, nombre: nombreItem, descripcion: descItem });
-            alert("¡Compra exitosa! Has adquirido: " + nombreItem);
-            updateUserUI(); loadTienda();
+            showToast("¡Objeto adquirido correctamente!", "success");
+            updateUserUI(); 
+            loadTienda();
         } else alert(data.mensaje || "El servidor rechazó la compra.");
     } catch (error) { alert("Fallo de conexión con la tienda."); }
 }
