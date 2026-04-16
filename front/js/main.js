@@ -72,6 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-back-shop')?.addEventListener('click', () => showScreen('dashboard-screen'));
     document.getElementById('btn-retry')?.addEventListener('click', startGame);
 
+    document.getElementById('btn-details-sp')?.addEventListener('click', () => {
+        const detailsModal = document.getElementById('details-modal');
+        if (detailsModal) detailsModal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-show-details')?.addEventListener('click', () => {
+        const detailsModal = document.getElementById('details-modal');
+        if (detailsModal) detailsModal.style.display = 'flex';
+    });
+
     // Eventos del Input del Juego principal
     const gameInput = document.getElementById('game-input');
     if (gameInput) {
