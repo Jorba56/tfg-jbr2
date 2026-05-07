@@ -65,9 +65,6 @@ export const Rosco = {
         if (v === normalize(item.a)) {
             item.st = 'ok'; this.ok++; node.classList.add('correct');
 
-            // 📡 ENVIAR PROGRESO AL RIVAL
-            if (Multiplayer && Multiplayer.salaActual) Multiplayer.enviarProgreso(this.ok * 10);
-
         } else {
             item.st = 'bad'; this.bad++; node.classList.add('wrong');
         }
@@ -102,11 +99,6 @@ export const Rosco = {
         const creditosGanados = this.ok * 10;
         document.getElementById('r-credits').innerText = creditosGanados;
 
-        // 📡 AVISAR DE QUE HAS TERMINADO Y COMPROBAR GANADOR
-        if (Multiplayer && Multiplayer.salaActual) {
-            Multiplayer.enviarSeñal('FINISH', { puntuacion: creditosGanados });
-            window.dispatchEvent(new Event('my-game-finished'));
-        }
 
         if (creditosGanados > 0 && AppState.currentUser) {
             AppState.currentUser.creditos += creditosGanados;
