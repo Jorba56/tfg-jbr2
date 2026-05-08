@@ -134,13 +134,13 @@ window.responderChat = function(pregunta) {
     const respuesta = document.getElementById('chatbot-respuesta');
 
     if(pregunta === 'creditos') {
-        respuesta.innerHTML = "<strong style='color: darkgoldenrod;'>Créditos:</strong> Los consigues jugando partidas en 'La Arena' o ganando duelos online. ¡A más PPM, más recompensa!";
+        respuesta.innerHTML = "<strong style='color: darkgoldenrod;'>Créditos:</strong> Los consigues jugando partidas en o ganando duelos online. ¡Más palabras, más recompensas!";
     }
     if(pregunta === 'powerups') {
-        respuesta.innerHTML = "<strong style='color:lightskyblue;'>Power-Ups:</strong> Cómpralos en el Garaje. Te permiten congelar el tiempo, perdonar errores o multiplicar tus puntos en carrera.";
+        respuesta.innerHTML = "<strong style='color:#00f2fe;'>Power-Ups:</strong> Cómpralos en el Garaje. Te permiten congelar el tiempo, perdonar errores o multiplicar tus puntos en carrera.";
     }
     if(pregunta === 'online') {
-        respuesta.innerHTML = "Ve a <strong>Modo Versus</strong>. Un jugador crea la sala y pasa el código. El otro introduce el código para unirse al túnel WebSockets. ¡Que gane el más rápido!";
+        respuesta.innerHTML = "Ve a <strong>Partida Online</strong>. Un jugador crea la sala y pasa el código. El otro introduce el código para unirse al túnel WebSockets. ¡Que gane el más rápido!";
     }
 };
 
@@ -168,16 +168,15 @@ export async function cargarEstadisticasDashboard() {
 
         // 3. Pintamos los resultados en el Box
         divEstadisticas.innerHTML = `
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem;">
-                <div><strong>⏱️ Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
-                <div><strong>🍩 Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
-                <div><strong>🎯 Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
-            </div>
-            
-            <div style="margin-top: 10px; width: 100%; max-width: 300px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; height: 6px;">
-                <div style="width: 0%; background: blue; height: 100%; transition: width 1s ease-out;" id="dash-bar-precision"></div>
-            </div>
-        `;
+        <div class="stats-grid-box">
+            <div class="stat-item"><strong>Contrarreloj:</strong> <span class="stat-val cr">${stats.mejorContrarreloj || 0}</span></div>
+            <div class="stat-item"><strong>Rosco:</strong> <span class="stat-val rosco">${stats.mejorRosco || 0}</span></div>
+            <div class="stat-item"><strong>Precisión:</strong> <span class="stat-val pct">${stats.pctFrases || 0}%</span></div>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="dash-bar-precision"></div>
+        </div>
+    `;
 
         // Animación de la barra de precisión
         setTimeout(() => {

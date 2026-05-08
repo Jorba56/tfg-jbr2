@@ -234,6 +234,96 @@ input:focus {
     z-index: 6;
 }
 
+#stats {
+    width: 100%;
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.stats-grid-box {
+    display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;
+}
+
+.stat-item strong { color: var(--text-highlight); }
+.stat-val.cr { color: #ff007c; font-weight: bold; }
+.stat-val.rosco { color: #ffd700; font-weight: bold; }
+.stat-val.pct { color: var(--primary); font-weight: bold; }
+
+.progress-track {
+    margin-top: 10px; width: 100%; max-width: 300px;
+    background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; overflow: hidden;
+}
+.progress-fill { background: var(--primary); height: 100%; transition: width 1s ease-out; }
+
+/* Stats: Modo Claro */
+body.light-mode #stats { background: rgba(0, 0, 0, 0.03); border-color: var(--primary); }
+body.light-mode .progress-track { background: rgba(0,0,0,0.1); }
+body.light-mode .stat-val.cr { color: #e11d48; }
+body.light-mode .stat-val.rosco { color: #d97706; }
+body.light-mode .stat-val.pct { color: var(--primary); }
+
+/* Stats: Modo Cyberpunk */
+body.tema-cyberpunk #stats { background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1); }
+body.tema-cyberpunk .stat-val.cr { color: #ff00ff; text-shadow: 0 0 5px #ff00ff;}
+body.tema-cyberpunk .stat-val.pct { color: #00ffff; text-shadow: 0 0 5px #00ffff;}
+body.tema-cyberpunk .progress-fill { background: #00ffff; box-shadow: 0 0 10px #00ffff; }
+
+/* =========================================
+   🤖 CHATBOT ASISTENTE (TRES TEMAS)
+   ========================================= */
+#asistente-flotante { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+
+#chatbot-window {
+    display: none; /* Oculto por defecto */
+    background: var(--card-bg);
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    color: var(--text);
+    padding: 15px;
+    width: 300px;
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    backdrop-filter: blur(12px);
+}
+
+#chatbot-window h4 { color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; }
+#chatbot-respuesta { color: var(--text-highlight); font-size: 0.9rem; min-height: 60px; }
+
+.chatbot-btn {
+    background: rgba(0,0,0,0.4); color: var(--text-highlight);
+    border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;
+    cursor: pointer; text-align: left; transition: 0.3s; width: 100%; margin-top: 5px;
+    transform: none; /* Anulamos el skewX de los botones normales */
+}
+.chatbot-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
+
+.chatbot-trigger {
+    background: var(--primary); color: #000; border: none; border-radius: 50%;
+    width: 60px; height: 60px; font-size: 30px; cursor: pointer;
+    box-shadow: 0 0 15px var(--primary); display: flex; justify-content: center; align-items: center;
+    transition: 0.3s; transform: none;
+}
+.chatbot-trigger:hover { transform: scale(1.1); }
+
+/* Chatbot: Modo Claro */
+body.light-mode #chatbot-window { box-shadow: var(--glass-shadow); border-color: var(--primary); }
+body.light-mode #chatbot-window h4 { border-bottom-color: rgba(0,0,0,0.1); }
+body.light-mode .chatbot-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+body.light-mode .chatbot-btn:hover { background: var(--primary); color: white; }
+body.light-mode .chatbot-trigger { color: white; box-shadow: 0 5px 15px rgba(0, 92, 230, 0.4); }
+
+/* Chatbot: Modo Cyberpunk */
+body.tema-cyberpunk #chatbot-window { border-color: #ff00ff; box-shadow: 0 0 20px rgba(255, 0, 255, 0.3); }
+body.tema-cyberpunk #chatbot-window h4 { color: #ff00ff; border-bottom-color: rgba(255,0,255,0.3); }
+body.tema-cyberpunk .chatbot-btn:hover { background: #ff00ff; color: white; box-shadow: 0 0 10px #ff00ff; }
+body.tema-cyberpunk .chatbot-trigger { background: #ff00ff; box-shadow: 0 0 15px #ff00ff; color: white; }
+
 .letter-item.active { background: #ffcc00; color: #000; transform: scale(1.3); z-index: 10; box-shadow: 0 0 15px #ffcc00; }
 .letter-item.correct { background: #22c55e; }
 .letter-item.wrong { background: #ef4444; }
