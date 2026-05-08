@@ -314,7 +314,7 @@ body.tema-cyberpunk .progress-fill { background: #00ffff; box-shadow: 0 0 10px #
 /* Chatbot: Modo Claro */
 body.light-mode #chatbot-window { box-shadow: var(--glass-shadow); border-color: var(--primary); }
 body.light-mode #chatbot-window h4 { border-bottom-color: rgba(0,0,0,0.1); }
-body.light-mode .chatbot-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
+body.light-mode .chatbot-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: rgba(0, 92, 230, 0.4)  }
 body.light-mode .chatbot-btn:hover { background: var(--primary); color: white; }
 body.light-mode .chatbot-trigger { color: white; box-shadow: 0 5px 15px rgba(0, 92, 230, 0.4); }
 
