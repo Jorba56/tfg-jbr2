@@ -124,9 +124,10 @@ export function showToast(mensaje, tipo = 'success') {
     }, 3000); // <-- 3000ms = 3 segundos en pantalla
 }
 
+// Abrir y cerrar la ventana con animación
 window.toggleChatbot = function() {
     const chat = document.getElementById('chatbot-window');
-    chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
+    chat.classList.toggle('mostrar-chat'); // Añade/quita la clase mágica
 };
 
 // Cambiar el texto según la pregunta elegida
@@ -159,7 +160,7 @@ export async function cargarEstadisticasDashboard() {
     try {
         divEstadisticas.innerHTML = '<p style="font-size: 0.8rem; color: blue;">Cargando telemetría...</p>';
 
-        // 2. Petición directa a tu endpoint de Java
+        // 2. Petición directa a Java
         const response = await apiFetch(`/usuarios/estadisticas/${miId}`);
 
         if (!response.ok) throw new Error("No se pudo obtener la telemetría");

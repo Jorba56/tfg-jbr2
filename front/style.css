@@ -278,7 +278,13 @@ body.tema-cyberpunk .progress-fill { background: #00ffff; box-shadow: 0 0 10px #
 #asistente-flotante { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
 
 #chatbot-window {
-    display: none; /* Oculto por defecto */
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.9);
+    transform-origin: bottom right; /* Hace que la animación nazca desde el botón */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
     background: var(--card-bg);
     border: 1px solid var(--primary);
     border-radius: 10px;
@@ -290,6 +296,12 @@ body.tema-cyberpunk .progress-fill { background: #00ffff; box-shadow: 0 0 10px #
     bottom: 80px;
     right: 0;
     backdrop-filter: blur(12px);
+}
+
+#chatbot-window.mostrar-chat {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
 }
 
 #chatbot-window h4 { color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; }
