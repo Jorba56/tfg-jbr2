@@ -411,6 +411,7 @@ public class UserServiceImpl implements UserService {
         }
 
         Map<String, Object> perfil = new HashMap<>();
+        perfil.put("id", usuario.getIdUser());
         perfil.put("username", usuario.getNombreUsuario());
         perfil.put("apellido", usuario.getApellidoUsuario());
         perfil.put("creditos", usuario.getCreditos());

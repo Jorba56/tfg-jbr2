@@ -128,16 +128,16 @@ export async function cargarEstadisticasDashboard() {
     if (!divEstadisticas) return;
 
     // 1. Obtenemos el correo del estado global
-    const miCorreo = AppState.currentUser?.correo;
+    const id = AppState.currentUser.id;
 
-    if (!miCorreo) {
-        console.warn("No hay correo disponible para cargar estadísticas.");
+    if (!id) {
+        console.warn("No hay id disponible para cargar estadísticas.");
         return;
     }
 
     try {
         // 2. Petición directa al endpoint de búsqueda por correo
-        const response = await apiFetch(`/usuarios/estadisticas/correo/${miCorreo}`);
+        const response = await apiFetch(`/usuarios/estadisticas/${id}`);
 
         if (!response.ok) throw new Error("No se pudo obtener la telemetría");
 

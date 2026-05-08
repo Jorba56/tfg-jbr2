@@ -284,8 +284,6 @@ public class UserController {
             // 2. Delega el trabajo duro al Service
             Map<String, Object> perfil = userServiceImpl.getPropioPerfil(emailLogueado);
 
-            perfil.put("correo", emailLogueado);
-
             // 3. Envuelve el resultado en un 200 OK
             return ResponseEntity.ok(perfil);
 
