@@ -25,7 +25,7 @@ public class GatewayRoutesConfig {
                                 "/usuarios_roles/**",
                                 "/ws-game/**"
                         )
-                        // 🚨 EL TRUCO MAGISTRAL: Eliminamos los CORS duplicados
+                        // Eliminamos los CORS duplicados
                         .filters(f -> f
                                 .dedupeResponseHeader("Access-Control-Allow-Origin", "RETAIN_UNIQUE")
                                 .dedupeResponseHeader("Access-Control-Allow-Credentials", "RETAIN_UNIQUE")

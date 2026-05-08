@@ -1,4 +1,5 @@
 import { AppState } from './state.js';
+import { apiFetch } from '../core/api.js';
 
 export function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => {
@@ -58,6 +59,7 @@ export function updateUserUI() {
     const adminCard = document.getElementById('card-admin');
     if (adminCard) AppState.currentUser.isAdmin ? adminCard.classList.remove('hidden') : adminCard.classList.add('hidden');
     applyCosmetics();
+    cargarEstadisticasDashboard();
 }
 
 export function applyCosmetics() {
@@ -120,4 +122,54 @@ export function showToast(mensaje, tipo = 'success') {
             }
         }, 500);
     }, 3000); // <-- 3000ms = 3 segundos en pantalla
+}
+
+export async function cargarEstadisticasDashboard() {
+    // 1. Verificamos que hay un usuario logueado para sacar su ID
+    if (!AppState.currentUser) return;
+
+    // Obtenemos el ID
+    const miId = AppState.currentUser.id || AppState.currentUser.id_usuario;
+
+    // 2. Seleccionamos el div creado debajo del avatar
+    const divEstadisticas = document.getElementById('stats');
+    if (!divEstadisticas) return;
+
+    try {
+        divEstadisticas.innerHTML = '<p style="font-size: 0.8rem; color: blue;">Cargando telemetría...</p>';
+
+        // 3. Llamamos al MISMO endpoint que usas en el modal del ranking
+        const response = await apiFetch(`/usuarios/estadisticas/${miId}`, { method: 'GET' });
+        if (!response.ok) throw new Error("Fallo al obtener la telemetría del dashboard");
+
+        const stats = await response.json();
+
+        // 4. Pintamos las estadísticas directamente en el HTML
+        // Le he añadido una mini barra de progreso para la precisión que queda espectacular
+        divEstadisticas.innerHTML = `
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem; text-shadow: 0 0 5px rgba(0,0,0,0.5);">
+                <div><strong>⏱️ Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
+                <div><strong>🍩 Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
+                <div><strong>🎯 Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
+            </div>
+            
+            <div style="margin-top: 10px; width: 100%; max-width: 300px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; height: 6px;">
+                <div style="width: 0%; background: blue; height: 100%; transition: width 1s ease-out;" id="dash-bar-precision"></div>
+            </div>
+        `;
+
+        // Disparamos la animación de la barrita con un ligero retraso
+        setTimeout(() => {
+            const bar = document.getElementById('dash-bar-precision');
+            if (bar) bar.style.width = `${stats.pctFrases || 0}%`;
+        }, 100);
+
+    } catch (error) {
+        console.error("Error al cargar las estadísticas del Box:", error);
+        divEstadisticas.innerHTML = `
+            <div style="margin-top: 10px; font-size: 0.85rem; color: #ff4c4c;">
+                <em>Error de conexión con la telemetría.</em>
+            </div>
+        `;
+    }
 }

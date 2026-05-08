@@ -16,7 +16,7 @@ public class LoggingAspect {
     //logger de SLF4J
     private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
 
-    @Pointcut("within(com.jorge.sprintdef.services..*)")
+    @Pointcut("within(com.jorge.usuarios.services..*)")
     public void vigilarServicios() {}
 
     @Before("vigilarServicios()")
