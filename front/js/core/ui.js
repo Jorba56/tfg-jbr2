@@ -127,44 +127,43 @@ export async function cargarEstadisticasDashboard() {
     const divEstadisticas = document.getElementById('stats');
     if (!divEstadisticas) return;
 
-    // 1. Verificamos si tenemos el correo en el estado global
+    // 1. Obtenemos el correo del estado global
     const miCorreo = AppState.currentUser?.correo;
 
     if (!miCorreo) {
-        console.error("❌ Error: No hay correo en AppState.currentUser para buscar stats.");
-        divEstadisticas.innerHTML = '<p style="font-size:0.8rem; color:gray;">Identificando piloto...</p>';
+        console.warn("No hay correo disponible para cargar estadísticas.");
         return;
     }
 
     try {
-        console.log("📡 Solicitando telemetría para:", miCorreo);
-
-        // 2. Llamada al endpoint (Asegúrate de que en Java el @GetMapping sea exactamente así)
+        // 2. Petición directa al endpoint de búsqueda por correo
         const response = await apiFetch(`/usuarios/estadisticas/correo/${miCorreo}`);
 
-        if (!response.ok) throw new Error(`Error servidor: ${response.status}`);
+        if (!response.ok) throw new Error("No se pudo obtener la telemetría");
 
         const stats = await response.json();
 
-        // 3. Inyección del HTML en el div id="stats"
+        // 3. Pintamos los resultados en el Box del Dashboard
         divEstadisticas.innerHTML = `
-            <div style="display: flex; gap: 15px; margin-top: 10px; font-size: 0.85rem; color: #eee;">
-                <div><strong style="color:magenta;">⏱️ CR:</strong> ${stats.mejorContrarreloj || 0}</div>
-                <div><strong style="color:gold;">🍩 Rosco:</strong> ${stats.mejorRosco || 0}</div>
-                <div><strong style="color: blue;">🎯 %:</strong> ${stats.pctFrases || 0}%</div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem;">
+                <div><strong>⏱Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
+                <div><strong>Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
+                <div><strong>Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
             </div>
-            <div style="margin-top: 8px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 2px; height: 4px;">
-                <div id="bar-dash" style="width: 0%; background:blue; height: 100%; transition: width 1.5s ease-in-out;"></div>
+            
+            <div style="margin-top: 10px; width: 100%; max-width: 300px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; height: 6px;">
+                <div style="width: 0%; background: blue; height: 100%; transition: width 1s ease-out;" id="dash-bar-precision"></div>
             </div>
         `;
 
+        // Animación de la barra de precisión
         setTimeout(() => {
-            const bar = document.getElementById('bar-dash');
-            if(bar) bar.style.width = `${stats.pctFrases || 0}%`;
-        }, 200);
+            const bar = document.getElementById('dash-bar-precision');
+            if (bar) bar.style.width = `${stats.pctFrases || 0}%`;
+        }, 100);
 
     } catch (error) {
-        console.error("❌ Fallo en la carga de stats:", error);
-        divEstadisticas.innerHTML = '<p style="font-size:0.7rem; color:red;">Telemetría no disponible</p>';
+        console.error("Error al cargar stats:", error);
+        divEstadisticas.innerHTML = '<p style="font-size:0.7rem; color:gray;">Telemetría no disponible actualmente</p>';
     }
 }
