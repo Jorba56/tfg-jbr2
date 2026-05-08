@@ -123,31 +123,33 @@ export function showToast(mensaje, tipo = 'success') {
         }, 500);
     }, 3000); // <-- 3000ms = 3 segundos en pantalla
 }
-
 export async function cargarEstadisticasDashboard() {
-    // 1. Verificamos que hay un usuario logueado para sacar su ID
-    if (!AppState.currentUser) return;
+    // 1. Verificamos que hay un usuario logueado y que tiene correo
+    if (!AppState.currentUser || !AppState.currentUser.correo) {
+        console.warn("No se encontró el correo del usuario en sesión.");
+        return;
+    }
 
-    // Obtenemos el ID
-    const miId = AppState.currentUser.id || AppState.currentUser.id_usuario;
+    // Obtenemos el correo directamente del estado global
+    const miCorreo = AppState.currentUser.correo;
 
-    // 2. Seleccionamos el div creado debajo del avatar
     const divEstadisticas = document.getElementById('stats');
     if (!divEstadisticas) return;
 
     try {
         divEstadisticas.innerHTML = '<p style="font-size: 0.8rem; color: blue;">Cargando telemetría...</p>';
 
-        // 3. Llamamos al MISMO endpoint que usas en el modal del ranking
-        const response = await apiFetch(`/usuarios/estadisticas/${miId}`, { method: 'GET' });
-        if (!response.ok) throw new Error("Fallo al obtener la telemetría del dashboard");
+        // 👇 AQUÍ ESTÁ EL CAMBIO CLAVE: Llamamos al endpoint pasándole el correo
+        // (Ajusta esta URL según cómo lo hayas definido en tu @GetMapping de Java)
+        const response = await apiFetch(`/usuarios/estadisticas/correo/${miCorreo}`, { method: 'GET' });
+
+        if (!response.ok) throw new Error("Fallo al obtener la telemetría por correo");
 
         const stats = await response.json();
 
-        // 4. Pintamos las estadísticas directamente en el HTML
-        // Le he añadido una mini barra de progreso para la precisión que queda espectacular
+        // Pintamos los datos dentro de tu div "stats"
         divEstadisticas.innerHTML = `
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem; text-shadow: 0 0 5px rgba(0,0,0,0.5);">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem;">
                 <div><strong>⏱️ Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
                 <div><strong>🍩 Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
                 <div><strong>🎯 Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
@@ -158,7 +160,6 @@ export async function cargarEstadisticasDashboard() {
             </div>
         `;
 
-        // Disparamos la animación de la barrita con un ligero retraso
         setTimeout(() => {
             const bar = document.getElementById('dash-bar-precision');
             if (bar) bar.style.width = `${stats.pctFrases || 0}%`;
