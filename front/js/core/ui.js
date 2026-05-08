@@ -124,6 +124,26 @@ export function showToast(mensaje, tipo = 'success') {
     }, 3000); // <-- 3000ms = 3 segundos en pantalla
 }
 
+window.toggleChatbot = function() {
+    const chat = document.getElementById('chatbot-window');
+    chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
+};
+
+// Cambiar el texto según la pregunta elegida
+window.responderChat = function(pregunta) {
+    const respuesta = document.getElementById('chatbot-respuesta');
+
+    if(pregunta === 'creditos') {
+        respuesta.innerHTML = "<strong style='color: darkgoldenrod;'>Créditos:</strong> Los consigues jugando partidas en 'La Arena' o ganando duelos online. ¡A más PPM, más recompensa!";
+    }
+    if(pregunta === 'powerups') {
+        respuesta.innerHTML = "<strong style='color:lightskyblue;'>Power-Ups:</strong> Cómpralos en el Garaje. Te permiten congelar el tiempo, perdonar errores o multiplicar tus puntos en carrera.";
+    }
+    if(pregunta === 'online') {
+        respuesta.innerHTML = "Ve a <strong>Modo Versus</strong>. Un jugador crea la sala y pasa el código. El otro introduce el código para unirse al túnel WebSockets. ¡Que gane el más rápido!";
+    }
+};
+
 export async function cargarEstadisticasDashboard() {
     const divEstadisticas = document.getElementById('stats');
     if (!divEstadisticas) return;

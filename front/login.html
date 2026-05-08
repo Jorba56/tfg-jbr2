@@ -140,6 +140,21 @@
             </div>
         </div>
 
+        <div id="asistente-flotante" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;">
+            <div id="chatbot-window" style="display: none; position: absolute; bottom: 80px; right: 0; width: 300px; background: rgba(10, 10, 15, 0.95); border: 1px solid var(--neon-blue); border-radius: 10px; padding: 15px; box-shadow: 0 0 20px rgba(0, 242, 254, 0.4); color: white;">
+                <h4 style="margin-top: 0; color: lightskyblue; border-bottom: 1px solid #333; padding-bottom: 10px;">🤖 Asistente de Boxes</h4>
+                <p id="chatbot-respuesta" style="font-size: 0.9rem; min-height: 60px; color: #ddd;">¡Hola! Soy el asistente virtual de FastFingers. ¿En qué te puedo ayudar hoy?</p>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 15px;">
+                    <button onclick="responderChat('creditos')" style="background: #222; color: white; border: 1px solid #444; padding: 8px; cursor: pointer; border-radius: 4px; text-align: left; transition: 0.3s;">💰 ¿Cómo gano créditos?</button>
+                    <button onclick="responderChat('powerups')" style="background: #222; color: white; border: 1px solid #444; padding: 8px; cursor: pointer; border-radius: 4px; text-align: left; transition: 0.3s;">⚡ ¿Para qué sirven los items?</button>
+                    <button onclick="responderChat('online')" style="background: #222; color: white; border: 1px solid #444; padding: 8px; cursor: pointer; border-radius: 4px; text-align: left; transition: 0.3s;">🏁 ¿Cómo juego con amigos?</button>
+                </div>
+            </div>
+
+            <button onclick="toggleChatbot()" style="background: lightskyblue; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 30px; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue); display: flex; align-items: center; justify-content: center;">❓</button>
+        </div>
+
         <div id="card-ranking" class="shop-item playable group" onclick="app.openRanking()">
             <div class="item-type-tag" style="background:#ff9f43; border-color: #ff9f43; color: white;">GLOBAL</div>
             <h4>🏆 Hall of Fame</h4>
