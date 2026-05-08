@@ -13,6 +13,7 @@ export async function restoreSession() {
             AppState.currentUser = {
                 username: data.nombreUsuario || data.username || data.nombre_usuario || 'Piloto',
                 correo: data.correo_usuario || data.correoUsuario || data.email || '',
+                id: data.id,
                 apellido: data.apellido_usuario || data.apellidoUsuario || data.apellido || '',
                 creditos: data.creditos || 0,
                 inventario: inventarioSeguro,

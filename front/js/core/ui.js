@@ -123,32 +123,35 @@ export function showToast(mensaje, tipo = 'success') {
         }, 500);
     }, 3000); // <-- 3000ms = 3 segundos en pantalla
 }
+
 export async function cargarEstadisticasDashboard() {
     const divEstadisticas = document.getElementById('stats');
     if (!divEstadisticas) return;
 
-    // 1. Obtenemos el correo del estado global
-    const id = AppState.currentUser.id;
+    // 1. Ahora sí, cogemos el ID directamente del estado global de forma elegante
+    const miId = AppState.currentUser?.id;
 
-    if (!id) {
-        console.warn("No hay id disponible para cargar estadísticas.");
+    if (!miId) {
+        console.warn("No hay ID disponible para cargar estadísticas.");
         return;
     }
 
     try {
-        // 2. Petición directa al endpoint de búsqueda por correo
-        const response = await apiFetch(`/usuarios/estadisticas/${id}`);
+        divEstadisticas.innerHTML = '<p style="font-size: 0.8rem; color: blue;">Cargando telemetría...</p>';
+
+        // 2. Petición directa a tu endpoint de Java
+        const response = await apiFetch(`/usuarios/estadisticas/${miId}`);
 
         if (!response.ok) throw new Error("No se pudo obtener la telemetría");
 
         const stats = await response.json();
 
-        // 3. Pintamos los resultados en el Box del Dashboard
+        // 3. Pintamos los resultados en el Box
         divEstadisticas.innerHTML = `
             <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; font-size: 0.9rem;">
-                <div><strong>⏱Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
-                <div><strong>Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
-                <div><strong>Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
+                <div><strong>⏱️ Contrarreloj:</strong> <span style="color: magenta;">${stats.mejorContrarreloj || 0}</span></div>
+                <div><strong>🍩 Rosco:</strong> <span style="color: gold;">${stats.mejorRosco || 0}</span></div>
+                <div><strong>🎯 Precisión:</strong> <span style="color: blue;">${stats.pctFrases || 0}%</span></div>
             </div>
             
             <div style="margin-top: 10px; width: 100%; max-width: 300px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; height: 6px;">
