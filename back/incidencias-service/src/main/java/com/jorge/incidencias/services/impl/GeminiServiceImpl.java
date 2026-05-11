@@ -106,7 +106,7 @@ public class GeminiServiceImpl implements GeminiService {
         String requestBody = "{" +
                 "\"contents\": [{\"parts\": [{\"text\": \"" + escapedPrompt + "\"}]}]," +
                 "\"generationConfig\": {" +
-                "\"temperature\": 1.3," +
+                "\"temperature\": 2.0," +
                 "\"maxOutputTokens\": 21000" +
                 "}" +
                 "}";
