@@ -1193,6 +1193,34 @@ body.tema-cyberpunk input:focus {
     color: #ffd700; /* Dorado para los créditos */
 }
 
+body.light-mode .profile-dropdown,
+body.light-mode #profile-dropdown {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--primary, #00f2fe);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* Enlaces y textos dentro del dropdown */
+body.light-mode .profile-dropdown a,
+body.light-mode .profile-dropdown li,
+body.light-mode .profile-dropdown span,
+body.light-mode #profile-dropdown a,
+body.light-mode #profile-dropdown li,
+body.light-mode #profile-dropdown span {
+    color: #1f2833;
+    text-shadow: none; /* Quitamos brillos oscuros */
+}
+
+/* Efecto Hover (al pasar el ratón por encima de las opciones) */
+body.light-mode .profile-dropdown a:hover,
+body.light-mode .profile-dropdown li:hover,
+body.light-mode #profile-dropdown a:hover,
+body.light-mode #profile-dropdown li:hover {
+    background-color: rgba(0, 242, 254, 0.15); /* Un fondo cian muy suave */
+    color: #000;
+    border-radius: var(--radius, 4px);
+}
+
 .avatar-workshop select {
     appearance: none; /* Eliminamos el estilo feo del sistema */
     -webkit-appearance: none;
@@ -1472,18 +1500,16 @@ body.tema-cyberpunk input:focus {
     box-shadow: 0 0 50px var(--primary), 0 0 20px var(--secondary);
 }
 
-.vs-countdown {
+#vs-countdown {
     position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%); /* Centrado perfecto horizontal */
-    font-size: 6rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-    transition: transform 0.1s ease-out;
-    z-index: 20;
-    margin: auto;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+    /* Esto asegura que la animación de JS (scale) parta desde el centro */
+    transform-origin: center center;
+    z-index: 100;
 }
 
 .cyber-modal {
@@ -2214,10 +2240,10 @@ body.light-mode .data-table td {
         font-size: 1.5rem;
     }
 
-    .vs-countdown {
-        bottom: 20px;
-        font-size: 4rem;
-        margin: auto;
+    #vs-countdown {
+        font-size: 3rem !important; /* Reducimos un poco la fuente en móvil */
+        padding: 0 10px;
+        box-sizing: border-box;
     }
 }
 
