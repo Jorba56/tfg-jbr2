@@ -54,6 +54,7 @@ export function toggleEquip(id_item, esCosmetico) {
     if (!AppState.currentUser.habilidadesEquipadas) AppState.currentUser.habilidadesEquipadas = [];
     if (esCosmetico) {
         AppState.currentUser.colorTema = (AppState.currentUser.colorTema == id_item) ? null : id_item;
+        localStorage.removeItem('theme');
     } else {
         const index = AppState.currentUser.habilidadesEquipadas.indexOf(id_item);
         if (index > -1) AppState.currentUser.habilidadesEquipadas.splice(index, 1);
