@@ -71,7 +71,7 @@ h1, h2, h3, .big-score {
     position: absolute;
     top: 30px;
     left: 20px;
-    height: 50px;  /* Tu tamaño personalizado */
+    height: 50px;  /* tamaño personalizado */
     width: 50px;
 }
 
@@ -260,12 +260,29 @@ input:focus {
 .progress-fill { background: var(--primary); height: 100%; transition: width 1s ease-out; }
 
 /* Stats: Modo Claro */
-body.light-mode #stats { background: rgba(0, 0, 0, 0.03); border-color: var(--primary); }
-body.light-mode .progress-track { background: rgba(0,0,0,0.1); }
-body.light-mode .stat-val.cr { color: #e11d48; }
-body.light-mode .stat-val.rosco { color: #d97706; }
-body.light-mode .stat-val.pct { color: var(--primary); }
+body.light-mode #stats,
+.light-mode #stats {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--primary, #00f2fe);
+    color: #1f2833; /* Texto oscuro para contrastar */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
 
+/* Forzar que los textos y números dentro de stats sean oscuros */
+body.light-mode #stats h2,
+body.light-mode #stats h3,
+body.light-mode #stats p,
+body.light-mode #stats span {
+    color: #0b0c10;
+    text-shadow: none;
+}
+
+body.light-mode #stats .stat-box,
+body.light-mode #stats .stat-item {
+    background-color: rgba(240, 242, 245, 0.9);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    color: #1f2833;
+}
 /* Stats: Modo Cyberpunk */
 body.tema-cyberpunk #stats { background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1); }
 body.tema-cyberpunk .stat-val.cr { color: #ff00ff; text-shadow: 0 0 5px #ff00ff;}
@@ -347,7 +364,7 @@ body.tema-cyberpunk .chatbot-trigger { background: #ff00ff; box-shadow: 0 0 15px
     text-align: center;
     z-index: 5; /* Las letras (z-index: 6) flotarán por encima de esto */
 
-    /* Efecto de cristal oscuro de tu escudería */
+    /* Efecto de cristal oscuro de F1 */
     background: var(--card-bg);
     backdrop-filter: blur(12px);
     border: 2px solid var(--card-border);
@@ -1110,7 +1127,7 @@ body.tema-cyberpunk input:focus {
 /* El avatar en la barra */
 .nav-avatar-trigger img {
     border-radius: 50%;
-    border: 2px solid #4CAF50; /* Tu color principal */
+    border: 2px solid #4CAF50; /* color principal */
     background-color: var(--card-bg);
     transition: transform 0.3s ease;
     object-fit: cover;
@@ -1126,7 +1143,7 @@ body.tema-cyberpunk input:focus {
     top: 120%; /* Se coloca justo debajo */
     right: 0;
     width: 200px;
-    background-color: rgba(31, 40, 51); /* Color de fondo de tu barra/cartas */
+    background-color: rgba(31, 40, 51); /* Color de fondo barra/cartas */
     border: 1px solid #333;
     border-radius: 12px;
     padding: 20px;
@@ -1214,7 +1231,7 @@ body.tema-cyberpunk input:focus {
 
 /* Estilo para las opciones (la lista que baja) */
 .avatar-workshop select option {
-    background-color: #0b0c10; /* Color oscuro de tu fondo */
+    background-color: #0b0c10; /* Color oscuro del fondo */
     color: white;
     padding: 10px;
 }
@@ -1693,12 +1710,12 @@ body.tema-cyberpunk input:focus {
 
 /* Tipos de Toast (Éxito y Error) */
 .cyber-toast.success {
-    border-left: 5px solid #00f2fe; /* Tu color Primary */
+    border-left: 5px solid #00f2fe; /* color Primary */
     box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
 }
 
 .cyber-toast.error {
-    border-left: 5px solid #fe019a; /* Tu color Secondary */
+    border-left: 5px solid #fe019a; /* color Secondary */
     box-shadow: 0 0 15px rgba(254, 1, 154, 0.3);
 }
 
@@ -1969,7 +1986,7 @@ body.light-mode .link-inferior a:hover {
 /* Cajas principales del admin en modo claro */
 body.light-mode .admin-toolbar,
 body.light-mode .admin-table-box {
-    background: var(--card-bg); /* En light-mode usa tu blanco traslúcido */
+    background: var(--card-bg); /* En light-mode usa blanco traslúcido */
     border-color: var(--card-border);
     box-shadow: var(--glass-shadow);
 }

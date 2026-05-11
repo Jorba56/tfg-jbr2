@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-// Usamos /incidencias/game para que el API Gateway lo deje pasar automáticamente con tu configuración actual
+// Usamos /incidencias/game para que el API Gateway lo deje pasar automáticamente con la configuración actual
 @RequestMapping("/incidencias/game")
 public class GameController {
 
