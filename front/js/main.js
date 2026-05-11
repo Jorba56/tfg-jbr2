@@ -21,15 +21,25 @@ window.switchProfileTab = switchProfileTab;
 window.activarPowerUp = activarPowerUp;
 
 window.onload = () => {
-    if (localStorage.getItem('isLogged') === 'true') restoreSession();
-    else showScreen('login-screen');
+    // 1. Restaurar sesión o ir al login
+    if (localStorage.getItem('isLogged') === 'true') {
+        restoreSession();
+    } else {
+        showScreen('login-screen');
+    }
 
-    if (localStorage.getItem('theme') === 'light') toggleTheme();
+    // 2. Cargar el tema instantáneamente desde tu variable 'theme'
+    const savedTheme = localStorage.getItem('theme');
 
-    const temaCosmetico = localStorage.getItem('tema_cosmetico');
-    if (temaCosmetico === 'cyberpunk') document.body.classList.add('tema-cyberpunk');
-    if (temaCosmetico === 'neon') document.body.classList.add('teclado-neon');
+    if (savedTheme === 'light') {
+        toggleTheme(); // Tu función actual para el modo claro
+    } else if (savedTheme === 'cyberpunk') {
+        document.body.classList.add('tema-cyberpunk');
+    } else if (savedTheme === 'neon') {
+        document.body.classList.add('teclado-neon');
+    }
 };
+
 const limpiarModalesYVolver = () => {
     const resultModal = document.getElementById('result-modal');
     const detailsModal = document.getElementById('details-modal');

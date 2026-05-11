@@ -63,21 +63,30 @@ export function updateUserUI() {
 }
 
 export function applyCosmetics() {
+    // 1. Limpiamos las clases cosméticas por si acaso
     document.body.classList.remove('tema-cyberpunk', 'teclado-neon');
-    localStorage.removeItem('tema_cosmetico'); // Limpiamos por defecto en el storage
 
     if (!AppState.currentUser) return;
-    const equipado = AppState.currentUser.inventario.find(i => (i.id_item || i.idItem) == AppState.currentUser.colorTema);
+
+    // 2. Buscamos qué tiene equipado el usuario
+    const equipado = AppState.currentUser.inventario.find(i => (i.id_item || i.idItem) == (AppState.currentUser.colorTema || AppState.currentUser.color_tema));
 
     if (equipado) {
         const nombreNormal = equipado.nombre.trim();
         if (nombreNormal === 'Tema Cyberpunk') {
             document.body.classList.add('tema-cyberpunk');
-            localStorage.setItem('tema_cosmetico', 'cyberpunk'); // <-- LO GUARDAMOS
-        }
-        if (nombreNormal === 'Teclado Neón') {
+            localStorage.setItem('theme', 'cyberpunk'); // <-- Usando tu variable 'theme'
+        } else if (nombreNormal === 'Teclado Neón') {
             document.body.classList.add('teclado-neon');
-            localStorage.setItem('tema_cosmetico', 'neon'); // <-- LO GUARDAMOS (Por si acaso)
+            localStorage.setItem('theme', 'neon'); // <-- Usando tu variable 'theme'
+        }
+    } else {
+        // 3. SALVAVIDAS: Si el servidor no responde rápido, leemos la variable 'theme'
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'cyberpunk') {
+            document.body.classList.add('tema-cyberpunk');
+        } else if (currentTheme === 'neon') {
+            document.body.classList.add('teclado-neon');
         }
     }
 }
