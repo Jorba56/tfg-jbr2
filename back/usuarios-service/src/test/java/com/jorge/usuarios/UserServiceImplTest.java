@@ -1,12 +1,14 @@
 package com.jorge.usuarios;
 
 import com.jorge.usuarios.dto.*;
+import com.jorge.usuarios.entity.Item;
 import com.jorge.usuarios.entity.Rol;
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
 import com.jorge.usuarios.exceptions.NotFoundException;
 import com.jorge.usuarios.mapping.UserMapper;
+import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.repository.RolRepository;
 import com.jorge.usuarios.repository.UserRepository;
 import com.jorge.usuarios.services.impl.UserServiceImpl;
@@ -19,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -41,6 +44,9 @@ class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private ItemRepository itemRepository;
 
     @Mock
     private UserMapper userMap;
@@ -85,15 +91,18 @@ class UserServiceImplTest {
         usuario.setIdUser(id);
         usuario.setNombreUsuario("Jorge");
 
-        UserIdDTo dtoEsperado = new UserIdDTo();
+        // 1. Cambiamos UserIdDTo por UsersAllDTO, que es lo que espera buscarPorId
+        UsersAllDTO dtoEsperado = new UsersAllDTO();
         dtoEsperado.setNombreUsuario("Jorge");
 
         given(userRepository.findById(1L)).willReturn(Optional.of(usuario));
-        given(userMap.userToIdDTO(usuario)).willReturn(dtoEsperado);
+
+        given(userMap.mappingADTO(usuario)).willReturn(dtoEsperado);
 
         //when
         UsersAllDTO userFind = userServiceImpl.buscarPorId(1L);
 
+        // Ahora userFind ya no será null
         assertNotNull(userFind);
         assertEquals(("Jorge"), userFind.getNombreUsuario());
     }
@@ -108,7 +117,7 @@ class UserServiceImplTest {
                 () -> userServiceImpl.buscarPorId(99L)
         );
 
-        assertEquals("Usuario no encontrado con ID: "+99L, ex.getMessage());
+        assertEquals("Usuario no encontrado con ID: " + 99L, ex.getMessage());
 
         verify(userRepository).findById(99L);
         verifyNoMoreInteractions(userRepository);
@@ -145,7 +154,7 @@ class UserServiceImplTest {
         // preparar el rol que sacaremos de la bd
         Rol alumno = new Rol();
         alumno.setIdRol(1L);
-        alumno.setName("alumno");
+        alumno.setName("USUARIO");
 
         // preparar el dto final que se devuelve al cliente
         UsersAllDTO userdto2 = new UsersAllDTO();
@@ -155,7 +164,7 @@ class UserServiceImplTest {
         given(userRepository.findUserByEmailUsuario(userdto.getEmailUsuario())).willReturn(null);
         given(userMap.userAddDTO(userdto)).willReturn(usuarioU);
         given(passwordEncoder.encode(userdto.getContrasenhaUsuario())).willReturn("claveEncriptada");
-        given(rolRep.findByName("alumno")).willReturn(Optional.of(alumno));
+        given(rolRep.findByName("USUARIO")).willReturn(Optional.of(alumno));
         given(userRepository.save(usuarioU)).willReturn(usuarioU);
         given(userMap.mappingADTO(usuarioU)).willReturn(userdto2);
 
@@ -168,7 +177,7 @@ class UserServiceImplTest {
 
         // comprobamos que las líneas que te faltaban hacen su trabajo
         assertFalse(usuarioU.getRoles().isEmpty());
-        assertEquals("alumno", usuarioU.getRoles().getFirst().getName());
+        assertEquals("USUARIO", usuarioU.getRoles().getFirst().getName());
         assertEquals("claveEncriptada", usuarioU.getContrasenhaUsuario());
 
         // verificamos que se llamó al guardado de la BD
@@ -205,7 +214,7 @@ class UserServiceImplTest {
         given(passwordEncoder.encode(anyString())).willReturn("encriptada");
 
         // Simulamos que el rol "alumno" no existe en la BD
-        given(rolRep.findByName("alumno")).willReturn(Optional.empty());
+        given(rolRep.findByName("USUARIO")).willReturn(Optional.empty());
 
         NotFoundException ex = assertThrows(
                 NotFoundException.class,
@@ -216,8 +225,8 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteUser(){
-        User user=new User();
+    void deleteUser() {
+        User user = new User();
         user.setIdUser(6L);
         user.setActivo(true);// no necesito más
 
@@ -228,7 +237,7 @@ class UserServiceImplTest {
         //asserts
         assertFalse(user.getActivo());
         assertNotNull(borrado);
-        assertEquals("Usuario con id "+6L+" borrado correctamente", borrado);
+        assertEquals("Usuario con id " + 6L + " borrado correctamente", borrado);
         verify(userRepository).save(user);
     }
 
@@ -292,7 +301,7 @@ class UserServiceImplTest {
 
         //Comprobamos el texto
         assertNotNull(resultado);
-        assertEquals("Rol con id "+2L+" eliminado correctamente del usuario con id "+1L, resultado);
+        assertEquals("Rol con id " + 2L + " eliminado correctamente del usuario con id " + 1L, resultado);
 
         //Comprobamos que la lista del usuario ahora está vacía (se ha borrado)
         assertTrue(usuario.getRoles().isEmpty());
@@ -359,7 +368,7 @@ class UserServiceImplTest {
 
         // Verifica el mensaje de la excepción
         assertEquals("El rol introducido no existe en el sistema.", ex.getMessage());
-        verify(userRepository , never()).save(any(User.class));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
@@ -754,5 +763,219 @@ class UserServiceImplTest {
 
         // comprobar
         assertEquals("Usuario con id 1 editado correctamente", resultado);
+    }
+
+
+    @Test
+    void listarTienda() {
+        Item item = new Item();
+        item.setIdItem(1L);
+        given(itemRepository.findAll()).willReturn(List.of(item));
+
+        List<Item> tienda = userServiceImpl.listarTienda();
+        assertFalse(tienda.isEmpty());
+        verify(itemRepository).findAll();
+    }
+
+    @Test
+    void comprarItem_Exito() throws BadRequestException {
+        User usuario = new User();
+        usuario.setCreditos(1000);
+        usuario.setInventario(new ArrayList<>());
+        Item item = new Item();
+        item.setIdItem(1L);
+        item.setPrecio(500);
+
+        given(userRepository.findUserByEmailUsuario("test@gmail.com")).willReturn(usuario);
+        given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+
+        Map<String, Object> res = userServiceImpl.comprarItem("test@gmail.com", 1L);
+
+        assertEquals("Compra realizada con éxito", res.get("mensaje"));
+        assertEquals(500, res.get("nuevoSaldo"));
+        assertEquals(500, usuario.getCreditos());
+        assertTrue(usuario.getInventario().contains(item));
+        verify(userRepository).save(usuario);
+    }
+
+    @Test
+    void comprarItem_SinSaldo() {
+        User usuario = new User();
+        usuario.setCreditos(100);
+        usuario.setInventario(new ArrayList<>());
+        Item item = new Item();
+        item.setIdItem(1L);
+        item.setPrecio(500);
+
+        given(userRepository.findUserByEmailUsuario("test@gmail.com")).willReturn(usuario);
+        given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> userServiceImpl.comprarItem("test@gmail.com", 1L));
+        assertEquals("Créditos insuficientes", ex.getMessage());
+    }
+
+    @Test
+    void comprarItem_YaLoTiene() {
+        User usuario = new User();
+        Item item = new Item();
+        item.setIdItem(1L);
+        usuario.setInventario(List.of(item));
+
+        given(userRepository.findUserByEmailUsuario("test@gmail.com")).willReturn(usuario);
+        given(itemRepository.findById(1L)).willReturn(Optional.of(item));
+
+        BadRequestException ex = assertThrows(BadRequestException.class, () -> userServiceImpl.comprarItem("test@gmail.com", 1L));
+        assertEquals("Ya posees este objeto en tu inventario", ex.getMessage());
+    }
+
+    @Test
+    void sumarCreditosAdmin() throws BadRequestException {
+        User usuario = new User();
+        usuario.setCreditos(100);
+        given(userRepository.findById(1L)).willReturn(Optional.of(usuario));
+
+        Map<String, Object> res = userServiceImpl.sumarCreditosAdmin(1L, 500);
+        assertEquals(600, res.get("nuevos_creditos"));
+        verify(userRepository).save(usuario);
+    }
+
+    @Test
+    void obtenerTodosLosUsuarios() {
+        User u = new User();
+        given(userRepository.findByActivoTrue(any(org.springframework.data.domain.Sort.class))).willReturn(List.of(u));
+        given(userMap.mappingADTO(u)).willReturn(new UsersAllDTO());
+
+        List<UsersAllDTO> res = userServiceImpl.obtenerTodosLosUsuarios("nombre", "asc");
+        assertFalse(res.isEmpty());
+    }
+
+    @Test
+    void obtenerTodosLosUsuariosPaginados() {
+        org.springframework.data.domain.Page<User> pageMock = new org.springframework.data.domain.PageImpl<>(List.of(new User()));
+        given(userRepository.findByActivoTrue(any(org.springframework.data.domain.Pageable.class))).willReturn(pageMock);
+        given(userMap.mappingADTO(any(User.class))).willReturn(new UsersAllDTO());
+
+        org.springframework.data.domain.Page<UsersAllDTO> res = userServiceImpl.obtenerTodosLosUsuariosPaginados(0, 10, "nombre", "desc");
+        assertFalse(res.isEmpty());
+    }
+
+    @Test
+    void buscarPorEmail() {
+        User u = new User();
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+        given(userMap.mappingADTO(u)).willReturn(new UsersAllDTO());
+
+        assertNotNull(userServiceImpl.buscarPorEmail("t@t.com"));
+    }
+
+    @Test
+    void buscarPorEmailTodo() {
+        User u = new User();
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+        assertNotNull(userServiceImpl.buscarPorEmailTodo("t@t.com"));
+    }
+
+    @Test
+    void sumarCreditosPartida() {
+        User u = new User();
+        u.setCreditos(10);
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+
+        userServiceImpl.sumarCreditosPartida("t@t.com", 20);
+        assertEquals(30, u.getCreditos());
+        verify(userRepository).save(u);
+    }
+
+    @Test
+    void getPropioPerfil() {
+        User u = new User();
+        u.setIdUser(1L);
+        u.setNombreUsuario("Paco");
+        u.setCreditos(100);
+        Rol r = new Rol();
+        r.setName("ADMIN");
+        u.setRoles(List.of(r));
+
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+        Map<String, Object> perfil = userServiceImpl.getPropioPerfil("t@t.com");
+
+        assertEquals("Paco", perfil.get("username"));
+        assertTrue((Boolean) perfil.get("isAdmin"));
+    }
+
+    @Test
+    void actualizarPerfil() {
+        User u = new User();
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+        given(passwordEncoder.encode("nuevaPass")).willReturn("hash");
+
+        Map<String, String> payload = Map.of("nombre_usuario", "PacoNuevo", "contrasenha_usuario", "nuevaPass");
+        Map<String, Object> res = userServiceImpl.actualizarPerfil("t@t.com", payload);
+
+        assertEquals("PacoNuevo", u.getNombreUsuario());
+        assertEquals("hash", u.getContrasenhaUsuario());
+        assertEquals("Perfil actualizado con éxito", res.get("mensaje"));
+    }
+
+    @Test
+    void actualizarAvatar() {
+        User u = new User();
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+
+        Map<String, Object> res = userServiceImpl.actualizarAvatar("t@t.com", "nuevoAvatar");
+        assertEquals("nuevoAvatar", u.getAvatarConfig());
+        assertEquals("¡Avatar guardado con éxito!", res.get("mensaje"));
+    }
+
+    @Test
+    void guardarEstadisticasPartida_Rosco() {
+        User u = new User();
+        u.setMejorPuntuacionRosco(10);
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+
+        Map<String, Object> payload = Map.of("modo", "ROSCO", "creditos", 50, "totalPalabras", 25, "puntuacion", 20);
+        userServiceImpl.guardarEstadisticasPartida("t@t.com", payload);
+
+        assertEquals(20, u.getMejorPuntuacionRosco()); // Batió récord
+        assertEquals(50, u.getCreditos());
+        verify(userRepository).save(u);
+    }
+
+    @Test
+    void guardarEstadisticasPartida_Contrarreloj() {
+        User u = new User();
+        u.setMejorPuntuacionContrarreloj(50);
+        given(userRepository.findUserByEmailUsuario("t@t.com")).willReturn(u);
+
+        Map<String, Object> payload = Map.of("modo", "CONTRARRELOJ", "creditos", 10, "aciertos", 5, "totalPalabras", 10, "puntuacion", 100);
+        userServiceImpl.guardarEstadisticasPartida("t@t.com", payload);
+
+        assertEquals(100, u.getMejorPuntuacionContrarreloj());
+        verify(userRepository).save(u);
+    }
+
+    @Test
+    void obtenerEstadisticasPublicas() {
+        User u = new User();
+        u.setEmailUsuario("paco@gmail.com");
+        u.setFrasesJugadas(10);
+        u.setFrasesAcertadas(5);
+        given(userRepository.findById(1L)).willReturn(Optional.of(u));
+
+        Map<String, Object> stats = userServiceImpl.obtenerEstadisticasPublicas(1L);
+        assertEquals("paco", stats.get("username"));
+        assertEquals(50L, stats.get("pctFrases")); // 5 de 10 es el 50%
+    }
+
+    @Test
+    void obtenerRankingGlobal() {
+        User u = new User();
+        u.setEmailUsuario("pro@gmail.com");
+        u.setCreditos(5000);
+        given(userRepository.findTop10ByOrderByCreditosDesc()).willReturn(List.of(u));
+
+        List<Map<String, Object>> ranking = userServiceImpl.obtenerRankingGlobal();
+        assertFalse(ranking.isEmpty());
+        assertEquals("pro", ranking.get(0).get("username"));
     }
 }

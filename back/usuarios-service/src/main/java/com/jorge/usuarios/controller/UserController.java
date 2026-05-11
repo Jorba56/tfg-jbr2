@@ -229,13 +229,6 @@ public class UserController {
         }
     }
 
-    public static class RecompensaPayload {
-        public Integer creditosExtra;
-        // Getter y Setter necesarios para que Spring lea el JSON
-        public Integer getCreditosExtra() { return creditosExtra; }
-        public void setCreditosExtra(Integer creditosExtra) { this.creditosExtra = creditosExtra; }
-    }
-
     /**
      * Endpoint para que el juego (script.js) envíe los créditos ganados al acabar una contrarreloj o modo IA.
      */
