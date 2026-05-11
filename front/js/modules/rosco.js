@@ -110,7 +110,7 @@ export const Rosco = {
                 modo: "ROSCO",
                 aciertos: this.ok,
                 totalPalabras: this.data.length,
-                puntuacion: creditosGanados // En tu rosco, la puntuación son los créditos x10
+                puntuacion: creditosGanados // En el rosco, la puntuación son los créditos x10
             });
 
             try {

@@ -78,7 +78,7 @@ export async function openRanking() {
         }
         restHTML += '</div>';
 
-        // Inyectamos todo de golpe
+        // Inyectamos de golpe
         list.innerHTML = podiumHTML + restHTML;
 
     } catch (error) {
@@ -99,7 +99,7 @@ export async function openPlayerStats(id) {
     document.getElementById('modal-pct-frases').innerText = "0%";
 
     try {
-        // Pedimos los datos a tu nuevo Endpoint de Java
+        // Pedimos los datos al nuevo Endpoint de Java
         const response = await apiFetch(`/usuarios/estadisticas/${id}`, { method: 'GET' });
         if (!response.ok) throw new Error("No se pudo obtener la telemetría.");
 

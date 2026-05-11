@@ -218,7 +218,7 @@ export async function endGame() {
         AppState.game.gameHistory.push({target: AppState.game.currentPhrase.texto, input: inputVal, points: points});
     }
 
-    // 2. Cálculo de Créditos (Tu código original)
+    // 2. Cálculo de Créditos (código original)
     let creditosBase = Math.floor(AppState.game.score * 0.1);
     const multiplicador = AppState.powerUps.multiplicadorActivo || 1;
     const creditsEarned = creditosBase * multiplicador;
@@ -249,7 +249,7 @@ export async function endGame() {
         showScreen('results-screen');
         animateValue("final-score", 0, AppState.game.score, 1500);
 
-        // Renderizar la lista básica por si acaso (Tu código original)
+        // Renderizar la lista básica por si acaso (código original)
         const list = document.getElementById('history-list');
         if (list) {
             list.innerHTML = "";
@@ -261,7 +261,7 @@ export async function endGame() {
         }
     }
 
-    // 5. Guardado en Base de Datos (Tu código original)
+    // 5. Guardado en Base de Datos (código original)
     if (creditsEarned > 0) {
         const aciertos = AppState.game.gameHistory.filter(h => {
             if (!h.input || !h.target) return false;

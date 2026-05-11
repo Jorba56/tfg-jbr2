@@ -1,7 +1,6 @@
 import { AppState } from './state.js';
 
 export const API_URL = ''; // Se queda vacío para que las llamadas HTTP vayan a Render
-// 🚨 TRUCO DE VELOCIDAD: Pon aquí tu URL directa de Railway (Ej: https://tu-backend.up.railway.app)
 const WS_URL = 'https://gateway-production-a1f6.up.railway.app';
 
 export let stompClient = null;

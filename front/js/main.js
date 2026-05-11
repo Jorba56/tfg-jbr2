@@ -28,7 +28,7 @@ window.onload = () => {
         showScreen('login-screen');
     }
 
-    // 2. Cargar el tema instantáneamente desde tu variable 'theme'
+    // 2. Cargar el tema instantáneamente desde la variable 'theme'
     const savedTheme = localStorage.getItem('theme');
 
     if (savedTheme === 'light') {

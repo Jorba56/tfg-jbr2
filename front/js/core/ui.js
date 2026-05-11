@@ -75,10 +75,10 @@ export function applyCosmetics() {
         const nombreNormal = equipado.nombre.trim();
         if (nombreNormal === 'Tema Cyberpunk') {
             document.body.classList.add('tema-cyberpunk');
-            localStorage.setItem('theme', 'cyberpunk'); // <-- Usando tu variable 'theme'
+            localStorage.setItem('theme', 'cyberpunk'); // <-- Usando variable 'theme'
         } else if (nombreNormal === 'Teclado Neón') {
             document.body.classList.add('teclado-neon');
-            localStorage.setItem('theme', 'neon'); // <-- Usando tu variable 'theme'
+            localStorage.setItem('theme', 'neon'); // <-- Usando variable 'theme'
         }
     } else {
         // 3. SALVAVIDAS: Si el servidor no responde rápido, leemos la variable 'theme'
