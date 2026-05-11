@@ -64,12 +64,21 @@ export function updateUserUI() {
 
 export function applyCosmetics() {
     document.body.classList.remove('tema-cyberpunk', 'teclado-neon');
+    localStorage.removeItem('tema_cosmetico'); // Limpiamos por defecto en el storage
+
     if (!AppState.currentUser) return;
     const equipado = AppState.currentUser.inventario.find(i => (i.id_item || i.idItem) == AppState.currentUser.colorTema);
+
     if (equipado) {
         const nombreNormal = equipado.nombre.trim();
-        if (nombreNormal === 'Tema Cyberpunk') document.body.classList.add('tema-cyberpunk');
-        if (nombreNormal === 'Teclado Neón') document.body.classList.add('teclado-neon');
+        if (nombreNormal === 'Tema Cyberpunk') {
+            document.body.classList.add('tema-cyberpunk');
+            localStorage.setItem('tema_cosmetico', 'cyberpunk'); // <-- LO GUARDAMOS
+        }
+        if (nombreNormal === 'Teclado Neón') {
+            document.body.classList.add('teclado-neon');
+            localStorage.setItem('tema_cosmetico', 'neon'); // <-- LO GUARDAMOS (Por si acaso)
+        }
     }
 }
 
