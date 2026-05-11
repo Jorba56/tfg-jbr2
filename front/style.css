@@ -261,28 +261,32 @@ input:focus {
 .progress-fill { background: var(--primary); height: 100%; transition: width 1s ease-out; }
 
 /* Stats: Modo Claro */
-body.light-mode #stats,
-.light-mode #stats {
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid var(--primary, #00f2fe);
-    color: #1f2833; /* Texto oscuro para contrastar */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+/* Caja principal de estadísticas */
+body.light-mode #stats {
+    background: rgba(0, 0, 0, 0.05); /* Fondo gris súper suave para no romper el blanco puro */
+    color: #1f2833; /* Texto base oscuro */
+    border-left: 3px solid var(--primary); /* Mantenemos tu borde cian intacto */
 }
 
-/* Forzar que los textos y números dentro de stats sean oscuros */
-body.light-mode #stats h2,
-body.light-mode #stats h3,
-body.light-mode #stats p,
-body.light-mode #stats span {
-    color: #0b0c10;
-    text-shadow: none;
-}
-
-body.light-mode #stats .stat-box,
-body.light-mode #stats .stat-item {
-    background-color: rgba(240, 242, 245, 0.9);
-    border: 1px solid rgba(0, 242, 254, 0.3);
+/* Títulos de cada estadística ("Récord:", "Precisión:", etc.) */
+body.light-mode .stat-item strong {
     color: #1f2833;
+}
+
+/* Colores de los valores adaptados para contrastar en fondo claro */
+body.light-mode .stat-val.rosco {
+    color: #b8860b; /* Dorado más oscuro (DarkGoldenRod) para que se lea perfecto */
+}
+
+body.light-mode .stat-val.pct {
+    color: #008eb3; /* El Cian (--primary) es ilegible en blanco, lo oscurecemos un pelín */
+}
+
+/* El magenta de .stat-val.cr (#ff007c) se lee bien en blanco, no hace falta cambiarlo */
+
+/* El fondo de la barra de progreso (la pista por donde corre el cian) */
+body.light-mode .progress-track {
+    background: rgba(0, 0, 0, 0.15); /* La oscurecemos para que se note dónde acaba la barra */
 }
 /* Stats: Modo Cyberpunk */
 body.tema-cyberpunk #stats { background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1); }
@@ -1464,6 +1468,10 @@ body.light-mode #input-room-code {
     position: absolute; top: 10px; right: 15px;
     background: none; border: none; color: var(--secondary);
     font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+}
+
+body.light-mode .close-modal-btn {
+    color: #2b5cb3
 }
 
 .close-modal-btn:hover { text-shadow: 0 0 10px var(--secondary); transform: scale(1.2); }
