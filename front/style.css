@@ -232,6 +232,7 @@ input:focus {
     text-align: center; line-height: 42px; font-weight: 800; font-size: 16px;
     border: 2px solid white; transition: all 0.3s;
     z-index: 6;
+    color:white;
 }
 
 #stats {
@@ -394,6 +395,15 @@ body.tema-cyberpunk .chatbot-trigger { background: #ff00ff; box-shadow: 0 0 15px
     padding: 40px;
     clip-path: polygon(2% 0, 100% 0, 98% 100%, 0% 100%);
 }
+
+body.light-mode .phrase-container {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary);
+    color: var(--text-highlight); /* En modo claro este texto es oscuro */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* Sombra suave para darle volumen */
+}
+
+
 
 .big-score {
     font-size: 7rem;
@@ -1419,6 +1429,35 @@ body.light-mode #profile-dropdown li:hover {
     box-shadow: 0 0 30px rgba(0, 242, 254, 0.3); position: relative;
     min-width: 350px; color: #fff;
     animation: glitch-entry 0.3s ease-out;
+}
+
+/* Caja principal de las ventanas emergentes (Salas multijugador) */
+body.light-mode .cyber-modal-box,
+body.light-mode .cyber-modal {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--primary);
+    color: #1f2833;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Sombra formal, le quitamos el brillo neón */
+}
+
+/* Textos informativos dentro del modal (Ej: "Pásale este código a tu rival") */
+body.light-mode .cyber-modal-box p,
+body.light-mode .cyber-modal-box h2,
+body.light-mode .cyber-modal-box h3 {
+    color: #1f2833;
+}
+
+/* El bloque donde sale el código de la sala o donde el usuario lo escribe */
+body.light-mode .room-code-display,
+body.light-mode #input-room-code {
+    background: rgba(240, 242, 245, 0.9); /* Gris asfalto muy clarito en vez de negro puro */
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Forzar que lo que escriba el invitado en el input no sea blanco sobre gris claro */
+body.light-mode #input-room-code {
+    color: #0f172a;
 }
 
 .close-modal-btn {
