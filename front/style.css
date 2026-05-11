@@ -1193,8 +1193,8 @@ body.tema-cyberpunk input:focus {
     color: #ffd700; /* Dorado para los créditos */
 }
 
-body.light-mode .profile-dropdown,
-body.light-mode #profile-dropdown {
+body.light-mode .nav-profile-dropdown,
+body.light-mode .nav-profile-dropdown {
     background-color: rgba(255, 255, 255, 0.95);
     border: 1px solid var(--primary, #00f2fe);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -1502,14 +1502,18 @@ body.light-mode #profile-dropdown li:hover {
 
 #vs-countdown {
     position: absolute;
+    bottom: 12%; /* Lo clava en la parte inferior. Puedes bajar este % si lo quieres aún más pegado al borde */
     left: 0;
     right: 0;
     margin: 0 auto;
     width: 100%;
     text-align: center;
-    /* Esto asegura que la animación de JS (scale) parta desde el centro */
-    transform-origin: center center;
+    font-size: 7rem; /* Tamaño gigante para monitores */
+    font-weight: 900; /* Grosor máximo para que impacte */
+    letter-spacing: 5px; /* Separa un poco las letras para darle aspecto más épico */
+    transform-origin: center bottom; /* Hace que al animarse crezca hacia arriba, no hacia abajo */
     z-index: 100;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Sombra para que se lea perfecto sobre cualquier fondo */
 }
 
 .cyber-modal {
