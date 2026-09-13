@@ -1,0 +1,110 @@
+import { AppState } from './core/state.js';
+import { toggleTheme, showScreen, toggleSidebar, switchProfileTab, openTutorial, completarTutorial } from './core/ui.js';
+import { login, logout, restoreSession } from './modules/auth.js';
+import { startGame, iniciarPartidaPersonalizada, checkInput, handleKeydown, abortGame, activarPowerUp } from './modules/game.js';
+import { Rosco } from './modules/rosco.js';
+import { updateAvatarPreview, openProfile, toggleEquip, guardarPerfilForm, guardarLookBtn } from './modules/profile.js';
+import { openShop, comprarObjeto } from './modules/shop.js';
+import { openRanking, openPlayerStats, closeStatsModal } from './modules/ranking.js';
+
+// --- PUENTE HACIA EL HTML (Inline events) ---
+window.app = {
+    showScreen, openProfile, openShop, iniciarPartidaPersonalizada,
+    completarTutorial, toggleEquip, comprarObjeto, abortGame, startGame, checkInput, handleKeydown,
+    openRanking: openRanking,
+    openPlayerStats: openPlayerStats,
+    closeStatsModal: closeStatsModal
+};
+window.Rosco = Rosco;
+window.toggleSidebar = toggleSidebar;
+window.switchProfileTab = switchProfileTab;
+window.activarPowerUp = activarPowerUp;
+
+window.onload = () => {
+    // 1. Restaurar sesión o ir al login
+    if (localStorage.getItem('isLogged') === 'true') {
+        restoreSession();
+    } else {
+        showScreen('login-screen');
+    }
+
+    // 2. Cargar el tema instantáneamente desde la variable 'theme'
+    const savedTheme = localStorage.getItem('theme');
+
+    if (savedTheme === 'light') {
+        toggleTheme(); // Tu función actual para el modo claro
+    } else if (savedTheme === 'cyberpunk') {
+        document.body.classList.add('tema-cyberpunk');
+    } else if (savedTheme === 'neon') {
+        document.body.classList.add('teclado-neon');
+    }
+};
+
+const limpiarModalesYVolver = () => {
+    const resultModal = document.getElementById('result-modal');
+    const detailsModal = document.getElementById('details-modal');
+    const versusOverlay = document.getElementById('versus-overlay');
+
+    if (resultModal) resultModal.style.display = 'none';
+    if (detailsModal) detailsModal.style.display = 'none';
+    if (versusOverlay) versusOverlay.style.display = 'none';
+
+    showScreen('dashboard-screen');
+};
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Escuchadores de Clicks Rápidos
+    document.getElementById('tutorial_comp')?.addEventListener('click', completarTutorial);
+    document.getElementById('card-tutorial')?.addEventListener('click', openTutorial);
+    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+    document.getElementById('btn-login')?.addEventListener('click', login);
+    document.getElementById('btn-logout')?.addEventListener('click', logout);
+
+    // Tarjetas principales
+    document.getElementById('card-play')?.addEventListener('click', startGame);
+    document.getElementById('card-profile')?.addEventListener('click', openProfile);
+    document.getElementById('card-shop')?.addEventListener('click', openShop);
+
+    // Taller
+    document.getElementById('av-top')?.addEventListener('change', updateAvatarPreview);
+    document.getElementById('av-acc')?.addEventListener('change', updateAvatarPreview);
+    document.getElementById('btn-save-avatar')?.addEventListener('click', (e) => { e.preventDefault(); guardarLookBtn(e); });
+    document.getElementById('update-profile-form')?.addEventListener('submit', guardarPerfilForm);
+
+    // Botones de Navegación
+    document.getElementById('btn-abort')?.addEventListener('click', abortGame);
+    document.getElementById('btn-back')?.addEventListener('click', limpiarModalesYVolver);
+    document.getElementById('btn-menu')?.addEventListener('click', limpiarModalesYVolver);
+    document.getElementById('btn-volver-box')?.addEventListener('click', limpiarModalesYVolver);
+
+    document.getElementById('card-admin').addEventListener('click', () => {
+        window.location.href = 'gestion-usuarios.html';
+    });
+    document.getElementById('btn-back-profile')?.addEventListener('click', () => showScreen('dashboard-screen'));
+    document.getElementById('btn-back-shop')?.addEventListener('click', () => showScreen('dashboard-screen'));
+    document.getElementById('btn-retry')?.addEventListener('click', startGame);
+
+    document.getElementById('btn-details-sp')?.addEventListener('click', () => {
+        const detailsModal = document.getElementById('details-modal');
+        if (detailsModal) detailsModal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-show-details')?.addEventListener('click', () => {
+        const detailsModal = document.getElementById('details-modal');
+        if (detailsModal) detailsModal.style.display = 'flex';
+    });
+
+    // Eventos del Input del Juego principal
+    const gameInput = document.getElementById('game-input');
+    if (gameInput) {
+        gameInput.addEventListener('input', checkInput);
+        gameInput.addEventListener('keydown', handleKeydown);
+        gameInput.addEventListener('paste', e => e.preventDefault());
+        gameInput.addEventListener('contextmenu', e => e.preventDefault());
+    }
+
+    // Input del Rosco
+    document.getElementById('r-input')?.addEventListener('keypress', e => { if(e.key === 'Enter') Rosco.check(); });
+});

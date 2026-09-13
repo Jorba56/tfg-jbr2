@@ -1,9 +1,46 @@
-const token = localStorage.getItem('jwt_token');
-if (!token) window.top.location.href = 'index.html';
+// 🛑 ELIMINAMOS LA BÚSQUEDA DEL TOKEN EN LOCALSTORAGE
+const API_URL = '';
 
-const API_URL = 'https://tfg-jbr2-production.up.railway.app/';
+// 🛡️ BARRERA DE SEGURIDAD INICIAL: Verificamos si la cookie es válida
+async function verificarAcceso() {
+    try {
+        const res = await fetch(`${API_URL}/usuarios/perfil?t=${new Date().getTime()}`, {
+            method: 'GET',
+            credentials: 'include' // 🔑 Usamos la cookie
+        });
+        if (!res.ok) {
+            window.location.href = 'index.html'; // Si el servidor rechaza la cookie, a la calle
+        }
+    } catch(e) {
+        window.location.href = 'index.html';
+    }
+}
+verificarAcceso();
 
 let usuarioSeleccionadoParaCreditos = null;
+document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>'"]/g, function(tag) {
+        const charsToReplace = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        };
+        return charsToReplace[tag] || tag;
+    });
+}
+
+function toggleTheme () {
+    const body = document.body;
+    body.classList.toggle('light-mode');
+    const isLight = body.classList.contains('light-mode');
+    document.getElementById('theme-toggle').innerText = isLight ? "☀️" : "🌙";
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
 
 window.anadirCreditos = function (idUsuario) {
     usuarioSeleccionadoParaCreditos = idUsuario;
@@ -31,7 +68,7 @@ if (btnCreditos) {
 
             const response = await fetch(`${API_URL}/usuarios/${usuarioSeleccionadoParaCreditos}/creditos?cantidad=${cantidad}`, {
                 method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
+                credentials: 'include' // 🔑 MAGIA DE COOKIES
             });
 
             if (response.ok) {
@@ -61,14 +98,14 @@ window.cambiarPestana = function(pestana) {
     if (pestana === 'usuarios') {
         secUsu.classList.remove('hidden');
         secRol.classList.add('hidden');
-        tabUsu.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm bg-blue-100 text-blue-700 transition w-1/2 sm:w-auto";
-        tabRol.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm theme-text hover:bg-gray-500/10 transition w-1/2 sm:w-auto";
+        tabUsu.classList.add('active');
+        tabRol.classList.remove('active');
         cargarUsuarios();
     } else {
         secUsu.classList.add('hidden');
         secRol.classList.remove('hidden');
-        tabRol.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm bg-purple-100 text-purple-700 transition w-1/2 sm:w-auto";
-        tabUsu.className = "px-4 md:px-6 py-2 rounded-md font-bold text-sm theme-text hover:bg-gray-500/10 transition w-1/2 sm:w-auto";
+        tabRol.classList.add('active');
+        tabUsu.classList.remove('active');
         cargarRoles();
     }
 }
@@ -84,9 +121,9 @@ async function cargarUsuarios() {
 
     try {
         const [resUsu, resRoles, resMapa] = await Promise.all([
-            fetch(`${API_URL}/usuarios/paginados?page=${pagUsuarios}&size=10&sortBy=idUser&sortDir=asc`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/usuarios/paginados?page=${pagUsuarios}&size=10&sortBy=idUser&sortDir=asc`, { credentials: 'include' }),
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resUsu.ok && resRoles.ok && resMapa.ok) {
@@ -107,8 +144,9 @@ async function cargarUsuarios() {
 
             usuarios.forEach(u => {
                 const idUser = u.id_usuario || u.id_user || u.idUser || u.id;
-                const nombreCompleto = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
-                const correo = u.correo_usuario || u.emailUsuario || 'Sin correo';
+                const nombreCrudo = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
+                const nombreCompleto = escapeHTML(nombreCrudo || 'Usuario N/A');
+                const correo = escapeHTML(u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo');
                 const relacion = mapaUsuariosRoles.find(m => (m.id_usuario || m.idUser) === idUser);
                 let rolesHtml = '<span class="text-gray-400 text-xs italic">Sin roles</span>';
 
@@ -119,7 +157,6 @@ async function cargarUsuarios() {
                     }).join('');
                 }
 
-                // APLICAMOS LAS CLASES DINÁMICAS theme-row, theme-strong y theme-text
                 tabla.innerHTML += `
                     <tr class="theme-row">
                     <td class="px-5 py-4 text-sm theme-text">#${idUser}</td>
@@ -136,14 +173,17 @@ async function cargarUsuarios() {
                 `;
             });
         }
-    } catch (error) { tabla.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-bold">Fallo de red al conectar.</td></tr>`; }
+    } catch (error) {
+        tabla.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500 font-bold">Fallo de red al conectar. ${error}</td></tr>`;
+        console.log(error);
+    }
 }
 
 window.exportarExcelUsuarios = async function() {
     try {
         const response = await fetch(`${API_URL}/usuarios/exportar/excel`, {
             method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
+            credentials: 'include'
         });
         if (response.status === 401) return alert("Sesión expirada.");
         if (!response.ok) throw new Error();
@@ -161,16 +201,14 @@ window.exportarExcelUsuarios = async function() {
 }
 
 window.buscarUsuarioPorId = function() {
-    const id = document.getElementById('inputBusquedaId').value.trim();
+    const id = document.getElementById('search-id').value.trim();
     if (!id) { pagUsuarios = 0; return cargarUsuarios(); }
     realizarBusqueda(`${API_URL}/usuarios/${id}`, true);
 };
 
 window.buscarUsuarioPorCorreo = function() {
-    const correo = document.getElementById('inputBusquedaCorreo').value.trim();
+    const correo = document.getElementById('search-email').value.trim();
     if (!correo) { pagUsuarios = 0; return cargarUsuarios(); }
-
-    // 1. Codificamos el correo para que el @ y otros caracteres no rompan la petición HTTP
     const correoCodificado = encodeURIComponent(correo);
     realizarBusqueda(`${API_URL}/usuarios/correo/${correoCodificado}`, true);
 };
@@ -181,9 +219,9 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
     try {
         const [resBusqueda, resRoles, resMapa] = await Promise.all([
-            fetch(urlFetch, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(urlFetch, { credentials: 'include' }),
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resBusqueda.ok && resRoles.ok && resMapa.ok) {
@@ -191,7 +229,6 @@ async function realizarBusqueda(urlFetch, esUnico) {
             const todosRoles = await resRoles.json();
             const mapaUsuariosRoles = await resMapa.json();
 
-            // 2. PARSEO INTELIGENTE: Detectamos si Java mandó una lista, un objeto paginado, o un usuario suelto.
             let usuarios = [];
             if (Array.isArray(dataBusqueda)) {
                 usuarios = dataBusqueda;
@@ -213,8 +250,9 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
             usuarios.forEach(u => {
                 const idUser = u.id_usuario || u.idUser || u.id;
-                const nombreCompleto = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
-                const correo = u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo';
+                const nombreCrudo = `${u.nombre_usuario || u.nombreUsuario || ''} ${u.apellido_usuario || u.apellidoUsuario || ''}`.trim();
+                const nombreCompleto = escapeHTML(nombreCrudo || 'Usuario N/A');
+                const correo = escapeHTML(u.correo_usuario || u.emailUsuario || u.correo || 'Sin correo');
                 const relacion = mapaUsuariosRoles.find(m => (m.id_usuario || m.idUser) === idUser);
                 let rolesHtml = '<span class="text-gray-400 text-xs italic">Sin roles</span>';
 
@@ -246,7 +284,7 @@ async function realizarBusqueda(urlFetch, esUnico) {
 
 window.editarUsuario = async function(id) {
     try {
-        const response = await fetch(`${API_URL}/usuarios/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${id}`, { credentials: 'include' });
         if (response.ok) {
             const usuario = await response.json();
             document.getElementById('editUserId').value = id;
@@ -272,7 +310,8 @@ window.guardarEdicionUsuario = async function() {
     try {
         const response = await fetch(`${API_URL}/usuarios/${id}`, {
             method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(payload)
         });
         if (response.ok) {
@@ -286,7 +325,7 @@ window.guardarEdicionUsuario = async function() {
 window.borrarUsuario = async function(id) {
     if (!confirm(`¿Dar de baja al usuario con ID: ${id}?\n\n(Borrado lógico)`)) return;
     try {
-        const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) { alert("Usuario dado de baja."); cargarUsuarios(); }
     } catch (error) { alert("Fallo de red al intentar dar de baja."); }
 };
@@ -301,8 +340,8 @@ window.abrirGestionRoles = async function(idUsuario) {
 
     try {
         const [resTodosRoles, resMapa] = await Promise.all([
-            fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/usuarios_roles`, { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(`${API_URL}/roles`, { credentials: 'include' }),
+            fetch(`${API_URL}/usuarios_roles`, { credentials: 'include' })
         ]);
 
         if (resTodosRoles.ok && resMapa.ok) {
@@ -347,7 +386,8 @@ window.anadirRolAUsuario = async function(idUsuario, idRol) {
     try {
         const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ id_rol: idRol })
         });
         if (response.ok) abrirGestionRoles(idUsuario);
@@ -356,7 +396,7 @@ window.anadirRolAUsuario = async function(idUsuario, idRol) {
 
 window.quitarRolAUsuario = async function(idUsuario, idRol) {
     try {
-        const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles/${idRol}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/usuarios/${idUsuario}/roles/${idRol}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) abrirGestionRoles(idUsuario);
     } catch (error) {}
 }
@@ -366,7 +406,7 @@ async function cargarRoles() {
     tabla.innerHTML = `<tr><td colspan="3" class="text-center py-8 text-purple-500 animate-pulse font-bold">Cargando roles...</td></tr>`;
 
     try {
-        const response = await fetch(`${API_URL}/roles`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/roles`, { credentials: 'include' });
         if (response.ok) {
             const roles = await response.json();
             tabla.innerHTML = '';
@@ -374,10 +414,11 @@ async function cargarRoles() {
 
             roles.forEach(r => {
                 const id = r.id_rol || r.idRol || r.id;
+                const nombreRol = escapeHTML(r.name || r.nombre);
                 tabla.innerHTML += `
                     <tr class="theme-row">
                         <td class="px-5 py-4 text-sm theme-text">#${id}</td>
-                        <td class="px-5 py-4 text-sm font-bold text-purple-500 uppercase">${r.name || r.nombre}</td>
+                        <td class="px-5 py-4 text-sm font-bold text-purple-500 uppercase">${nombreRol}</td>
                         <td class="px-5 py-4 text-center">
                             <button onclick="editarRol(${id})" class="text-blue-500 hover:text-blue-600 font-bold mr-3"><i class="fas fa-edit"></i></button>
                             <button onclick="borrarRol(${id})" class="text-red-500 hover:text-red-600 font-bold"><i class="fas fa-trash"></i></button>
@@ -402,7 +443,7 @@ window.crearRol = function() {
 
 window.editarRol = async function(id) {
     try {
-        const response = await fetch(`${API_URL}/roles/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch(`${API_URL}/roles/${id}`, { credentials: 'include' });
         if (response.ok) {
             const rol = await response.json();
             document.getElementById('rolId').value = rol.id_rol || rol.idRol || rol.id;
@@ -429,7 +470,8 @@ window.guardarRol = async function() {
     try {
         const response = await fetch(esEdicion ? `${API_URL}/roles/${id}` : `${API_URL}/roles`, {
             method: esEdicion ? 'PUT' : 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(payload)
         });
 
@@ -447,7 +489,7 @@ window.guardarRol = async function() {
 window.borrarRol = async function(id) {
     if (!confirm(`¿Deseas desactivar este rol (ID: ${id})?`)) return;
     try {
-        const response = await fetch(`${API_URL}/roles/${id}`, { method: 'DELETE', headers: {'Authorization': `Bearer ${token}`} });
+        const response = await fetch(`${API_URL}/roles/${id}`, { method: 'DELETE', credentials: 'include' });
         if (response.ok) { alert("Rol desactivado."); cargarRoles(); }
     } catch (error) {}
 }

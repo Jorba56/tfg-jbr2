@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastFingers | Racing Arena</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;0,900;1,900&display=swap" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
+    <link rel="manifest" href="../static/images/site.webmanifest">
+    <style>
+        body { font-family: 'Montserrat', sans-serif; }
+
+        /* Fondo estilo fibra de carbono con Azul Profundo */
+        .bg-carbon {
+            background-color: #050b14;
+            background-image: linear-gradient(rgba(0, 242, 254, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 242, 254, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* Ángulo de alerón de competición */
+        .clip-racing {
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%);
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px) skewX(-4deg); }
+            to { opacity: 1; transform: translateY(0) skewX(0); }
+        }
+
+        /* Efecto de brillo neón en bordes */
+        .neon-border {
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-[#0b0c10] flex flex-col min-h-screen text-slate-200">
+
+<nav class="absolute w-full z-20 top-0 py-6 px-8 flex justify-between items-center border-b border-white/5 backdrop-blur-lg bg-black/20">
+    <div class="flex items-center gap-3 text-white">
+        <div class="text-[#00f2fe]">
+            <img src="../static/images/favicon-32x32.png" alt="20" class="h-50px w-50px"/>
+        </div>
+        <span class="text-2xl font-black italic tracking-tighter uppercase">Fast<span class="text-[#00f2fe]">Fingers</span></span>
+    </div>
+
+    <div class="space-x-6 hidden md:flex items-center">
+        <a href="login.html" class="text-slate-400 hover:text-[#00f2fe] font-bold transition px-4 py-2 uppercase tracking-widest text-xs">
+            INICIAR SESIÓN
+        </a>
+        <a href="registro.html" class="bg-[#00f2fe] hover:bg-white text-black font-black py-2 px-8 rounded shadow-[0_0_20px_rgba(0,242,254,0.5)] transition transform hover:scale-105 uppercase tracking-widest text-xs skew-x-[-12deg]">
+            <div class="skew-x-[12deg]">Registrarse</div>
+        </a>
+    </div>
+</nav>
+
+<header class="relative bg-carbon overflow-hidden flex-grow flex items-center pt-32 pb-40 md:pt-40 md:pb-48 clip-racing border-b-[6px] border-[#00f2fe]">
+    <div class="container mx-auto px-4 relative z-10 text-center animate-fade-in-up">
+        <span class="inline-block py-1 px-3 md:px-5 bg-black/40 text-[#00f2fe] text-[8px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.3em] uppercase mb-6 md:mb-8 border border-[#00f2fe]/30 rounded-sm skew-x-[-15deg]">
+            <div class="skew-x-[15deg]"><i class="fas fa-tachometer-alt mr-2"></i> Arena de Élite</div>
+        </span>
+
+        <h1 class="text-4xl sm:text-6xl md:text-9xl font-black text-white mb-6 md:mb-8 leading-tight md:leading-none italic uppercase tracking-tighter">
+            DOMINA EL <br>
+            <span class="inline-block pr-4 text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-white">TECLADO</span>
+        </h1>
+
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 md:gap-8 mt-6">
+            <a href="registro.html" class="w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 bg-[#00f2fe] text-black font-black uppercase tracking-[0.1em] hover:bg-white transition-all skew-x-[-15deg] group text-xs md:text-sm">
+                <div class="skew-x-[15deg]">CREAR CUENTA <i class="fas fa-flag-checkered ml-2"></i></div>
+            </a>
+            <a href="login.html" class="w-full sm:w-auto px-8 md:px-12 py-4 md:py-5 bg-transparent border-2 border-white text-white font-black uppercase tracking-[0.1em] hover:bg-white hover:text-black transition-all skew-x-[-15deg] text-xs md:text-sm">
+                <div class="skew-x-[15deg]">YA TENGO CUENTA</div>
+            </a>
+        </div>
+    </div>
+</header>
+
+<section class="py-24 bg-[#0b0c10] relative -mt-20">
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+
+            <div class="bg-[#1f2833]/30 p-10 border-l-4 border-[#00f2fe] hover:bg-[#1f2833]/50 transition-all group shadow-2xl skew-x-[-4deg] backdrop-blur-sm">
+                <div class="skew-x-[4deg]">
+                    <div class="w-16 h-16 bg-black/40 border border-[#00f2fe]/50 text-[#00f2fe] rounded-sm flex items-center justify-center text-3xl mb-8 group-hover:scale-110 group-hover:rotate-6 transition-all">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-4 uppercase italic tracking-tighter">IA Generativa</h3>
+                    <p class="text-slate-400 font-medium leading-relaxed text-sm">
+                        Desafíos infinitos. Nuestra IA, basada en Gemini, genera frases dinámicas basadas en tu nivel de rendimiento actual.
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-[#1f2833]/30 p-10 border-l-4 border-white hover:bg-[#1f2833]/50 transition-all group shadow-2xl skew-x-[-4deg] backdrop-blur-sm">
+                <div class="skew-x-[4deg]">
+                    <div class="w-16 h-16 bg-black/40 border border-white/20 text-white rounded-sm flex items-center justify-center text-3xl mb-8 group-hover:scale-110 transition-all">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-4 uppercase italic tracking-tighter">VELOCIDAD</h3>
+                    <p class="text-slate-400 font-medium leading-relaxed text-sm">
+                        Elige tu modo, espera al semáforo verde y escribe el texto con la máxima precisión. Cuanto más rápido seas, más alto llegarás en el ranking mundial. ¿Estás listo para quemar el asfalto?
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-[#1f2833]/30 p-10 border-l-4 border-[#00f2fe] hover:bg-[#1f2833]/50 transition-all group shadow-2xl skew-x-[-4deg] backdrop-blur-sm">
+                <div class="skew-x-[4deg]">
+                    <div class="w-16 h-16 bg-black/40 border border-[#00f2fe]/50 text-[#00f2fe] rounded-sm flex items-center justify-center text-3xl mb-8 group-hover:scale-110 -rotate-6 transition-all">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-white mb-4 uppercase italic tracking-tighter">COMPRA Y EQUIPA</h3>
+                    <p class="text-slate-400 font-medium leading-relaxed text-sm">
+                        Gana créditos por cada partida. Desbloquea habilidades, mejoras, temas y skins exclusivas en la tienda oficial.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<footer class="bg-black py-12 mt-auto border-t border-white/5">
+    <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-2 text-white font-black italic tracking-tighter uppercase text-xl">
+            <img src="../static/images/favicon.png" alt="500" style="height: 75px; width: 75px"/>
+        </div>
+        <p class="text-slate-600 text-[10px] font-black tracking-[0.4em] uppercase">
+            &copy; 2026 Racing Development. No hay límites, solo metas.
+        </p>
+        <div class="flex gap-8 text-slate-500">
+            <a href="#" class="hover:text-[#00f2fe] transition"><i class="fab fa-github text-xl"></i></a>
+            <a href="#" class="hover:text-[#00f2fe] transition"><i class="fab fa-discord text-xl"></i></a>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

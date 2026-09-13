@@ -11,7 +11,7 @@ COPY . .
 WORKDIR /app/back
 
 # Ahora sí, Maven encontrará el pom.xml padre y compilará solo el servicio de usuarios
-RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl usuarios-service -am -DskipTests
+RUN MAVEN_OPTS="-Xmx512m" mvn clean package -pl usuarios-service -am -DskipTests
 
 # --- ETAPA 2: Ejecución ---
 FROM eclipse-temurin:21-jre-alpine

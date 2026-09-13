@@ -1,0 +1,24 @@
+# --- ETAPA 1: Compilación en la nube ---
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+WORKDIR /app
+
+# Copiamos el repositorio
+COPY . .
+
+# Entramos en tu carpeta de código
+WORKDIR /app/back
+
+# ¡CORRECCIÓN 1! Compilamos SOLO el microservicio de incidencias
+RUN MAVEN_OPTS="-Xmx256m" mvn clean package -pl incidencias-service -am -DskipTests
+
+# --- ETAPA 2: Ejecución ---
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+
+# Rescatamos el .jar desde la carpeta de incidencias (usamos *.jar por seguridad)
+COPY --from=build /app/back/incidencias-service/target/*.jar app.jar
+
+# ¡CORRECCIÓN 2! Exponemos el puerto correcto para este microservicio
+EXPOSE 8082
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

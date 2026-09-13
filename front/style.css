@@ -1,352 +1,2318 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@700;800;900&family=Montserrat:ital,wght@0,700;1,900&display=swap');
 
 :root {
-    /* --- PALETA DE COLORES MODERNA (MODO OSCURO) --- */
+    /* --- PALETA RACING ELITE --- */
     --primary: #00f2fe;       /* Cian eléctrico */
-    --bg: #0b0c10;            /* Fondo profundo */
-    --card-bg: rgba(31, 40, 51, 0.7); /* Efecto cristal */
-    --card-border: rgba(102, 252, 241, 0.15);
-    --text: #c5c6c7;          /* Texto suave */
+    --bg: #050b14;            /* Fondo profundo (Carbon) */
+    --card-bg: rgba(31, 40, 51, 0.85);
+    --card-border: rgba(0, 242, 254, 0.2);
+    --text: #c5c6c7;
     --text-highlight: #ffffff;
     --text-secondary: #8892b0;
-    --error: #ff4b5c;
-    --success: #00e676;
 
-    /* Gradientes y Sombras */
-    --results-bg: radial-gradient(circle at center, #1f2833 0%, #0b0c10 100%);
-    --btn-gradient: linear-gradient(135deg, #00f2fe, #4facfe);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-
-    --radius: 12px;
-}
-
-/* --- MODO CLARO --- */
-body.light-mode {
-    --primary: #2563eb;
-    --bg: #f8fafc;
-    --card-bg: rgba(255, 255, 255, 0.85);
-    --card-border: rgba(226, 232, 240, 0.8);
-    --text: #475569;
-    --text-highlight: #0f172a;
-    --text-secondary: #64748b;
-    --results-bg: radial-gradient(circle at center, #f1f5f9 0%, #e2e8f0 100%);
-    --btn-gradient: linear-gradient(135deg, #3b82f6, #2563eb);
-    --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
+    /* Gradientes de Competición */
+    --btn-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --radius: 4px; /* Bordes más rectos/agresivos para estilo racing */
+    --error: red;
+    --secondary: #00f2fe;
 }
 
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg);
+    /* Fondo con rejilla técnica sutil */
+    background-image: linear-gradient(rgba(0, 242, 254, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 254, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
     color: var(--text);
     margin: 0;
-    padding: 0;
+    min-height: 100vh;
+    max-width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    width: 100vw;
-    overflow-x: hidden;
-    transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-h1, h2, h3 {
-    font-family: 'Poppins', sans-serif;
+#dashboard-screen.active {
+    /* 1. Evita que el 'body' lo centre verticalmente en la pantalla */
+    align-self: flex-start;
+    /* 2. Hace que los elementos dentro de esta pantalla empiecen desde arriba */
+    justify-content: flex-start !important;
+    /* 3. Asegura que la pantalla ocupe todo el ancho */
+    width: 100%;
+}
+
+h1, h2, h3, .big-score {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -1px;
     color: var(--text-highlight);
-    margin-top: 0;
-    letter-spacing: -0.5px;
 }
 
-h1 { font-size: 2.5rem; text-align: center; margin-bottom: 5px; }
-.subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 0.95rem; }
+/* --- CONTENEDORES ESTILO "PIT LANE" --- */
+.login-container, .shop-container, .score-reveal-box, .registro-container {
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-left: 5px solid var(--primary); /* El corte de color Williams */
+    box-shadow: var(--glass-shadow);
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-/* Botón Tema */
+.logo-esquina {
+    position: absolute;
+    top: 30px;
+    left: 20px;
+    height: 50px;  /* tamaño personalizado */
+    width: 50px;
+}
+
+.racing-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.form-group {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.radar-loader {
+    width: 80px; height: 80px;
+    border: 4px solid rgba(0, 242, 254, 0.3);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    margin: 30px auto;
+    animation: spin 1s linear infinite, glow 2s ease-in-out infinite alternate;
+}
+@keyframes glow { 0% { box-shadow: 0 0 5px var(--primary); } 100% { box-shadow: 0 0 25px var(--primary); } }
+.radar-loader::after {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 100%; height: 2px; background: var(--primary);
+    transform-origin: left; animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.diff-correct { color: limegreen; }
+.diff-error { color: var(--error); text-decoration: underline; font-weight: bold; }
+.diff-missing { opacity: 0.5; text-decoration: line-through; }
+
+.details-list {
+    max-height: 400px; overflow-y: auto; text-align: left; padding: 10px;
+}
+.detail-item {
+    background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 10px; border-left: 3px solid var(--primary);
+}
+.detail-item .score-tag { float: right; color: var(--primary); font-weight: bold; }
+
+.form-group label {
+    display: block;
+    text-align: center; /* Centramos el texto con el input */
+    color: var(--text-highlight);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Ajuste del enlace inferior */
+.link-inferior {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-top: 25px;
+    width: 100%;
+}
+
+.link-inferior a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 800;
+    transition: 0.3s;
+}
+
+.link-inferior a:hover {
+    text-decoration: underline;
+    text-shadow: 0 0 10px var(--primary);
+}
+
+/* --- INPUTS TÉCNICOS --- */
+input[type="text"], input[type="password"], input[type="email"], input[type="number"] {
+    width: 100%;
+    box-sizing: border-box; /* 👈 ESTA ES LA MAGIA: Obliga a que la caja no desborde el 100% */
+    padding: 14px 20px; /* 👈 Relleno extra a los lados para que el corte diagonal no pise el texto */
+    margin-top: 10px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--card-border);
+    border-radius: 0;
+    color: var(--primary);
+    font-family: 'Inter', sans-serif;
+    transition: 0.3s;
+    clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+    text-align: left; /* 👈 Devolvemos el texto a la izquierda, como tú querías */
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+}
+
+/* --- BOTONES DE ALTO RENDIMIENTO (SKEWED) --- */
+.btn-main, button {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    /* QUITADO: background: transparent !important; */
+    background: var(--btn-gradient); /* Usamos el gradiente por defecto */
+    color: #000;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: skewX(-12deg);
+    padding: 12px 18px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    text-decoration: none;
+    margin-top: 20px;
+}
+
+.btn-main div, button div, .btn-main>span, button span {
+    transform: skewX(12deg);
+    display: block;
+}
+
+
+.btn-main:hover, button:hover {
+    filter: brightness(1.1);
+    transform: skewX(-12deg) scale(1.02);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+.btn-index {
+    grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+    width: 90%;
+    margin-top: 10px; !important
+}
+
+/* --- CARTAS DEL DASHBOARD --- */
+.card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--card-border);
+    border-bottom: 4px solid var(--text-secondary);
+    transition: 0.3s;
+    transform: skewX(-4deg);
+}
+
+.card:hover {
+    border-bottom-color: var(--primary);
+    background: rgba(0, 242, 254, 0.05);
+}
+
+.rosco-layout { position: relative; width: 700px; height: 700px; margin: 0 auto; display: flex; justify-content: center; align-items: center; }
+.circle { list-style: none; padding: 0; margin: 0; position: absolute; width: 700px; height: 700px;}
+
+.letter-item {
+    position: absolute; left: 50%; top: 50%; width: 42px; height: 42px; margin: -21px;
+    background: radial-gradient(circle, #2b5cb3, #0033a0); border-radius: 50%;
+    text-align: center; line-height: 42px; font-weight: 800; font-size: 16px;
+    border: 2px solid white; transition: all 0.3s;
+    z-index: 6;
+    color:white;
+}
+
+#stats {
+    width: 80%;
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.stats-grid-box {
+    display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem;
+}
+
+.stat-item strong { color: var(--text-highlight); }
+.stat-val.cr { color: #ff007c; font-weight: bold; }
+.stat-val.rosco { color: #ffd700; font-weight: bold; }
+.stat-val.pct { color: var(--primary); font-weight: bold; }
+
+.progress-track {
+    margin-top: 10px; width: 100%; max-width: 300px;
+    background: rgba(255,255,255,0.1); border-radius: 4px; height: 6px; overflow: hidden;
+}
+.progress-fill { background: var(--primary); height: 100%; transition: width 1s ease-out; }
+
+/* Stats: Modo Claro */
+/* Caja principal de estadísticas */
+body.light-mode #stats {
+    background: rgba(0, 0, 0, 0.05); /* Fondo gris súper suave para no romper el blanco puro */
+    color: #1f2833; /* Texto base oscuro */
+    border-left: 3px solid var(--primary); /* Mantenemos tu borde cian intacto */
+}
+
+/* Títulos de cada estadística ("Récord:", "Precisión:", etc.) */
+body.light-mode .stat-item strong {
+    color: #1f2833;
+}
+
+/* Colores de los valores adaptados para contrastar en fondo claro */
+body.light-mode .stat-val.rosco {
+    color: #b8860b; /* Dorado más oscuro (DarkGoldenRod) para que se lea perfecto */
+}
+
+body.light-mode .stat-val.pct {
+    color: #008eb3; /* El Cian (--primary) es ilegible en blanco, lo oscurecemos un pelín */
+}
+
+/* El magenta de .stat-val.cr (#ff007c) se lee bien en blanco, no hace falta cambiarlo */
+
+/* El fondo de la barra de progreso (la pista por donde corre el cian) */
+body.light-mode .progress-track {
+    background: rgba(0, 0, 0, 0.15); /* La oscurecemos para que se note dónde acaba la barra */
+}
+/* Stats: Modo Cyberpunk */
+body.tema-cyberpunk #stats { background: rgba(255, 0, 255, 0.05); border-color: #ff00ff; box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1); }
+body.tema-cyberpunk .stat-val.cr { color: #ff00ff; text-shadow: 0 0 5px #ff00ff;}
+body.tema-cyberpunk .stat-val.pct { color: #00ffff; text-shadow: 0 0 5px #00ffff;}
+body.tema-cyberpunk .progress-fill { background: #00ffff; box-shadow: 0 0 10px #00ffff; }
+
+/* =========================================
+   🤖 CHATBOT ASISTENTE (TRES TEMAS)
+   ========================================= */
+#asistente-flotante { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+
+#chatbot-window {
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.9);
+    transform-origin: bottom right; /* Hace que la animación nazca desde el botón */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    background: var(--card-bg);
+    border: 1px solid var(--primary);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    color: var(--text);
+    padding: 15px;
+    width: 300px;
+    position: absolute;
+    bottom: 80px;
+    right: 0;
+    backdrop-filter: blur(12px);
+}
+
+#chatbot-window.mostrar-chat {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+#chatbot-window h4 { color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-top: 0; }
+#chatbot-respuesta { color: var(--text-highlight); font-size: 0.9rem; min-height: 60px; }
+
+.chatbot-btn {
+    background: rgba(0,0,0,0.4); color: var(--text-highlight);
+    border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 4px;
+    cursor: pointer; text-align: left; transition: 0.3s; width: 100%; margin-top: 5px;
+    transform: none; /* Anulamos el skewX de los botones normales */
+}
+.chatbot-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
+
+.chatbot-trigger {
+    background: var(--primary); color: #000; border: none; border-radius: 50%;
+    width: 60px; height: 60px; font-size: 30px; cursor: pointer;
+    box-shadow: 0 0 15px var(--primary); display: flex; justify-content: center; align-items: center;
+    transition: 0.3s; transform: none;
+}
+.chatbot-trigger:hover { transform: scale(1.1); }
+
+/* Chatbot: Modo Claro */
+body.light-mode #chatbot-window { box-shadow: var(--glass-shadow); border-color: var(--primary); }
+body.light-mode #chatbot-window h4 { border-bottom-color: rgba(0,0,0,0.1); }
+body.light-mode .chatbot-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); color: rgba(0, 92, 230, 0.4)  }
+body.light-mode .chatbot-btn:hover { background: var(--primary); color: white; }
+body.light-mode .chatbot-trigger { color: white; box-shadow: 0 5px 15px rgba(0, 92, 230, 0.4); }
+
+/* Chatbot: Modo Cyberpunk */
+body.tema-cyberpunk #chatbot-window { border-color: #ff00ff; box-shadow: 0 0 20px rgba(255, 0, 255, 0.3); }
+body.tema-cyberpunk #chatbot-window h4 { color: #ff00ff; border-bottom-color: rgba(255,0,255,0.3); }
+body.tema-cyberpunk .chatbot-btn:hover { background: #ff00ff; color: white; box-shadow: 0 0 10px #ff00ff; }
+body.tema-cyberpunk .chatbot-trigger { background: #ff00ff; box-shadow: 0 0 15px #ff00ff; color: white; }
+
+.letter-item.active { background: #ffcc00; color: #000; transform: scale(1.3); z-index: 10; box-shadow: 0 0 15px #ffcc00; }
+.letter-item.correct { background: #22c55e; }
+.letter-item.wrong { background: #ef4444; }
+
+.center-panel {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    text-align: center;
+    z-index: 5; /* Las letras (z-index: 6) flotarán por encima de esto */
+
+    /* Efecto de cristal oscuro de F1 */
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    border: 2px solid var(--card-border);
+    border-radius: 50%; /* Mantiene el círculo perfecto */
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 25px;
+
+    /* Sombra interior profunda y un ligero resplandor exterior */
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.definition { font-size: 0.95rem; min-height: 90px; margin-bottom: 10px; line-height: 1.4; color: #eee; overflow-y: auto; }
+
+.card h3 { transform: skewX(4deg); }
+.card p { transform: skewX(4deg); }
+
+/* --- PANTALLA DE JUEGO (MODO ARENA) --- */
+.phrase-container {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid var(--card-border);
+    font-size: 1.8rem;
+    padding: 40px;
+    clip-path: polygon(2% 0, 100% 0, 98% 100%, 0% 100%);
+}
+
+body.light-mode .phrase-container {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--primary);
+    color: var(--text-highlight); /* En modo claro este texto es oscuro */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); /* Sombra suave para darle volumen */
+}
+
+
+
+.big-score {
+    font-size: 7rem;
+    color: var(--primary);
+    text-shadow: 4px 4px 0px rgba(79, 172, 254, 0.3);
+}
+
+/* --- AJUSTES RESPONSIVE GLOBALES --- */
+
+/* Contenedores que se adaptan al ancho de pantalla */
+.login-container, .shop-container, .score-reveal-box, .registro-container {
+    width: 95%;
+    max-width: var(--max-w, 420px);
+    padding: 2rem;
+    margin: 1rem;
+}
+
+.powerup-bar {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 15px 0 25px 0;
+}
+
+.powerup-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 55px;
+    height: 55px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto rebote */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.powerup-btn:hover:not(:disabled) {
+    background: rgba(0, 242, 254, 0.15);
+    border-color: #00f2fe;
+    transform: scale(1.15) translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 242, 254, 0.2);
+}
+
+.powerup-btn:active:not(:disabled) { transform: scale(0.95); }
+
+/* Estado cuando no te quedan usos */
+.powerup-btn:disabled {
+    filter: grayscale(1);
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+#next-phrase-preview {
+    font-size: 0.9rem;
+    color: rgba(0, 242, 254, 0.5); /* Cian medio transparente */
+    margin-top: 10px;
+    font-style: italic;
+    transition: opacity 0.3s ease;
+}
+
+#next-phrase-preview.hidden {
+    display: none;
+}
+
+
+/* El circulito rojo con la cantidad restante */
+.pu-qty {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background: #ff007c; /* Rosa neón */
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 900;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 2px solid var(--bg); /* Borde del color de fondo para separar */
+}
+
+.shop-container { --max-w: 900px; margin-top: 5%; border-radius: 12px; !important }
+
+/* --- MOTOR DE VISIBILIDAD DE PANTALLAS --- */
+
+/* Escondemos TODAS las pantallas por defecto y con máxima prioridad */
+.screen {
+    display: none !important;
+    opacity: 0;
+    pointer-events: none;
+    width: 100%;
+}
+
+#login-screen {
+    padding-top: 0 !important;
+}
+
+/* Solo la pantalla que tenga la clase .active será visible */
+.screen.active {
+    display: flex !important; /* Usamos flex para centrar el contenido racing */
+    opacity: 1;
+    pointer-events: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Regla de oro para la clase hidden */
+.hidden {
+    display: none !important;
+}
+
+.data-table{
+    width: 100%;
+    text-align: center;
+}
+
+body.tema-cyberpunk {
+    --bg: #05050a;                  /* Negro casi absoluto */
+    --primary: #ff00ff;             /* Magenta Neón vibrante */
+    --card-bg: rgba(20, 10, 36, 0.9); /* Morado muy oscuro traslúcido */
+    --card-border: rgba(0, 255, 255, 0.4); /* Bordes secundarios en Cian */
+    --text-highlight: #00ffff;      /* Texto importante en Cian eléctrico */
+
+    /* Gradiente de botones estilo "Synthwave" */
+    --btn-gradient: linear-gradient(135deg, #ff00ff 0%, #7000ff 100%);
+
+    /* Resplandor de neón más fuerte */
+    --glass-shadow: 0 0 25px rgba(255, 0, 255, 0.2);
+}
+
+/* --- DETALLES ESPECÍFICOS DEL TEMA --- */
+/* ========================================== */
+/* 🤖 SKIN 2: TEMA CYBERPUNK (NEÓN RACING)    */
+/* ========================================== */
+body.tema-cyberpunk {
+    background-color: #0b021c;
+    background-image: none;
+    color: #00ffcc;
+}
+
+body.tema-cyberpunk .fc-top-nav {
+    background: rgba(11, 2, 28, 0.95);
+    border-bottom: 1px solid #ff007c;
+    box-shadow: 0 0 15px rgba(255, 0, 124, 0.2);
+}
+
+body.tema-cyberpunk .icon-btn { color: #fce803; }
+body.tema-cyberpunk .icon-btn:hover { color: #ff007c; text-shadow: 0 0 8px #ff007c;}
+
+body.tema-cyberpunk .nav-logo {
+    color: #fce803;
+    text-shadow: 2px 2px 0px #ff007c;
+    letter-spacing: 3px;
+}
+
+body.tema-cyberpunk .nav-currency {
+    background: rgba(255, 0, 124, 0.1);
+    border-color: #00ffcc;
+    box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+}
+body.tema-cyberpunk .coin-amount { color: #fce803; }
+
+body.tema-cyberpunk .profile-btn {
+    border-color: #ff007c;
+    box-shadow: 0 0 8px rgba(255, 0, 124, 0.3);
+}
+
+body.tema-cyberpunk .sidebar-overlay {
+    background: linear-gradient(to right, rgba(11, 2, 28, 0.98) 0%, rgba(20, 0, 40, 0.8) 40%, rgba(0, 255, 204, 0.1) 100%);
+}
+body.tema-cyberpunk .sidebar-links li a { color: #00ffcc; }
+body.tema-cyberpunk .sidebar-links li a:hover {
+    background: rgba(255, 0, 124, 0.1);
+    color: #ffffff;
+    border-left-color: #ff007c;
+    box-shadow: inset 5px 0 0 #ff007c;
+}
+body.tema-cyberpunk .sidebar-theme-btn { color: #fce803; border-color: #00ffcc; }
+/* Borde izquierdo estilo Williams ahora en Magenta */
+body.tema-cyberpunk .login-container,
+body.tema-cyberpunk .shop-container,
+body.tema-cyberpunk .score-reveal-box,
+body.tema-cyberpunk .registro-container {
+    border-left: 5px solid var(--primary) !important;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.15), var(--glass-shadow);
+}
+
+/* Efecto de parpadeo para los títulos en modo Cyberpunk */
+body.tema-cyberpunk h1,
+body.tema-cyberpunk .big-score {
+    color: var(--primary);
+    text-shadow: 0 0 10px rgba(255, 0, 255, 0.8), 2px 2px 0px #00ffff;
+    animation: neon-flicker 3s infinite alternate;
+}
+
+/* Personalización del input de juego para este tema */
+body.tema-cyberpunk input:focus {
+    border-color: #00ffff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+}
+
+/* ========================================== */
+/* TIENDA Y EQUIPAMIENTO (ESTILO PERFORMANCE) */
+/* ========================================== */
+
+/* Contenedor de rejilla con espaciado dinámico */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 25px;
+    margin: 20px 0 40px 0;
+    width: 100%;
+}
+
+/* Tarjeta de Producto Individual */
+.shop-item {
+    background: var(--card-bg); /* <--- ESTA ES LA LÍNEA MÁGICA */
+    border: 1px solid var(--card-border);
+    padding: 25px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    transform: skewX(-4deg);
+    overflow: hidden;
+}
+
+/* Efecto de resplandor al pasar el ratón */
+.shop-item:hover {
+    background: rgba(0, 242, 254, 0.05);
+    border-color: var(--primary);
+    transform: skewX(-4deg) translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 242, 254, 0.2);
+}
+
+/* Etiquetas de Tipo (COSMETICO / POWERUP) */
+.item-type-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--text-secondary);
+    color: var(--bg);
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 4px 12px;
+    text-transform: uppercase;
+    transform: skewX(0deg); /* Enderezar tag */
+}
+
+.type-cosmetico { background: var(--primary); }
+.type-powerup { background: #ffd700; }
+
+/* Título y Detalles */
+.shop-item h4 {
+    font-family: 'Montserrat', sans-serif;
+    font-style: italic;
+    font-size: 1.2rem;
+    margin: 15px 0 5px 0;
+    color: var(--text-highlight);
+    transform: skewX(4deg); /* Enderezar texto */
+}
+
+.shop-item .desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: 20px;
+    min-height: 40px;
+    display: block;
+    transform: skewX(4deg);
+}
+
+/* Visualización del Precio */
+.shop-item .price {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: #ffd700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    transform: skewX(4deg);
+}
+
+.shop-item .price::before {
+    content: '🪙';
+    font-size: 1rem;
+}
+
+/* --- ESTADOS DE BOTONES EN TIENDA/INVENTARIO --- */
+
+.btn-item-action {
+    width: 100%;
+    padding: 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.3s;
+    transform: skewX(0deg); /* Botón interno recto para contraste */
+}
+
+/* Botón Comprar */
+.btn-buy {
+    background: var(--primary);
+    color: #000;
+}
+
+.btn-buy:hover {
+    background: white;
+    box-shadow: 0 0 20px var(--primary);
+}
+
+/* Botón Equipar */
+.btn-equip {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-equip:hover {
+    background: var(--primary);
+    color: #000;
+}
+
+/* Botón Ya Equipado */
+.btn-equipped {
+    background: rgba(0, 230, 118, 0.1);
+    color: #00e676;
+    border-color: #00e676;
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-equipped::after {
+    content: '✓';
+    font-weight: bold;
+}
 .theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
+    position: fixed;      /* Se queda anclado a la pantalla aunque hagas scroll */
+    top: 20px;            /* Distancia desde arriba */
+    right: 20px;          /* Distancia desde la derecha */
+    z-index: 9999;        /* Nivel de capa máximo para que esté por */
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     color: var(--text-highlight);
     width: 45px;
     height: 45px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.2rem;
+    border-radius: 50%;   /* Lo hacemos un círculo perfecto aerodinámico */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: blur(10px);
-    transition: 0.3s;
-}
-.theme-toggle:hover { transform: scale(1.1) rotate(15deg); }
-
-/* Clases generales */
-.screen { display: none; width: 100%; max-width: 900px; animation: fadeIn 0.4s ease-out; padding: 20px; box-sizing: border-box; }
-.screen.active { display: block; }
-.hidden { display: none !important; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Efecto Cristal (Contenedores) */
-.login-container, .shop-container, .results-container {
-    background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    box-shadow: var(--glass-shadow);
-    padding: 40px;
-    margin: 0 auto;
-    width: 100%;
-    box-sizing: border-box;
-}
-.login-container { max-width: 420px; }
-.shop-container { max-width: 800px; }
-
-/* Inputs Modernos */
-input[type="text"], input[type="password"], input[type="number"] {
-    width: 100%;
-    padding: 14px 18px;
-    margin: 10px 0 20px 0;
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--card-border);
-    color: var(--text-highlight);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-family: 'Inter', sans-serif;
-    transition: 0.3s;
-    box-sizing: border-box;
-}
-body.light-mode input { background: rgba(255, 255, 255, 0.5); }
-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.15); }
-
-/* Botones Modernos */
-button {
-    width: 100%;
-    padding: 14px;
-    background: var(--btn-gradient);
-    color: #fff;
-    border: none;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-size: 1.2rem;
     cursor: pointer;
-    border-radius: var(--radius);
-    transition: 0.3s;
-    font-size: 1rem;
-    font-family: 'Inter', sans-serif;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s ease;
 }
-button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3); filter: brightness(1.1); }
-button:active { transform: translateY(1px); }
 
-/* Botones Secundarios */
-.logout-btn, .back-btn {
-    background: transparent;
-    border: 1px solid var(--card-border);
-    color: var(--text-secondary);
-    width: auto;
-    padding: 10px 20px;
-}
-.logout-btn:hover, .back-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-highlight); border-color: var(--text-highlight); box-shadow: none;}
-
-/* Dashboard - Grid de Menú */
-.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 25px; }
-
-.card {
-    background: rgba(0,0,0,0.15);
-    padding: 25px 20px;
-    border-radius: 16px;
-    border: 1px solid var(--card-border);
-    transition: 0.3s;
-    text-align: center;
-}
-body.light-mode .card { background: rgba(255,255,255,0.4); }
-
-.card.playable { cursor: pointer; }
-.card.playable:hover {
+/* Brillo reactivo al pasar el ratón */
+.theme-toggle:hover {
+    transform: scale(1.1);
     border-color: var(--primary);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    background: rgba(0, 242, 254, 0.05);
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
 }
-.card.locked { opacity: 0.5; cursor: not-allowed; border: 1px dashed var(--text-secondary); filter: grayscale(1); }
 
-.card h3 { font-size: 1.2rem; margin-bottom: 10px; color: var(--primary); }
-.card p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+/* --- MEJORAS PARA EL DASHBOARD RACING --- */
 
-.admin-card { border-left: 4px solid var(--error) !important; }
-.shop-card { border-left: 4px solid #ffd700 !important; }
+/* Forzamos que las tarjetas del menú respiren bien */
+.menu-grid.items-grid {
+    margin-top: 10%;
+    padding: 20px 0;
+    max-width: 1000px /* Un poco más ancho para el menú */
+}
 
-/* Cabeceras de Sección */
-.shop-header {
+/* Efecto de elevación y brillo para las tarjetas clicables */
+.shop-item.playable:hover {
+    cursor: pointer;
+    border-color: var(--primary);
+    transform: skewX(-4deg) translateY(-10px); /* Elevación agresiva */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+/* Estilo para la tarjeta de Admin */
+.admin-card:hover {
+    border-color: var(--error, #ff4b5c) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 75, 92, 0.3) !important;
+}
+
+/* ========================================== */
+/* ⚙️ ESTILOS DEL PANEL DE CONTROL (ADMIN)    */
+/* ========================================== */
+
+/* Contenedor principal centrado y con tope de ancho */
+.admin-dashboard {
+    width: 95%;
+    max-width: 1200px;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Separación perfecta entre los 3 bloques */
+}
+
+/* --- BLOQUE 1: CABECERA --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap; /* En móviles se pondrá uno debajo del otro */
+    gap: 20px;
+}
+
+.admin-titles h1 {
+    font-size: 2.5rem;
+    margin: 0 0 5px 0;
+}
+
+.admin-titles p {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.admin-actions .btn-main {
+    margin-bottom: 20px;
+    transform: scale(0.95);
+}
+
+/* El interruptor de Usuarios/Roles (estilo cápsula) */
+.toggle-switch {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.toggle-switch button {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    padding: 10px 20px;
+    margin: 0;
+    transform: none; /* Quitamos la inclinación racing aquí para que sea más formal */
+
+}
+
+.toggle-switch button.active {
+    background: var(--card-bg);
+    color: var(--primary);
+    font-weight: bold;
+}
+
+/* --- BLOQUE 2: BARRA DE HERRAMIENTAS --- */
+.admin-toolbar {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-top: 3px solid var(--primary); /* El toque de luz superior */
+    padding: 15px 20px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+    box-shadow: var(--glass-shadow);
+}
+
+.search-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.search-group input {
+    margin: 0 !important; /* Reseteamos márgenes del input global */
+    max-width: 200px;
+    padding: 10px 15px;
+    transform: none; /* Inputs rectos para el panel admin */
+    clip-path: none;
+}
+
+.search-group .btn-main {
+    padding: 10px 15px;
+}
+
+/* --- BLOQUE 3: CAJA DE LA TABLA --- */
+.admin-table-box {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-top: 3px solid var(--primary);
+    padding: 20px;
+    box-shadow: var(--glass-shadow);
+    overflow-x: auto; /* Para que no rompa el móvil si la tabla es muy ancha */
+}
+
+.pagination-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--card-border);
-    padding-bottom: 20px;
-    margin-bottom: 25px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-secondary);
 }
 
-/* Insignias de Créditos */
-.credits-badge, .credits-display {
-    background: rgba(255, 215, 0, 0.15);
-    color: #ffd700;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-weight: bold;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    display: inline-block;
-    margin-top: 5px;
-    font-size: 0.9rem;
+/* Transición suave para todos los elementos internos */
+.shop-item * {
+    transition: all 0.3s ease;
 }
 
-/* --- PANTALLA DE JUEGO --- */
-.stats-bar { display: flex; justify-content: space-between; font-size: 1.4rem; font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--text-highlight); margin-bottom: 30px; }
-.stats-bar span { color: var(--primary); }
+/* --- BOTÓN DE REGISTRO ESTILO OUTLINE RACING --- */
 
-.phrase-container {
-    font-size: 1.6rem;
-    background: rgba(0,0,0,0.1);
-    padding: 30px 20px;
-    border-radius: 16px;
-    margin: 20px 0 30px 0;
-    line-height: 1.6;
-    user-select: none;
-    border: 1px solid var(--card-border);
+.btn-main.btn-registro {
     text-align: center;
-}
-body.light-mode .phrase-container { background: rgba(255,255,255,0.4); }
-
-.input-area input {
-    font-size: 1.4rem;
-    text-align: center;
-    padding: 20px;
-    border-radius: 16px;
-    border-width: 2px;
+    width: 85%;
+    background: transparent !important; /* Aquí SÍ lo queremos transparente */
+    border: 0.5px solid var(--primary) !important; /* Borde cian eléctrico */
+    color: var(--primary) !important; /* Texto cian */
 }
 
-/* --- RESULTADOS --- */
-#results-screen {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: var(--results-bg);
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    z-index: 9999;
+.btn-main.btn-registro:hover {
+    background: var(--primary) !important; /* Al pasar el ratón se llena */
+    color: #000 !important; /* El texto pasa a negro */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
 }
 
-.score-reveal-box {
-    background: var(--card-bg);
-    padding: 50px;
-    border-radius: 24px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    box-shadow: var(--glass-shadow);
-    border: 1px solid var(--card-border);
-    animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-align: center;
-    margin-bottom: 40px;
-    max-width: 400px;
-    width: 90%;
+/* Enderezamos el texto interno */
+.btn-registro div {
+    transform: skewX(12deg);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-style: italic;
 }
 
-.score-title { font-size: 1.1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;}
-.big-score { font-size: 6rem; font-family: 'Poppins', sans-serif; font-weight: 800; color: var(--primary); line-height: 1.1; margin: 10px 0; }
-.credits-earned { font-size: 1.6rem; color: #ffd700; font-weight: 700; }
-
-.actions { display: flex; gap: 15px; width: 90%; max-width: 400px; }
-.final-action-btn { flex: 1; padding: 16px; font-size: 1.1rem; border-radius: 12px; }
-#btn-retry { background: var(--btn-gradient); color: #fff; border: none; }
-#btn-menu { background: rgba(255,255,255,0.1); border: 1px solid var(--card-border); color: var(--text-highlight); }
-body.light-mode #btn-menu { background: rgba(0,0,0,0.05); color: var(--text-highlight); border-color: rgba(0,0,0,0.1); }
-
-/* --- TIENDA E INVENTARIO --- */
-.items-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;
-}
-
-.shop-item {
-    background: rgba(0,0,0,0.15);
-    border: 1px solid var(--card-border);
-    padding: 20px;
-    border-radius: 16px;
-    text-align: center;
+.logout-btn {
+    background: transparent !important;
+    /*border: 10px solid var(--error, #ff4b5c) !important;*/
+    color: var(--error, #ff4b5c) !important;
+    padding: 8px 20px !important;
+    font-size: 0.8rem !important;
+    transform: skewX(-12deg);
     transition: 0.3s;
-}
-body.light-mode .shop-item { background: rgba(255,255,255,0.4); }
-.shop-item:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-
-.shop-item h4 { margin: 0 0 10px 0; color: var(--text-highlight); font-size: 1.1rem; }
-.shop-item .price { color: #ffd700; font-weight: 700; font-size: 1.2rem; margin-bottom: 5px; }
-.shop-item .desc { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; display: block;}
-
-.btn-buy { background: var(--primary); color: #000; padding: 10px; border-radius: 8px; }
-.btn-equip { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 10px; border-radius: 8px; }
-.btn-equip:hover { background: rgba(0, 242, 254, 0.1); }
-.btn-equipped { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid var(--success); padding: 10px; border-radius: 8px; cursor: default; }
-.btn-equipped:hover { transform: none; box-shadow: none; filter: none; }
-
-/* --- UTILIDADES --- */
-.error-text { color: var(--error); margin-top: 10px; display: block; text-align: center; font-size: 0.9rem;}
-.search-box input { border-radius: 30px; padding: 15px 25px; text-align: center; }
-.history-container-scroll { text-align: left; max-height: 200px; overflow-y: auto; background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--card-border); margin-top: 20px; }
-
-/* Animaciones */
-@keyframes popIn {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    border: 2px solid;
 }
 
-/* Colores de Diff Texto */
-.char-correct { color: var(--success); }
-.char-error { color: var(--error); text-decoration: underline; background: rgba(255, 75, 92, 0.2); }
-.char-missing { color: var(--text-secondary); opacity: 0.5; }
-
-/* ========================================== */
-/* COSMÉTICOS Y TEMAS DE LA TIENDA            */
-/* ========================================== */
-
-/* 1. Tema Cyberpunk */
-body.tema-cyberpunk {
-    --bg: #09090e;
-    --card-bg: #141024;
-    --primary: #ff00ff; /* Magenta Neón */
-    --card-border: rgba(0, 255, 255, 0.4); /* Cian */
-    --text: #e0e0e0;
+.logout-btn:hover {
+    background: var(--error, #ff4b5c) !important;
+    color: black  !important;
+    box-shadow: 0 0 15px rgba(255, 75, 92, 0.4);
+    transform: skewX(-12deg) scale(1.05);
 }
 
-body.tema-cyberpunk .shop-container,
-body.tema-cyberpunk .score-reveal-box {
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 15px rgba(255, 0, 255, 0.2), inset 0 0 10px rgba(0, 255, 255, 0.1);
+.logout-btn div {
+    transform: skewX(12deg);
+
 }
 
-body.tema-cyberpunk button {
-    background: linear-gradient(135deg, #ff00ff, #00ffff);
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas exactamente iguales */
+    gap: 15px; /* El espacio entre los botones */
+    margin-top: 10px;
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid var(--card-border);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom: 3px solid var(--primary);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.4s ease-out;
+}
+
+#inventory-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px; /* Espacio entre tarjetas */
+    margin-top: 20px;
+    align-items: start; /* Para que las tarjetas no se estiren a lo alto si una tiene más texto */
+}
+
+#inventory-list .shop-item{
+    margin: auto;
+    height: 75%;
+    width:60%; !important;
+}
+
+#tab-inventory{
+    width:90%;
+}
+
+.button-group .btn-main {
+    flex: 1; /* Magia pura: ambos miden exactamente lo mismo */
+    margin: 0 !important; /* Anulamos cualquier margen vertical antiguo */
+    padding: 12px 5px; /* Reducimos un pelín el padding lateral para que quepa el texto */
+    font-size: 0.85rem; /* Letra un pelín más ajustada para evitar desbordes */
+    justify-content: center; /* Asegura que el texto esté centrado */
+}
+
+.fc-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(5, 11, 20, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    position: fixed;
+    top: 0;
+    margin-top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    width: 100%;
+    padding: 15px 25px; /* Fijamos los márgenes interiores para que no haya saltos */
+    box-sizing: border-box;
+}
+
+.nav-left, .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    height: 40px; /* Fijamos la altura de los bloques derecho e izquierdo */
+}
+
+/* 🚨 FIX: Anulamos márgenes globales y centramos el contenido del botón */
+.fc-top-nav button {
+    margin: 0 !important;
+    padding: 0;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* Ocupa el 100% de los 40px */
+}
+
+.icon-btn:hover { transform: scale(1.1); color: #00f2fe; }
+
+.nav-logo {
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    line-height: 1; /* Evita que el texto genere un margen invisible arriba o abajo */
+    display: flex;
+    align-items: center;
+}
+
+.nav-currency {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0 15px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    height: 40px; /* Exactamente la misma altura que el botón del perfil */
+    box-sizing: border-box;
+}
+
+.coin-amount {
+    color: #ffd700;
+    font-weight: bold;
+    margin-left: 8px;
+    font-size: 1.05rem;
+    line-height: 1;
+}
+
+.profile-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px; /* Estilo píldora */
+    height: 40px; /* Exactamente la misma altura que las monedas */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 15px;
+    gap: 10px;
+    box-sizing: border-box;
+}
+
+.nav-profile-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* El avatar en la barra */
+.nav-avatar-trigger img {
+    border-radius: 50%;
+    border: 2px solid #4CAF50; /* color principal */
+    background-color: var(--card-bg);
+    transition: transform 0.3s ease;
+    object-fit: cover;
+}
+
+.nav-profile-container:hover .nav-avatar-trigger img {
+    transform: scale(1.1);
+}
+
+/* La tarjeta desplegable */
+.nav-profile-dropdown {
+    position: absolute;
+    top: 120%; /* Se coloca justo debajo */
+    right: 0;
+    width: 200px;
+    background-color: rgba(31, 40, 51); /* Color de fondo barra/cartas */
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+
+    /* Magia de la animación: Oculto por defecto */
+    opacity: -1;
+    visibility: hidden;
+    transform: translateY(15px);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efecto Hover: Mostrar la tarjeta */
+.nav-profile-container:hover .nav-profile-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Estilos de los textos internos */
+#dropdown-large-avatar {
+    border-radius: 50%;
+    border: 3px solid #4CAF50;
+    background-color: rgba(255, 255, 255, 0.05);
+    margin-bottom: 10px;
+}
+
+#dropdown-fullname {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #ffffff;
+}
+
+.dropdown-stats {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #ffd700; /* Dorado para los créditos */
+}
+
+body.light-mode .nav-profile-dropdown,
+body.light-mode .nav-profile-dropdown {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--primary, #00f2fe);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode #dropdown-fullname {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2b5cb3;
+}
+
+/* Enlaces y textos dentro del dropdown */
+body.light-mode .profile-dropdown a,
+body.light-mode .profile-dropdown li,
+body.light-mode .profile-dropdown span,
+body.light-mode #profile-dropdown a,
+body.light-mode #profile-dropdown li,
+body.light-mode #profile-dropdown span {
+    color: #1f2833;
+    text-shadow: none; /* Quitamos brillos oscuros */
+}
+
+/* Efecto Hover (al pasar el ratón por encima de las opciones) */
+body.light-mode .profile-dropdown a:hover,
+body.light-mode .profile-dropdown li:hover,
+body.light-mode #profile-dropdown a:hover,
+body.light-mode #profile-dropdown li:hover {
+    background-color: rgba(0, 242, 254, 0.15); /* Un fondo cian muy suave */
     color: #000;
+    border-radius: var(--radius, 4px);
 }
 
-/* 2. Teclado Neón */
-body.teclado-neon input#game-input {
-    color: #39ff14 !important; /* Verde fluorescente */
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.6);
-    border-color: #39ff14;
-    background: rgba(0, 20, 0, 0.4);
+.avatar-workshop select {
+    appearance: none; /* Eliminamos el estilo feo del sistema */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-color: rgba(0, 0, 0, 0.4);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2300f2fe' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center; /* Coloca la flecha cian a la derecha */
+
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    color: var(--primary);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 35px 10px 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 220px; /* Ancho fijo para que no bailen al cambiar de opción */
+    outline: none;
+    margin-left: 10px;
 }
 
-body.teclado-neon input#game-input:focus {
-    box-shadow: 0 0 0 3px rgba(57, 255, 20, 0.2);
+/* Efecto al pasar el ratón */
+.avatar-workshop select:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
 }
 
-/* Ajustes Móviles */
+/* Efecto al abrir/enfocar */
+.avatar-workshop select:focus {
+    border-color: var(--primary);
+    background-color: rgba(0, 242, 254, 0.05);
+}
+
+/* Estilo para las opciones (la lista que baja) */
+.avatar-workshop select option {
+    background-color: #0b0c10; /* Color oscuro del fondo */
+    color: white;
+    padding: 10px;
+}
+
+/* Ajuste para las etiquetas de los select */
+.avatar-workshop label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+}
+
+.sidebar-footer {
+    margin-top: auto; /* Empuja esta caja hasta el fondo del menú */
+    padding: 20px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-theme-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #cbd5e1;
+    padding: 12px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%; /* Ocupa el ancho entero de la zona izquierda */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.sidebar-theme-btn i {
+    color: #ffd700; /* Luna en color dorado */
+    font-size: 1.2rem;
+}
+
+.sidebar-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: #00f2fe;
+}
+
+/* ========================================== */
+/* 🍔 MENÚ LATERAL DE CRISTAL                 */
+/* ========================================== */
+
+/* Pantalla entera: Degradado + Difuminado */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100%;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0.3) 100%);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Contenedor del menú (Transparente) */
+.fc-sidebar {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 320px;
+    height: 100vh;
+    background: transparent;
+    border: none;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.fc-sidebar.active {
+    left: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-links {
+    list-style: none;
+    padding: 20px 0;
+    margin: 0;
+}
+
+.sidebar-links li a {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    color: #cbd5e1;
+    text-decoration: none;
+    font-size: 1.05rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.sidebar-links li a i { width: 25px; text-align: center; color: #00f2fe; }
+.sidebar-links li a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    padding-left: 30px;
+    border-left: 4px solid #00f2fe;
+}
+
+.sidebar-divider { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 15px 25px; }
+.text-danger i { color: #ef4444 !important; }
+.text-danger:hover { border-left-color: #ef4444 !important; }
+
+.versus-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #0a0a0f 0%, #000 100%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: row; /* Horizontal por defecto */
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.cyber-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9000;
+}
+
+.cyber-modal-box {
+    background: var(--card-bg, #0a0a0f); border: 2px solid var(--primary);
+    padding: 40px; text-align: center; border-radius: 5px;
+    box-shadow: 0 0 30px rgba(0, 242, 254, 0.3); position: relative;
+    min-width: 350px; color: #fff;
+    animation: glitch-entry 0.3s ease-out;
+}
+
+/* Caja principal de las ventanas emergentes (Salas multijugador) */
+body.light-mode .cyber-modal-box,
+body.light-mode .cyber-modal {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: var(--primary);
+    color: #1f2833;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); /* Sombra formal, le quitamos el brillo neón */
+}
+
+/* Textos informativos dentro del modal (Ej: "Pásale este código a tu rival") */
+body.light-mode .cyber-modal-box p,
+body.light-mode .cyber-modal-box h2,
+body.light-mode .cyber-modal-box h3 {
+    color: #1f2833;
+}
+
+/* El bloque donde sale el código de la sala o donde el usuario lo escribe */
+body.light-mode .room-code-display,
+body.light-mode #input-room-code {
+    background: rgba(240, 242, 245, 0.9); /* Gris asfalto muy clarito en vez de negro puro */
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+/* Forzar que lo que escriba el invitado en el input no sea blanco sobre gris claro */
+body.light-mode #input-room-code {
+    color: #0f172a;
+}
+
+.close-modal-btn {
+    position: absolute; top: 10px; right: 15px;
+    background: none; border: none; color: var(--secondary);
+    font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+}
+
+body.light-mode .close-modal-btn {
+    color: #2b5cb3
+}
+
+.close-modal-btn:hover { text-shadow: 0 0 10px var(--secondary); transform: scale(1.2); }
+
+.room-code-display {
+    font-size: 3.5rem; letter-spacing: 8px; color: var(--primary);
+    font-weight: bold; margin: 20px 0; background: #000; padding: 15px;
+    border: 1px dashed var(--primary); font-family: 'Courier New', Courier, monospace;
+}
+
+#input-room-code {
+    font-size: 2.5rem; text-align: center; text-transform: uppercase;
+    width: 80%; margin-bottom: 25px; padding: 10px; font-weight: bold;
+    background: #000; border: 1px solid var(--secondary); color: #fff;
+}
+
+/* Rueda de carga giratoria */
+.cyber-spinner {
+    border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--primary);
+    border-radius: 50%; width: 40px; height: 40px;
+    animation: spin 1s linear infinite; margin: 20px auto;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.player-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra horizontalmente */
+    justify-content: center;
+    width: 40%;
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.host-side { color: var(--primary); transform: translateX(-150%); }
+.guest-side { color: var(--secondary); transform: translateX(150%); }
+
+.vs-active .host-side, .vs-active .guest-side { transform: translateX(0); }
+
+.vs-avatar {
+    margin: 20px 0;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.vs-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    margin: 0 20px;
+    transform: scale(0);
+    transition: transform 0.4s 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+}
+
+.vs-active .vs-center {
+    transform: scale(1);
+}
+
+.vs-circle {
+    width: 100px; height: 100px;
+    background: #fff;
+    color: #000;
+    border-radius: 50%;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem; font-weight: 900;
+    box-shadow: 0 0 50px var(--primary), 0 0 20px var(--secondary);
+}
+
+#vs-countdown {
+    position: absolute;
+    bottom: 12%; /* Lo clava en la parte inferior. Puedes bajar este % si lo quieres aún más pegado al borde */
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+    font-size: 7rem; /* Tamaño gigante para monitores */
+    font-weight: 900; /* Grosor máximo para que impacte */
+    letter-spacing: 5px; /* Separa un poco las letras para darle aspecto más épico */
+    transform-origin: center bottom; /* Hace que al animarse crezca hacia arriba, no hacia abajo */
+    z-index: 100;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Sombra para que se lea perfecto sobre cualquier fondo */
+}
+
+.cyber-modal {
+    background: rgba(5, 5, 10, 0.95);
+    border: 2px solid var(--primary);
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 0 30px var(--primary);
+    animation: glitch-entry 0.3s ease-out;
+}
+
+@keyframes glitch-entry {
+    0% { transform: scale(0.8); opacity: 0; filter: hue-rotate(90deg); }
+    100% { transform: scale(1); opacity: 1; filter: hue-rotate(0deg); }
+}
+
+#online-waiting-msg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border-left: 5px solid cornflowerblue;
+    padding: 20px;
+    z-index: 1000;
+}
+
+/* =========================================
+   🏆 ESTILOS DEL PODIO (RANKING)
+   ========================================= */
+
+/* Estructura del Podio en Pantallas Grandes (Grid de 6 columnas) */
+.podium-layout {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 divisiones mágicas */
+    grid-template-areas:
+        ". . first first . ."
+        "second second first first third third"
+        "fourth fourth fourth fifth fifth fifth"; /* 4 y 5 se reparten la mitad exacta */
+    gap: 15px;
+    margin-bottom: 30px;
+    align-items: start;
+}
+
+/* Asignación de posiciones en el Grid (Top 3) */
+.pos-1 { grid-area: first; z-index: 10; border-color: #ffd700 !important; box-shadow: 0 10px 25px rgba(255,215,0,0.2); }
+.pos-2 { grid-area: second; border-color: #c0c0c0 !important; }
+.pos-3 { grid-area: third; border-color: #cd7f32 !important; }
+
+/* ⬇️ AJUSTE PARA #4 y #5: Todo el ancho, menos altos, sin aire en medio ⬇️ */
+.pos-4 { grid-area: fourth; opacity: 0.95; padding: 10px 5px !important; }
+.pos-5 { grid-area: fifth; opacity: 0.95; padding: 10px 5px !important; }
+
+/* Sobrescribir JS para hacer los avatares y textos del 4 y 5 más pequeños */
+.pos-4 img, .pos-5 img {
+    width: 45px !important;
+    height: 45px !important;
+    margin-bottom: 5px !important;
+}
+.pos-4 > div:first-child, .pos-5 > div:first-child { /* Reduce el tamaño del "#4" y "#5" */
+    font-size: 1.4rem !important;
+    margin-top: -5px !important;
+    margin-bottom: 2px !important;
+}
+.pos-4 h4, .pos-5 h4 { /* Reduce el nombre del piloto */
+    font-size: 0.95rem !important;
+}
+.pos-4 div > div, .pos-5 div > div { /* Reduce el tamaño de los créditos */
+    font-size: 1rem !important;
+    margin-top: 2px !important;
+}
+
+/* Estilo general de la tarjeta para los Top 5 */
+.podium-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 10px;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.podium-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 242, 254, 0.3);
+}
+
+/* Estilo para los jugadores del #6 en adelante */
+.ranking-rest {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+.small-rank-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 15px;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s, background 0.2s;
+}
+.small-rank-card:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.05);
+}
+
+/* Adaptación a Móviles (Lista apilada perfecta) */
 @media (max-width: 768px) {
-    .login-container, .shop-container, .score-reveal-box { padding: 25px; }
-    h1 { font-size: 2rem; }
-    .big-score { font-size: 4.5rem; }
-    .phrase-container { font-size: 1.2rem; padding: 20px 15px; }
-    .input-area input { font-size: 1.1rem; padding: 15px; }
-    .actions { flex-direction: column; align-items: center; }
-    .final-action-btn { width: 100%; }
+    .podium-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas: "first" "second" "third" "fourth" "fifth";
+        gap: 10px;
+    }
+    .pos-1 { transform: none; margin-bottom: 10px; }
+    .podium-card { flex-direction: row; justify-content: space-between; padding: 10px 15px !important; text-align: left; }
+    .podium-card img { width: 50px !important; height: 50px !important; margin: 0 15px !important; }
+    .podium-card h4 { text-align: left !important; font-size: 1.1rem !important; }
+    .podium-card > div:first-child { margin: 0 !important; font-size: 1.5rem !important; }
+}
+
+/* Adaptación a Móviles (Se vuelve una lista apilada) */
+@media (max-width: 768px) {
+    .podium-layout {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "first"
+            "second"
+            "third"
+            "fourth"
+            "fifth";
+        gap: 10px;
+    }
+    .pos-1 { transform: none; margin-bottom: 10px; }
+    .podium-card { flex-direction: row; justify-content: space-between; padding: 10px 15px; text-align: left; }
+    .podium-card img { width: 50px !important; height: 50px !important; margin: 0 15px !important; }
+    .podium-card h4 { text-align: left !important; }
+}
+
+
+/* Estilos para el Modal del Tutorial */
+.modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 600px;
+    width: 90%;
+    border: 1px solid var(--primary);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.tutorial-section {
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 15px;
+}
+
+.tutorial-section h3 {
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.close-modal {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.close-modal:hover { color: white; }
+
+.card-tutorial {
+    border-color: #a855f7 !important; /* Color púrpura para diferenciarlo */
+}
+
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10000; /* Siempre por encima de todo */
+    pointer-events: none; /* Para que no bloqueen clics debajo */
+}
+
+.cyber-toast {
+    background: rgba(10, 10, 15, 0.9);
+    color: #fff;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    backdrop-filter: blur(5px);
+
+    /* Animación de entrada por defecto */
+    transform: translateX(120%);
+    animation: slideInToast 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Tipos de Toast (Éxito y Error) */
+.cyber-toast.success {
+    border-left: 5px solid #00f2fe; /* color Primary */
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+
+.cyber-toast.error {
+    border-left: 5px solid #fe019a; /* color Secondary */
+    box-shadow: 0 0 15px rgba(254, 1, 154, 0.3);
+}
+
+/* Animación para ocultar el toast */
+.cyber-toast.fade-out {
+    animation: fadeOutToast 0.5s ease forwards;
+}
+
+@keyframes slideInToast {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutToast {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(120%); opacity: 0; }
+}
+
+/* Animación de pulso neón */
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+    }
+    20%, 22%, 24%, 55% {
+        opacity: 0.7;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   COSMÉTICO: TECLADO NEÓN
+   ========================================= */
+body.teclado-neon #game-input {
+    background-color: rgba(10, 10, 10, 0.9) !important;
+    color: #00ffcc !important; /* Texto color cyan/menta */
+    border: 2px solid #ff00ff !important; /* Borde rosa neón */
+    box-shadow: 0 0 15px #ff00ff, inset 0 0 10px #ff00ff !important; /* Brillo exterior e interior */
+    text-shadow: 0 0 8px #00ffcc !important;
+    font-family: 'Courier New', Courier, monospace !important; /* Letra de hacker */
+}
+
+body.teclado-neon #game-input:focus {
+    box-shadow: 0 0 25px #ff00ff, inset 0 0 15px #ff00ff !important;
+    outline: none;
+}
+/* ========================================== */
+/* TEMA CLARO (ESTILO PIT LANE / DAYTONA)     */
+/* ========================================== */
+
+body.light-mode {
+    /* Paleta Clara de Alto Rendimiento */
+    --bg: #f4f6f9;            /* Plata muy claro */
+    --card-bg: rgba(255, 255, 255, 0.85); /* Blanco traslúcido */
+    --card-border: rgba(0, 102, 255, 0.2); /* Borde azul deportivo */
+    --text: #475569;          /* Gris asfalto */
+    --text-highlight: #0f172a;/* Casi negro para buena lectura */
+    --text-secondary: #64748b;
+    --primary: #005ce6;       /* Azul Escudería (más oscuro que el cian para contrastar) */
+
+    /* Ajuste de sombras y gradientes */
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --btn-gradient: linear-gradient(135deg, #005ce6 0%, #0088ff 100%);
+}
+
+/* Fondo de rejilla específico para el tema claro */
+body.light-mode {
+    background-image: linear-gradient(rgba(0, 92, 230, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 92, 230, 0.04) 1px, transparent 1px);
+}
+
+body.light-mode {
+    background-color: #f0f4f8;
+    background-image: none;
+    color: #1e293b;
+}
+
+body.light-mode .fc-top-nav {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .icon-btn { color: #475569; }
+body.light-mode .icon-btn:hover { color: #2563eb; }
+
+body.light-mode .nav-logo { color: #2563eb; }
+
+body.light-mode .nav-currency {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    box-shadow: none;
+}
+body.light-mode .coin-amount { color: #d97706; }
+
+body.light-mode .profile-btn { border-color: rgba(0, 0, 0, 0.1); background: transparent; }
+body.light-mode #user-display { color: #1e293b !important; }
+
+body.light-mode .sidebar-overlay {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.8) 40%, rgba(0, 0, 0, 0.2) 100%);
+}
+body.light-mode .sidebar-links li a { color: #475569; }
+body.light-mode .sidebar-links li a:hover {
+    background: rgba(37, 99, 235, 0.05);
+    color: #1e293b;
+    border-left-color: #2563eb;
+}
+body.light-mode .sidebar-theme-btn { color: #475569; border-color: rgba(0,0,0,0.1); }
+
+/* Ajuste de inputs para que destaquen sobre el blanco */
+body.light-mode input[type="text"],
+body.light-mode input[type="password"],
+body.light-mode input[type="email"],
+body.light-mode input[type="number"] {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-highlight);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 92, 230, 0.2);
+}
+
+/* Los botones sólidos ahora llevan texto blanco para contrastar con el azul */
+body.light-mode .btn-main,
+body.light-mode button {
+    color: #ffffff;
+}
+body.light-mode .tab-btn{
+    color:#2563eb;
+}
+body.light-mode #avatar-preview{
+    background: #2b5cb3;
+    linear-gradient(90deg, rgba(0, 92, 230, 0.04) 1px, transparent 1px);
+}
+
+body.light-mode .avatar-workshop select{
+    background-color: white;
+}
+
+body.light-mode .avatar-workshop select:focus {
+    border-color: var(--primary);
+    background-color: rgb(253, 255, 255);
+}
+
+body.light-mode .avatar-workshop select option {
+    background-color: white; /* Color claro del fondo */
+    color: #0b0c10;
+    padding: 10px;
+}
+
+body.light-mode td .text-yellow-500 { color: #d97706 !important; } /* Monedas */
+body.light-mode td .text-blue-500 { color: #2563eb !important; } /* Editar */
+body.light-mode td .text-purple-500 { color: #7e22ce !important; } /* Roles */
+body.light-mode td .text-red-500 { color: #dc2626 !important; } /* Borrar */
+
+/* Efecto hover más marcado para los iconos en modo claro */
+body.light-mode td button:hover {
+    transform: scale(1.1);
+    filter: brightness(0.8);
+}
+
+/* El botón de Registro (Outline) se invierte al pasar el ratón */
+body.light-mode .btn-main.btn-registro:hover {
+    color: #ffffff !important;
+}
+
+/* Ajuste del botón de logout para que resalte en blanco */
+body.light-mode .logout-btn {
+    border-color: var(--error) !important;
+    color: var(--error) !important;
+}
+
+body.light-mode .logout-btn:hover {
+    color: white !important;
+}
+
+body.light-mode .shop-item {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Sombra más suave de día */
+}
+
+body.light-mode .shop-item:hover {
+    background: rgba(0, 92, 230, 0.05); /* Brillo azul escudería al pasar el ratón */
+    border-color: var(--primary);
+}
+
+body.light-mode .shop-item .desc {
+    font-weight: 500; /* Le damos un pelín más de grosor a la letra para que se lea perfecto sobre blanco */
+}
+
+body.light-mode .btn-equipped {
+    background: #00e676;
+    color: #2a8613;
+    border-color: #00e676;
+    cursor: default;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+body.light-mode .btn-equipped::after {
+    content: '✓';
+    font-weight: bold;
+}
+
+/* --- ARREGLO DE HOVERS PARA TEMA CLARO --- */
+
+/* 1. Suavizamos la sombra brutal del modo oscuro al pasar el ratón por las tarjetas */
+body.light-mode .shop-item.playable:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(0, 92, 230, 0.2) !important;
+    background: rgba(0, 92, 230, 0.05);
+}
+
+/* Sombra suave para la tarjeta de admin en modo claro */
+body.light-mode .admin-card:hover {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 0 20px rgba(255, 75, 92, 0.2) !important;
+}
+
+/* 2. Arreglo de los botones interiores (evitar blanco sobre blanco) */
+body.light-mode .btn-buy:hover {
+    background: var(--text-highlight); /* Fondo asfalto oscuro */
+    color: #ffffff !important; /* Texto blanco asegurado */
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+body.light-mode .btn-equip {
+    color: var(--primary); /* Texto azul por defecto */
+    border: 2px solid var(--primary);
+}
+
+body.light-mode .btn-equip:hover {
+    background: var(--primary); /* Fondo azul al pasar el ratón */
+    color: #ffffff !important; /* Texto blanco */
+}
+
+/* 3. Textos dentro de la tarjeta al hacer hover */
+body.light-mode .shop-item:hover h4,
+body.light-mode .shop-item:hover .desc {
+    color: var(--text-highlight); /* Forzamos que el texto se oscurezca para leerse bien */
+}
+
+body.light-mode .form-group label {
+    color: var(--text-highlight) !important;
+    text-shadow: none;
+    font-weight: 800;
+}
+
+/* Texto secundario de "¿Ya tienes cuenta?" */
+body.light-mode .link-inferior {
+    color: var(--text-secondary) !important;
+}
+
+/* Enlace a Iniciar Sesión en azul escudería */
+body.light-mode .link-inferior a {
+    color: var(--primary) !important;
+}
+
+/* Brillo del enlace adaptado al día (sutil) */
+body.light-mode .link-inferior a:hover {
+    text-shadow: 0 0 10px rgba(0, 92, 230, 0.3) !important;
+}
+
+/* Cajas principales del admin en modo claro */
+body.light-mode .admin-toolbar,
+body.light-mode .admin-table-box {
+    background: var(--card-bg); /* En light-mode usa blanco traslúcido */
+    border-color: var(--card-border);
+    box-shadow: var(--glass-shadow);
+}
+
+/* El interruptor de Usuarios/Roles en modo claro */
+body.light-mode .toggle-switch {
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.05); /* Un gris muy sutil para el fondo inactivo */
+}
+
+body.light-mode .toggle-switch button {
+    color: var(--text-secondary);
+}
+
+body.light-mode .toggle-switch button.active {
+    background: var(--primary);
+    color: #ffffff; /* Contraste fuerte para el botón activo */
+}
+
+/* Ajuste para los textos secundarios de la cabecera y paginación */
+body.light-mode .admin-titles p,
+body.light-mode .pagination-bar {
+    color: var(--text-secondary);
+    border-top-color: rgba(0, 0, 0, 0.1); /* Línea separadora sutil */
+}
+
+/* Forzamos el color del texto de la tabla para que no se vea gris claro sobre blanco */
+body.light-mode .data-table th,
+body.light-mode .data-table td {
+    color: var(--text-highlight);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Ajuste de fuentes para móviles */
+/* --- ARREGLO DE SCROLL EN MÓVILES (EVITAR CORTES) --- */
+/* --- ARREGLO DE SCROLL EN MÓVILES (EVITAR CORTES Y SCROLL FANTASMA) --- */
+/* --- ERRADICACIÓN TOTAL DEL SCROLL FANTASMA (MÓVILES Y TABLETS) --- */
+/* --- ESCALADO DE CAJAS PARA MÓVILES Y TABLETS --- */
+
+@media (max-width: 800px) {
+    /* 1. Permitimos bajar (vertical), pero bloqueamos ir a los lados (horizontal) */
+    html, body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+
+    /* 2. La pantalla crece hacia abajo lo que necesite de forma natural */
+    .screen.active {
+        height: auto !important;
+        min-height: 100vh;
+        padding: 20px 0 !important;
+        padding-top: 80px !important;
+        justify-content: flex-start !important; /* Que las cajas empiecen arriba */
+    }
+
+    /* 3. ACHICAMOS LOS CONTENEDORES: Más estrechos y con menos relleno */
+    .shop-container, .login-container, .registro-container, .score-reveal-box {
+        width: 92% !important; /* Deja un pequeño margen respecto a los bordes del móvil */
+        padding: 1.5rem !important; /* Reducimos el relleno interno drásticamente */
+        margin: auto !important; /* Centrado y con margen inferior */
+        max-height: none !important; /* Anulamos el límite de altura, que crezca libremente */
+        box-sizing: border-box !important;
+    }
+
+    /* 4. ACHICAMOS LAS TARJETAS INTERIORES (Menú y Tienda) */
+    .items-grid {
+        /* Reducimos el tamaño mínimo de la tarjeta de 240px a 180px para que encajen mejor */
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+        gap: 15px !important; /* Juntamos un poco más las tarjetas */
+        width: 100% !important;
+    }
+
+    .shop-item {
+        padding: 15px !important; /* Menos relleno en la propia tarjeta */
+    }
+
+    /* 5. Ajuste proporcional de textos y botones para las nuevas cajas pequeñas */
+    .shop-item h4 { font-size: 1.1rem !important; }
+    .shop-item .price { font-size: 1.1rem !important; margin-bottom: 10px !important; }
+
+    .btn-main, .btn-item-action {
+        padding: 10px !important;
+        font-size: 0.8rem !important;
+    }
+    .btn-index {
+        grid-column: 1 / -1; /* Ocupa todas las columnas disponibles */
+        width: 90%;
+        margin-top: 10px; !important
+    }
+    .rosco-layout {
+        transform: scale(0.8);
+        transform-origin: top center; /* Encogemos desde arriba */
+        margin-bottom: -130px; /* Recortamos el espacio vacío que sobra abajo */
+    }
+}
+
+@media (max-width: 600px) {
+    /* 1. Limitamos el ancho de la pantalla del dashboard para que no toque los bordes */
+    #dashboard-screen {
+        width: 92% !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        padding-top: 20px;
+    }
+
+    /* 2. Forzamos 1 SOLA COLUMNA en el menú principal.
+       Así las tarjetas respiran, el texto se lee bien y nada se corta */
+    .menu-grid.items-grid {
+        grid-template-columns: 1fr !important;
+        width: 99% !important;
+        gap: 20px !important;
+    }
+
+    .shop-container, .login-container, .registro-container, .score-reveal-box {
+        width: 92% !important; /* Deja un pequeño margen respecto a los bordes del móvil */
+        padding: 1.5rem !important; /* Reducimos el relleno interno drásticamente */
+        margin: 20px auto !important; /* Centrado y con margen inferior */
+        max-height: none !important; /* Anulamos el límite de altura, que crezca libremente */
+        box-sizing: border-box !important;
+    }
+
+    .login-container{
+        margin: auto !important;
+    }
+
+    /* 3. Centramos el saludo y los créditos para que queden simétricos */
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 20px;
+        gap: 10px;
+    }
+    .actions{
+        text-align: center;
+    }
+    .theme-toggle {
+        top: 15px;
+        right: 15px;
+        width: 40px;       /* Un poco más pequeño para no robar pantalla */
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    #inventory-list .shop-item{
+        margin: auto;
+        height: 80%;
+        width:60%; !important;
+    }
+
+    /* 4. Centramos el botón de salir del box */
+    #btn-logout {
+        margin: 0 auto 20px auto !important;
+        display: flex;
+    }
+
+    .rosco-layout {
+        transform: scale(0.55);
+        transform-origin: top center;
+        /* LA MAGIA: Centramos la caja gigante restando su tamaño a la pantalla */
+        margin-left: calc((100% - 700px) / 2) !important;
+        margin-bottom: -290px !important; /* Cortamos el espacio fantasma inferior */
+    }
+
+    .rosco-layout ul li{
+
+    }
+
+    #ui-rosco .shop-container {
+        padding: 15px !important;
+        overflow-x: hidden; /* Muro de contención para que no empuje la pantalla */
+    }
+
+    /* Domamos el botón gigante de Abandonar Partida */
+    #ui-rosco .back-btn {
+        align-self: center !important; /* Lo forzamos al medio */
+        font-size: 0.85rem !important; /* Letra tamaño normal */
+        padding: 10px 20px !important;
+        margin-bottom: 25px !important;
+        width: auto !important;
+        white-space: nowrap;
+    }
+
+    /* Aumentamos un pelín la definición para que se lea mejor en el móvil */
+    #ui-rosco .definition {
+        font-size: 1.15rem !important;
+    }
+
+    .versus-overlay {
+        flex-direction: column; /* Apilamos de arriba a abajo */
+        justify-content: space-evenly; /* Repartimos el espacio matemáticamente */
+        background: linear-gradient(rgba(0, 0, 0, 0.85) 0%);
+    }
+
+    .player-card {
+        width: 100%;
+        height: auto;
+        margin: auto;
+    }
+
+    /* Animaciones adaptadas al eje vertical */
+    .host-side { transform: translateY(-100vh); }
+    .guest-side { transform: translateY(100vh);  margin: auto;}
+    .vs-active .host-side, .vs-active .guest-side { transform: translateY(0); }
+
+    .vs-avatar {
+        width: 130px;
+        height: 130px;
+        margin: 10px 0;
+    }
+
+    .player-card h2 {
+        font-size: 1.5rem;
+        margin: 5px 0;
+    }
+
+    .vs-center {
+        margin: 10px 0;
+    }
+
+    .vs-circle {
+        width: 60px; height: 60px;
+        font-size: 1.5rem;
+    }
+
+    #vs-countdown {
+        font-size: 3rem !important; /* Reducimos un poco la fuente en móvil */
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 400px) {
+    .shop-container, .login-container, .registro-container, .score-reveal-box {
+        width: 92% !important; /* Deja un pequeño margen respecto a los bordes del móvil */
+        padding: 1.5rem !important; /* Reducimos el relleno interno drásticamente */
+        margin:auto !important; /* Centrado y con margen inferior */
+        max-height: none !important; /* Anulamos el límite de altura, que crezca libremente */
+        box-sizing: border-box !important;
+    }
+
+    .rosco-layout {
+        transform: scale(0.48);
+        margin-bottom: -330px !important;
+    }
+    .toggle-switch{
+        transform: scale(0.8);
+        width: 60%
+    }
 }

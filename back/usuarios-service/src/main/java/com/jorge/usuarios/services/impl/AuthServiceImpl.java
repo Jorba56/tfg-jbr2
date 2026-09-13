@@ -45,45 +45,33 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public Map<String, Object> login(LoginDTO loginDto) throws BadRequestException, ConflictException {
-        // 1. Buscamos al usuario
         User usuario = userRep.findUserByEmailUsuario(loginDto.getEmailUsuario());
 
-        // 2. Validaciones de credenciales y estado
         if (usuario == null || !passwordEncoder.matches(loginDto.getContrasenhaUsuario(), usuario.getContrasenhaUsuario())) {
             throw new BadRequestException("Credenciales de acceso incorrectas.");
         }
-
         if (!usuario.getActivo()) {
             throw new ConflictException("La cuenta de usuario se encuentra desactivada.");
         }
 
-        // 3. Extraemos los roles
         List<String> rolesString = new ArrayList<>();
         for (Rol rol : usuario.getRoles()) {
             rolesString.add(rol.getName());
         }
 
-        // 4. GENERACIÓN DEL TOKEN (Esta es la línea que debe estar para que no salga en rojo)
+        boolean isAdmin = rolesString.stream().anyMatch(r -> r.equalsIgnoreCase("ADMIN"));
+
+        // Generamos el token
         String token = jwtUtil.generarToken(usuario.getEmailUsuario(), rolesString);
-        List<Map<String, Object>> inventarioUsuario = new ArrayList<>();
 
-        for (Item item : usuario.getInventario()) {
-            Map<String, Object> itemData = new HashMap<>();
-            itemData.put("id_item", item.getIdItem()); // Usamos snake_case por el application.properties
-            itemData.put("nombre", item.getNombre());
-            inventarioUsuario.add(itemData);
-        }
-
+        // Empaquetamos lo que el Controller necesita
         Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put("token", token);
+        respuesta.put("token", token); // Se lo pasamos para que haga la cookie
+        respuesta.put("mensaje", "Login exitoso");
         respuesta.put("username", usuario.getNombreUsuario());
         respuesta.put("creditos", usuario.getCreditos());
-        respuesta.put("inventario", inventarioUsuario);
-
-        // ¡NUEVA LÍNEA! Comprobamos si en su lista de roles está el de ADMIN
-        respuesta.put("isAdmin", rolesString.contains("ADMIN"));
+        respuesta.put("isAdmin", isAdmin);
 
         return respuesta;
-
     }
 }

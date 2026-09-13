@@ -10,6 +10,7 @@ import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
 import com.jorge.usuarios.exceptions.NotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 
@@ -101,4 +102,14 @@ public interface UserService {
     Page<UsersAllDTO> obtenerTodosLosUsuariosPaginados(int page, int size, String sortBy, String sortDir);
 
     UsersAllDTO buscarPorEmail(String correo) throws NotFoundException;
+
+    User buscarPorEmailTodo(String correo);
+
+    Map<String, Object> getPropioPerfil(String emailLogueado);
+
+    @Transactional
+    Map<String, Object> actualizarPerfil(String emailLogueado, Map<String, String> payload);
+
+    @Transactional
+    Map<String, Object> actualizarAvatar(String emailLogueado, String avatarConfig);
 }

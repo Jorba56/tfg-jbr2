@@ -1,0 +1,193 @@
+:root {
+    /* Variables exactas de tu juego */
+    --primary: #00f2fe;
+    --secondary: #fe019a;
+    --card-bg: #0a0a0f;
+    --text: #ffffff;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--card-bg);
+    color: var(--text);
+    font-family: 'Montserrat', sans-serif;
+    overflow-x: hidden; /* Evitar scroll horizontal accidental */
+}
+
+/* -------------------------------------
+   CONTROLES DE PRUEBA (SOLO PARA ESTE ARCHIVO)
+   ------------------------------------- */
+.test-controls {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.btn-test {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+}
+
+.btn-test:hover {
+    background: var(--primary);
+    color: #000;
+    box-shadow: 0 0 30px rgba(0, 242, 254, 0.8);
+}
+
+/* -------------------------------------
+   PANTALLA VERSUS (CARGA DE PARTIDA)
+   ------------------------------------- */
+/* -------------------------------------
+   PANTALLA VERSUS (CARGA DE PARTIDA)
+   ------------------------------------- */
+
+/* 1. Contenedor Principal: Eje perfecto */
+.versus-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, #0a0a0f 0%, #000 100%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: row; /* Horizontal por defecto */
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* 2. Tarjetas de Jugador */
+.player-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centra horizontalmente */
+    justify-content: center;
+    width: 40%;
+    text-align: center;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.host-side { color: var(--primary); transform: translateX(-150vw); }
+.guest-side { color: var(--secondary); transform: translateX(150vw); }
+.vs-active .host-side, .vs-active .guest-side { transform: translateX(0); }
+
+/* 3. Contenedor del Avatar y la Imagen */
+.vs-avatar {
+    margin: 20px 0;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(0,0,0,0.5);
+}
+
+.host-glow { border: 4px solid var(--primary); box-shadow: 0 0 25px var(--primary); }
+.guest-glow { border: 4px solid var(--secondary); box-shadow: 0 0 25px var(--secondary); }
+
+/* 4. Elemento Central (El VS) */
+.vs-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    margin: 0 20px;
+    /* 🚨 LA CLAVE: Solo hacemos scale, sin translate */
+    transform: scale(0);
+    transition: transform 0.4s 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+}
+
+/* 🚨 LA CLAVE: Cuando está activo, solo escala a 1 (ni más, ni menos) */
+.vs-active .vs-center {
+    transform: scale(1);
+}
+
+.vs-circle {
+    width: 100px; height: 100px;
+    background: #fff;
+    color: #000;
+    border-radius: 50%;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem; font-weight: 900;
+    box-shadow: 0 0 50px var(--primary), 0 0 20px var(--secondary);
+}
+
+/* 5. Cuenta Atrás */
+.vs-countdown {
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%); /* Centrado perfecto horizontal */
+    font-size: 6rem;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    transition: transform 0.1s ease-out;
+    z-index: 20;
+    margin: auto;
+}
+
+
+/* =========================================
+   📱 MODO MÓVIL (APILADO VERTICAL ESTRICTO)
+   ========================================= */
+@media (max-width: 600px) {
+    .versus-overlay {
+        flex-direction: column; /* Apilamos de arriba a abajo */
+        justify-content: space-evenly; /* Repartimos el espacio matemáticamente */
+    }
+
+    .player-card {
+        width: 100%;
+        height: auto;
+        margin: auto;
+    }
+
+    /* Animaciones adaptadas al eje vertical */
+    .host-side { transform: translateY(-100vh); }
+    .guest-side { transform: translateY(100vh);  margin: auto;}
+    .vs-active .host-side, .vs-active .guest-side { transform: translateY(0); }
+
+    .vs-avatar {
+        width: 130px;
+        height: 130px;
+        margin: 10px 0;
+    }
+
+    .player-card h2 {
+        font-size: 1.5rem;
+        margin: 5px 0;
+    }
+
+    .vs-center {
+        margin: 10px 0;
+    }
+
+    .vs-circle {
+        width: 60px; height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .vs-countdown {
+        bottom: 20px;
+        font-size: 4rem;
+        margin: auto;
+    }
+}

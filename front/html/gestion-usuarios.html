@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios y Roles</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
+    <link rel="manifest" href="../static/images/site.webmanifest">
+
+    <script>
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light-mode');
+            window.addEventListener('DOMContentLoaded', () => document.body.classList.add('light-mode'));
+        }
+    </script>
+
+    <style>
+
+        .theme-card {
+            background-color: rgba(31, 40, 51, 0.9) !important;
+            border: 1px solid rgba(0, 242, 254, 0.2) !important;
+            border-top: 4px solid #00f2fe !important; /* Línea de color de equipo */
+        }
+
+        thead th {
+            background-color: #0b0c10 !important;
+            color: #00f2fe !important;
+            font-family: 'Montserrat', sans-serif;
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        th, td {
+            min-width: 140px; /* Ancho mínimo para que los datos respiren */
+            padding: 12px 10px !important;
+        }
+
+        /* El ID es el único que puede ser estrecho */
+        th:first-child, td:first-child {
+            min-width: 60px !important;
+        }
+
+        /* Ajuste de los botones de acción para que no se amontonen */
+        .flex.gap-2 {
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+
+        /* Reducimos el tamaño de la fuente en móvil para ver más datos */
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.75rem;
+            }
+            .theme-card {
+                padding: 1rem !important;
+            }
+        }
+        --vi
+    </style>
+</head>
+<body class="p-4 md:p-6 min-h-screen">
+<div class="admin-dashboard">
+
+    <header class="admin-header">
+        <button id="theme-toggle" class="theme-toggle" title="Cambiar tema">🌙</button>
+        <div class="admin-titles">
+            <h1>CENTRO DE CONTROL</h1>
+            <p>Administra los accesos y roles de la plataforma.</p>
+        </div>
+
+        <div class="admin-actions">
+            <a href="login.html"><button class="btn-main">
+                ⬅ Volver al Juego
+            </button></a>
+
+            <div class="toggle-switch">
+                <button id="tab-usuarios" class="active" onclick="cambiarPestana('usuarios')">Usuarios</button>
+                <button id="tab-roles" onclick="cambiarPestana('roles')">Roles</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="seccion-usuarios">
+        <div class="admin-toolbar">
+            <div class="search-group">
+                <input type="text" id="search-id" placeholder="ID..." >
+                <button class="btn-main" style="margin: 0 5px;" onclick="buscarUsuarioPorId()">Buscar</button>
+            </div>
+
+            <div class="search-group">
+                <input type="text" id="search-email" placeholder="Correo...">
+                <button class="btn-main" style="margin: 0 5px;" onclick="buscarUsuarioPorCorreo()">Buscar</button>
+            </div>
+
+            <div class="spacer" style="flex-grow: 1;"></div>
+
+            <button class="btn-export" style="background: #118711; color: white; border: none; padding: 12px 20px; font-weight: bold; cursor: pointer;" onclick="exportarExcelUsuarios()">
+                📗 Exportar
+            </button>
+        </div>
+
+        <div class="admin-table-box">
+            <table class="data-table" style="width: 100%; text-align: center;">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>USUARIO</th>
+                    <th>EMAIL</th>
+                    <th>ROLES</th>
+                    <th style="text-align: center;">ACCIONES</th>
+                </tr>
+                </thead>
+                <tbody id="tablaUsuarios"></tbody>
+            </table>
+
+            <div class="pagination-bar">
+                <span id="infoPagUsuarios">Página 1 de 1</span>
+                <div class="page-controls">
+                    <button class="btn-sec" id="btnAntUsu" onclick="cambiarPaginaUsu(-1)">Anterior</button>
+                    <button class="btn-sec" id="btnSigUsu" onclick="cambiarPaginaUsu(1)">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div> <div id="seccion-roles" class="hidden">
+    <div class="admin-toolbar" style="border-top-color: #a855f7; justify-content: space-between;">
+        <h3 style="margin: 0; color: var(--text-highlight); font-style: italic; text-transform: uppercase;">Roles del Sistema</h3>
+        <button class="btn-main" style="margin: 0; background: linear-gradient(135deg, #a855f7 0%, #7000ff 100%); color: white;" onclick="crearRol()">
+            <div><i class="fas fa-plus mr-2"></i> Nuevo Rol</div>
+        </button>
+    </div>
+
+    <div class="admin-table-box" style="border-top-color: #a855f7;">
+        <table class="data-table" style="width: 100%; text-align: center;">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre del Rol</th>
+                <th style="text-align: center;">Acciones</th>
+            </tr>
+            </thead>
+            <tbody id="tablaRoles">
+            <tr><td colspan="3" class="text-center py-8 text-purple-500 animate-pulse font-bold">Cargando roles...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div> </div> <div id="modalEditarUsuario" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="theme-card w-11/12 max-w-md rounded-2xl shadow-2xl overflow-hidden border theme-border">
+        <div class="bg-blue-600 p-6 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white"><i class="fas fa-user-edit mr-3"></i> Editar Usuario</h3>
+            <button onclick="cerrarModalEditar()" class="text-white hover:text-gray-200 text-2xl font-bold transition">&times;</button>
+        </div>
+        <div class="p-6">
+            <form id="formEditarUsuario" class="space-y-4">
+                <input type="hidden" id="editUserId">
+                <div>
+                    <label class="block text-sm font-bold theme-text mb-1">Nombre</label>
+                    <input type="text" id="editNombre" class="theme-input w-full rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold theme-text mb-1">Apellidos</label>
+                    <input type="text" id="editApellidos" class="theme-input w-full rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold theme-text mb-1">Correo Electrónico</label>
+                    <input type="email" id="editCorreo" class="theme-input w-full rounded-lg px-4 py-2">
+                </div>
+                <div class="flex items-center mt-6 bg-gray-500/10 p-3 rounded-lg border theme-border">
+                    <input type="checkbox" id="editActivo" class="h-5 w-5 text-blue-600 rounded">
+                    <label for="editActivo" class="ml-3 block text-sm font-bold theme-text">Cuenta Activa</label>
+                </div>
+            </form>
+        </div>
+        <div class="p-4 border-t theme-border flex justify-end gap-3 bg-gray-500/5">
+            <button onclick="cerrarModalEditar()" class="theme-card border theme-border theme-text hover:bg-gray-500/20 font-bold py-2 px-6 rounded-lg transition">Cancelar</button>
+            <button onclick="guardarEdicionUsuario()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow transition">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalGestionRoles" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="theme-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border theme-border">
+        <div class="bg-purple-600 px-6 py-4 flex justify-between items-center">
+            <h3 class="text-white font-bold text-lg"><i class="fas fa-user-tag mr-2"></i> Gestionar Roles</h3>
+            <button onclick="cerrarGestionRoles()" class="text-white hover:text-gray-200 text-xl font-bold">&times;</button>
+        </div>
+        <div class="p-6">
+            <div id="listaRolesUsuario" class="max-h-60 overflow-y-auto pr-2 space-y-2"></div>
+        </div>
+        <div class="px-6 py-4 flex justify-end border-t theme-border bg-gray-500/5">
+            <button onclick="cerrarGestionRoles()" class="theme-card border theme-border theme-text hover:bg-gray-500/20 font-bold py-2 px-4 rounded transition">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalGestionarRol" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="theme-card w-11/12 max-w-sm rounded-2xl shadow-2xl overflow-hidden border theme-border">
+        <div id="cabeceraModalRol" class="bg-purple-600 p-6 flex justify-between items-center">
+            <h3 id="tituloModalRol" class="text-xl font-bold text-white"><i class="fas fa-key mr-3"></i> Gestionar Rol</h3>
+            <button onclick="cerrarModalRol()" class="text-white hover:text-gray-200 text-2xl font-bold transition">&times;</button>
+        </div>
+        <div class="p-6">
+            <form id="formGestionarRol" class="space-y-4">
+                <input type="hidden" id="rolId">
+                <div>
+                    <label class="block text-sm font-bold theme-text mb-1">Nombre del Rol</label>
+                    <input type="text" id="rolNombre" class="theme-input w-full rounded-lg px-4 py-2 uppercase">
+                </div>
+                <div id="contenedorRolActivo" class="flex items-center mt-6 bg-gray-500/10 p-3 rounded-lg border theme-border">
+                    <input type="checkbox" id="rolActivo" class="h-5 w-5 text-purple-600 rounded">
+                    <label for="rolActivo" class="ml-3 block text-sm font-bold theme-text">Rol Activo</label>
+                </div>
+            </form>
+        </div>
+        <div class="p-4 border-t theme-border flex justify-end gap-3 bg-gray-500/5">
+            <button onclick="cerrarModalRol()" class="theme-card border theme-border theme-text hover:bg-gray-500/20 font-bold py-2 px-6 rounded-lg transition">Cancelar</button>
+            <button onclick="guardarRol()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg shadow transition">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-creditos" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="theme-card w-11/12 max-w-sm rounded-2xl shadow-2xl overflow-hidden border theme-border">
+        <div class="bg-yellow-500 p-6 flex justify-between items-center">
+            <h3 class="text-xl font-bold text-white"><i class="fas fa-coins mr-3"></i> Añadir Créditos</h3>
+            <button onclick="cerrarModalCreditos()" class="text-white hover:text-gray-200 text-2xl font-bold transition">&times;</button>
+        </div>
+        <div class="p-6 text-center">
+            <p class="text-sm theme-text mb-4">Usuario: <strong id="modal-nombre-usuario" class="theme-strong text-lg block mt-1">...</strong></p>
+            <input type="number" id="modal-input-cantidad" placeholder="Cantidad" class="theme-input w-full rounded-lg px-4 py-3 text-center text-xl font-bold mb-2">
+        </div>
+        <div class="p-4 border-t theme-border flex justify-end gap-3 bg-gray-500/5">
+            <button onclick="cerrarModalCreditos()" class="theme-card border theme-border theme-text hover:bg-gray-500/20 font-bold py-2 px-6 rounded-lg transition">Cancelar</button>
+            <button id="btn-confirmar-creditos" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-6 rounded-lg shadow transition">Ingresar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/gestion-usuarios.js"></script>
+</body>
+</html>

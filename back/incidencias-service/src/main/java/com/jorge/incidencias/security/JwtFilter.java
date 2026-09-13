@@ -44,21 +44,39 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        String token = null;
 
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
+        // 1. 🛡️ BUSCAR EN LAS COOKIES (El nuevo estándar de tu TFG)
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) { // Si usas Spring Boot 2, cambia jakarta por javax
+                if ("jwt_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 2. 🛠️ FALLBACK AL HEADER (Opcional: Por si quieres seguir usando Postman enviando el Bearer)
+        String header = request.getHeader("Authorization");
+        if (token == null && header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
+        }
+
+        // 3. 🏁 SI HAY TOKEN, LO DECODIFICAMOS Y VALIDAMOS
+        if (token != null) {
             try {
+                // Tu lógica exacta y perfecta de JWT
                 Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY);
                 DecodedJWT decodedJWT = JWT.require(algorithm).build().verify(token);
 
                 String username = decodedJWT.getSubject();
-                // Asumimos que tu token guarda el rol en un claim llamado "rol" o "role"
-                // Si en usuarios no lo guardas, luego te digo cómo añadirlo.
                 List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
 
+                System.out.println("--- DEBUG JWT (Incidencias) ---");
+                System.out.println("Usuario: " + username + " | Roles extraídos: " + roles);
+
                 if (roles == null || roles.isEmpty()) {
-                    roles = Collections.singletonList("USER");
+                    roles = Collections.singletonList("USUARIO");
                 }
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
@@ -76,6 +94,8 @@ public class JwtFilter extends OncePerRequestFilter {
                         .warning("Token inválido en incidencias: " + e.getMessage());
             }
         }
+
+        // Dejamos que la petición continúe su camino
         filterChain.doFilter(request, response);
     }
 }

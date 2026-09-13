@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - FastFingers</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="../style.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/images/favicon-16x16.png">
+    <link rel="manifest" href="../static/images/site.webmanifest">
+    <script>
+        // Leemos la telemetría: ¿El usuario dejó el modo claro activado?
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light-mode');
+            window.addEventListener('DOMContentLoaded', () => document.body.classList.add('light-mode'));
+        }
+    </script>
+</head>
+<body>
+
+<div class="registro-container">
+    <h2>Crear Cuenta</h2>
+    <form id="registroForm" class="racing-form">
+        <div class="form-group">
+            <input type="text" id="nombre" required placeholder="Tu nombre">
+        </div>
+        <div class="form-group">
+            <input type="text" id="apellido" required placeholder="Tu apellido">
+        </div>
+        <div class="form-group">
+            <input type="email" id="email" required placeholder="usuario@email.com">
+        </div>
+        <div class="form-group">
+            <input type="password" id="password" required placeholder="••••••••">
+        </div>
+
+        <button type="submit" id="btnRegistro" class="btn-main" style="font-size:15px;  width: 100%; margin-top: 20px;">
+            <div>Registrarse</div>
+        </button>
+        <p class="mensaje" id="mensajeError"></p>
+
+        <p class="link-inferior">
+            ¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a>
+        </p>
+        <a href="index.html" id="btn-index" class="btn-main btn-index" style="width: 90%; margin-top: 20px;">
+            <div>Volver a la página principal</div>
+        </a>
+    </form>
+</div>
+
+<script src="../js/registro.js"></script>
+</body>
+</html>

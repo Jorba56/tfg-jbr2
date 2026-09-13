@@ -41,6 +41,9 @@ public class User{
     @Column(name = "color_tema")
     private String colorTema = "default";
 
+    @Column(name = "avatar_config", length = 255)
+    private String avatarConfig;
+
     // Genera los Getters y Setters para creditos y colorTema
     public int getCreditos() { return creditos; }
     public void setCreditos(int creditos) { this.creditos = creditos; }
@@ -74,14 +77,35 @@ public class User{
     )
     private List<Item> inventario = new ArrayList<>();
 
-    public List<Item> getInventario() { return inventario; }
-    public void setInventario(List<Item> inventario) { this.inventario = inventario; }
+    @Column(name = "rosco_palabras_jugadas", columnDefinition = "integer default 0")
+    private Integer roscoPalabrasJugadas = 0;
+
+    @Column(name = "mejor_puntuacion_rosco", columnDefinition = "integer default 0")
+    private Integer mejorPuntuacionRosco = 0;
+
+    // estadísticas contrarreloj (frases)
+    @Column(name = "frases_acertadas", columnDefinition = "integer default 0")
+    private Integer frasesAcertadas = 0;
+
+    @Column(name = "frases_jugadas", columnDefinition = "integer default 0")
+    private Integer frasesJugadas = 0;
+
+    @Column(name = "mejor_puntuacion_contrarreloj", columnDefinition = "integer default 0")
+    private Integer mejorPuntuacionContrarreloj = 0;
+
+
 
     // Getters and setters
     @JsonIgnore
     public Long getIdUser() { return idUser; }
     @JsonIgnore
     public void setIdUser(Long idUser) { this.idUser= idUser; }
+
+    public List<Item> getInventario() { return inventario; }
+    public void setInventario(List<Item> inventario) { this.inventario = inventario; }
+
+    public String getAvatarConfig() { return avatarConfig; }
+    public void setAvatarConfig(String avatarConfig) { this.avatarConfig = avatarConfig; }
 
     public String getNombreUsuario() { return nombreUsuario; }
     public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
@@ -97,6 +121,44 @@ public class User{
 
     public boolean getActivo() { return activo; }
     public void setActivo(boolean activo) { this.activo= activo; }
+
+    public Integer getRoscoPalabrasJugadas() {return roscoPalabrasJugadas;}
+
+    public void setRoscoPalabrasJugadas(Integer roscoPalabrasJugadas) {
+        this.roscoPalabrasJugadas = roscoPalabrasJugadas;
+    }
+
+    public Integer getMejorPuntuacionRosco() {
+        return mejorPuntuacionRosco;
+    }
+
+    public void setMejorPuntuacionRosco(Integer mejorPuntuacionRosco) {
+        this.mejorPuntuacionRosco = mejorPuntuacionRosco;
+    }
+
+    public Integer getFrasesAcertadas() {
+        return frasesAcertadas;
+    }
+
+    public void setFrasesAcertadas(Integer frasesAcertadas) {
+        this.frasesAcertadas = frasesAcertadas;
+    }
+
+    public Integer getFrasesJugadas() {
+        return frasesJugadas;
+    }
+
+    public void setFrasesJugadas(Integer frasesJugadas) {
+        this.frasesJugadas = frasesJugadas;
+    }
+
+    public Integer getMejorPuntuacionContrarreloj() {
+        return mejorPuntuacionContrarreloj;
+    }
+
+    public void setMejorPuntuacionContrarreloj(Integer mejorPuntuacionContrarreloj) {
+        this.mejorPuntuacionContrarreloj = mejorPuntuacionContrarreloj;
+    }
     @JsonIgnore
     public List<Rol> getRoles() {
         return roles;

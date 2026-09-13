@@ -9,15 +9,24 @@ import com.jorge.usuarios.dto.UsersAllDTO;
 
 import com.jorge.usuarios.exceptions.BadRequestException;
 import com.jorge.usuarios.exceptions.DuplicateException;
+import com.jorge.usuarios.exceptions.NotFoundException;
 import com.jorge.usuarios.repository.ItemRepository;
 import com.jorge.usuarios.services.impl.UserServiceImpl;
 import com.jorge.usuarios.utils.UsuarioExcelExporter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 
@@ -26,6 +35,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * Controlador REST encargado de gestionar las peticiones HTTP relacionadas con los Usuarios.
@@ -65,6 +76,8 @@ public class UserController {
     public UsersAllDTO getUserId(@PathVariable Long id) {
         return userServiceImpl.buscarPorId(id);
     }
+
+
 
     /**
      * Busca y devuelve los datos de un usuario específico mediante su correo.
@@ -214,5 +227,159 @@ public class UserController {
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /**
+     * Endpoint para que el juego (script.js) envíe los créditos ganados al acabar una contrarreloj o modo IA.
+     */
+    @Operation(summary = "Guardar recompensa de partida", description = "Suma créditos al terminar la partida.")
+    @PostMapping("/actualizar-creditos")
+    public ResponseEntity<String> actualizarCreditosGanados(@RequestBody java.util.Map<String, Integer> payload, Authentication authentication) {
+        System.out.println("\n--- 🚥 RECEPCIÓN DE TELEMETRÍA ---");
+        try {
+            String emailUsuario = authentication.getName();
+
+            // 1. Comprobamos si el paquete llegó roto o vacío
+            if (payload == null || !payload.containsKey("creditosExtra")) {
+                System.out.println("❌ ERROR: El JSON no contiene la palabra 'creditosExtra'");
+                return ResponseEntity.badRequest().body("Formato JSON incorrecto");
+            }
+
+            // 2. Extraemos el número con total seguridad
+            Integer creditosExtra = payload.get("creditosExtra");
+            System.out.println("Piloto: " + emailUsuario + " | Créditos a sumar: " + creditosExtra);
+
+            // 3. Filtro antitrámite
+            if (creditosExtra == null || creditosExtra <= 0) {
+                System.out.println("❌ ERROR: Créditos nulos o a cero.");
+                return ResponseEntity.badRequest().body("No se han ganado créditos válidos");
+            }
+
+            // 4. Guardamos en base de datos
+            userServiceImpl.sumarCreditosPartida(emailUsuario, creditosExtra);
+
+            System.out.println("🏁 ÉXITO: +" + creditosExtra + " créditos guardados en BBDD.\n");
+            return ResponseEntity.ok("Telemetría guardada correctamente");
+
+        } catch (Exception e) {
+            System.err.println("💥 ERROR INTERNO AL GUARDAR: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Fallo catastrófico en el motor de guardado");
+        }
+    }
+
+    @Operation(summary = "Obtener propio perfil", description = "Devuelve los datos del usuario logueado basándose en su Cookie/Token.")
+    @GetMapping("/perfil")
+    public ResponseEntity<?> getPropioPerfil(Authentication authentication) {
+        try {
+            // 1. El controller saca el dato de la petición HTTP
+            String emailLogueado = authentication.getName();
+
+            // 2. Delega el trabajo duro al Service
+            Map<String, Object> perfil = userServiceImpl.getPropioPerfil(emailLogueado);
+
+            // 3. Envuelve el resultado en un 200 OK
+            return ResponseEntity.ok(perfil);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Error al obtener perfil: " + e.getMessage());
+            return ResponseEntity.status(401).body(Map.of("mensaje", "Sesión inválida o caducada"));
+        }
+    }
+
+    @Operation(summary = "Actualizar Avatar", description = "Guarda la configuración del nuevo avatar de DiceBear.")
+    @PutMapping("/avatar")
+    public ResponseEntity<?> actualizarAvatar(Authentication authentication, @RequestBody Map<String, String> body) {
+        try {
+            // 1. Extraemos quién es y qué avatar quiere
+            String emailLogueado = authentication.getName();
+            String nuevaConfig = body.get("config");
+
+            // 2. Delegamos al Service
+            Map<String, Object> respuesta = userServiceImpl.actualizarAvatar(emailLogueado, nuevaConfig);
+
+            // 3. Devolvemos el OK
+            return ResponseEntity.ok(respuesta);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("Error en el taller de avatares: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("mensaje", "Error interno en el taller"));
+        }
+    }
+
+    @Operation(summary = "Actualizar perfil propio", description = "Permite al piloto cambiar su nombre y contraseña.")
+    @PutMapping("/perfil")
+    public ResponseEntity<?> actualizarPropioPerfil(Authentication authentication, @RequestBody Map<String, String> payload) {
+        try {
+            // 1. Sacamos el email de la cookie segura
+            String emailLogueado = authentication.getName();
+
+            // 2. Delegamos al Service
+            Map<String, Object> respuesta = userServiceImpl.actualizarPerfil(emailLogueado, payload);
+
+            // 3. Devolvemos 200 OK
+            return ResponseEntity.ok(respuesta);
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(404).body(Map.of("mensaje", e.getMessage()));
+        } catch (Exception e) {
+            // Cero loggers: informamos del fallo genérico al frontend
+            return ResponseEntity.status(500).body(Map.of("mensaje", "Fallo mecánico al actualizar el perfil"));
+        }
+    }
+
+    @Operation(summary = "Cerrar Sesión Total", description = "Destruye el JWT y borra la cookie del navegador.")
+    @PostMapping("/logout-manual")
+    public ResponseEntity<?> cerrarSesionTotal(HttpServletResponse response) {
+
+        // 🛡️ REPARACIÓN DEFINITIVA CORS/RAILWAY: Usamos ResponseCookie para forzar el SameSite=None
+        ResponseCookie jwtCookie = ResponseCookie.from("jwt_token", "")
+                .path("/")
+                .httpOnly(true)
+                .secure(true)       // Obligatorio en HTTPS
+                .sameSite("None")   // 🔑 LA MAGIA: Permite que tu navegador borre la cookie aunque estés en otro dominio
+                .maxAge(0)          // 0 = Destrucción instantánea
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
+
+        // Limpiamos la RAM del servidor
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok(Map.of("mensaje", "Exorcismo completado. Sesión destruida."));
+    }
+
+    @GetMapping("/ranking/global")
+    public ResponseEntity<List<Map<String, Object>>> getRankingGlobal() {
+        return ResponseEntity.ok(userServiceImpl.obtenerRankingGlobal());
+    }
+
+    @Operation(summary = "Guardar telemetría", description = "Guarda las estadísticas y créditos al terminar la partida.")
+    @PostMapping("/guardar-partida")
+    public ResponseEntity<?> guardarPartida(
+            Authentication authentication, // 🛠️ CAMBIO 1: Usamos Authentication normal
+            @RequestBody Map<String, Object> datosPartida) {
+
+        try {
+            // 🛠️ CAMBIO 2: Extraemos el email directamente como un String
+            String emailUsuario = authentication.getName();
+
+            // Enviamos los datos al motor
+            userServiceImpl.guardarEstadisticasPartida(emailUsuario, datosPartida);
+
+            return ResponseEntity.ok(Map.of("mensaje", "Telemetría guardada con éxito"));
+
+        } catch (Exception e) {
+            System.err.println("Fallo al guardar telemetría: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of("error", "Fallo al procesar datos de la partida"));
+        }
+    }
+
+    @GetMapping("/estadisticas/{id}")
+    public ResponseEntity<?> getEstadisticasPublicas(@PathVariable Long id) {
+        return ResponseEntity.ok(userServiceImpl.obtenerEstadisticasPublicas(id));
     }
 }

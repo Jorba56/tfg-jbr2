@@ -2,6 +2,7 @@ package com.jorge.usuarios.exceptions;
 
 import com.jorge.usuarios.entity.User;
 import com.jorge.usuarios.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,9 @@ public class GlobalExceptionHandler {
 
     String badR = "Bad Request";
     String unauthorized = "Unauthorized";
+
+    @Value("${URI_INCIDENCIAS:https://incidencias.railway.internal:8082}")
+    private String uriIncidencias;
 
     public GlobalExceptionHandler(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -201,7 +205,8 @@ public class GlobalExceptionHandler {
         // la magia de microservicios: hacemos una petición post al otro microservicio
         org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
         try {
-            restTemplate.postForObject("http://host.docker.internal:8082/incidencias", incidenciaJson, String.class);
+            uriIncidencias= uriIncidencias+ "/incidencias";
+            restTemplate.postForObject(uriIncidencias, incidenciaJson, String.class);
         } catch (Exception e) {
             // Usamos logger nativo para asegurar la compilación
             java.util.logging.Logger.getLogger(this.getClass().getName())
