@@ -5,7 +5,7 @@
 [![JavaScript](https://img.shields.io/badge/Vanilla_JS-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**FastFingers** es una plataforma web interactiva Full-Stack orientada al aprendizaje y perfeccionamiento de la mecanografía mediante dinámicas de juego competitivas (*gamification*). Este proyecto constituye el Trabajo de Fin de Grado (TFG) del **Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Web (DAW)**.
+**FastFingers** es una plataforma web interactiva Full-Stack orientada al aprendizaje y perfeccionamiento de la mecanografía mediante dinámicas de juego competitivas (*gamification*). Este proyecto constituye el Trabajo de Fin de Ciclo (TFC) del **Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Web (DAW)**.
 
 ---
 
@@ -39,7 +39,7 @@ El proyecto abandona las estructuras monolíticas tradicionales en favor de una 
 ## 📦 Estructura del Repositorio
 
 ```text
-tfg-jbr2/
+fastfingers/
 ├── back/
 │   ├── api-gateway/         # Enrutamiento y seguridad perimetral
 │   ├── eureka-server/       # Servidor de descubrimiento
